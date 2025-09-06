@@ -1,0 +1,46 @@
+GET
+https://api.mapbox.com/geocoding/v5/mapbox.places/Avenida General San Martin 315, Ponta da Praia, Santos, SP.json?access_token=MAPBOX_PUBLIC_KEY&country=br&limit=1
+[HTTP/3 401  156ms]
+
+❌ Erro na geocodificação: Error: Erro na geocodificação: 401
+    geocodeAddress https://timepulseai.com.br/gestao_pedidos.html:2609
+    calculateDeliveryRoute https://timepulseai.com.br/gestao_pedidos.html:2739
+    checkCustomerByPhone https://timepulseai.com.br/gestao_pedidos.html:4071
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3961
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3956
+    init https://timepulseai.com.br/gestao_pedidos.html:2879
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/gestao_pedidos.html:4434
+    EventListener.handleEvent* https://timepulseai.com.br/gestao_pedidos.html:5185
+gestao_pedidos.html:2624:17
+    geocodeAddress https://timepulseai.com.br/gestao_pedidos.html:2624
+    calculateDeliveryRoute https://timepulseai.com.br/gestao_pedidos.html:2739
+    checkCustomerByPhone https://timepulseai.com.br/gestao_pedidos.html:4071
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3961
+    (assíncrono: EventListener.handleEvent)
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3956
+    init https://timepulseai.com.br/gestao_pedidos.html:2879
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/gestao_pedidos.html:4434
+    (assíncrono: EventListener.handleEvent)
+    <anonymous> https://timepulseai.com.br/gestao_pedidos.html:5185
+❌ Erro no cálculo da rota: Error: Erro na geocodificação: 401
+    geocodeAddress https://timepulseai.com.br/gestao_pedidos.html:2609
+    calculateDeliveryRoute https://timepulseai.com.br/gestao_pedidos.html:2739
+    checkCustomerByPhone https://timepulseai.com.br/gestao_pedidos.html:4071
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3961
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3956
+    init https://timepulseai.com.br/gestao_pedidos.html:2879
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/gestao_pedidos.html:4434
+    EventListener.handleEvent* https://timepulseai.com.br/gestao_pedidos.html:5185
+gestao_pedidos.html:2773:17
+    calculateDeliveryRoute https://timepulseai.com.br/gestao_pedidos.html:2773
+    checkCustomerByPhone https://timepulseai.com.br/gestao_pedidos.html:4071
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3961
+    (assíncrono: EventListener.handleEvent)
+    setupEventListeners https://timepulseai.com.br/gestao_pedidos.html:3956
+    init https://timepulseai.com.br/gestao_pedidos.html:2879
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/gestao_pedidos.html:4434
+    (assíncrono: EventListener.handleEvent)
+    <anonymous> https://timepulseai.com.br/gestao_pedidos.html:5185
+
+​
+

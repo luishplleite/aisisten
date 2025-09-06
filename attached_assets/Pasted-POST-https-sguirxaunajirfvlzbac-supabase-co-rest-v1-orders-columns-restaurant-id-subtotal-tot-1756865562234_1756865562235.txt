@@ -1,0 +1,104 @@
+POST
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?columns="restaurant_id","subtotal","total","notes","order_balcao","order_mesa","payment_method","cash_received","customer_name","customer_phone","delivery_address","delivery_fee","status"&select=*
+[HTTP/3 400  49ms]
+
+	
+POST
+	https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?columns="restaurant_id","subtotal","total","notes","order_balcao","order_mesa","payment_method","cash_received","customer_name","customer_phone","delivery_address","delivery_fee","status"&select=*
+Status
+400
+VersãoHTTP/3
+Transferido1,21 kB (tamanho 132 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+access-control-allow-origin
+	https://timepulseai.com.br
+access-control-expose-headers
+	Content-Encoding, Content-Location, Content-Range, Content-Type, Date, Location, Server, Transfer-Encoding, Range-Unit
+alt-svc
+	h3=":443"; ma=86400
+cf-cache-status
+	DYNAMIC
+cf-ray
+	9791b464f96fcb4c-GIG
+content-encoding
+	gzip
+content-type
+	application/json; charset=utf-8
+date
+	Wed, 03 Sep 2025 02:09:22 GMT
+priority
+	u=4,i=?0
+sb-gateway-version
+	1
+sb-project-ref
+	sguirxaunajirfvlzbac
+sb-request-id
+	01990d55-fb25-7b13-92a1-12939482c664
+server
+	cloudflare
+server-timing
+	cfExtPri
+set-cookie
+	__cf_bm=7396CcOjRU1DvAot0QmfyGS_mVYsWFl.lxpcW8uw48I-1756865362-1.0.1.1-WIVbzLhUAaK4Lnru1giEcfQYFzORE7ysR42nFxE8uJas73r.ylQasmic5G28rmUc19qwU3mUtINyty7nWJLYGLLsCs0TXFUYKJ3rALTArIw; path=/; expires=Wed, 03-Sep-25 02:39:22 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+strict-transport-security
+	max-age=31536000; includeSubDomains; preload
+vary
+	Accept-Encoding
+x-content-type-options
+	nosniff
+x-envoy-attempt-count
+	1
+x-envoy-upstream-service-time
+	1
+	
+Accept
+	application/vnd.pgrst.object+json
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+apikey
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k
+authorization
+	Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlVOZ3FBVHhZZ015ZzVJd3IiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NndWlyeGF1bmFqaXJmdmx6YmFjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU2ODY1NTAzLCJpYXQiOjE3NTY4NjE5MDMsImVtYWlsIjoibHVpc2hwbGxlaXRlQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJsdWlzaHBsbGVpdGVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJvd25lcl9uYW1lIjoiTHVpcyBIZW5yaXF1ZSBQZXJlaXJhIExlaXRlIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJyZXN0YXVyYW50X25hbWUiOiJMdWlzIEhlbnJpcXVlIFBlcmVpcmEgTGVpdGUiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc1Njg2MTkwM31dLCJzZXNzaW9uX2lkIjoiYTA3MmFmYzktNTIzNi00MDU1LWIyMjctNzI3YzllNGE1ZDYyIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.GNNbgBhri3nU-G3bvCsWeuugWLVcJK70u7f6b_HAUew
+Connection
+	keep-alive
+Content-Length
+	366
+content-profile
+	public
+content-type
+	application/json
+Host
+	sguirxaunajirfvlzbac.supabase.co
+Origin
+	https://timepulseai.com.br
+prefer
+	return=representation
+Priority
+	u=4
+Referer
+	https://timepulseai.com.br/
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	cross-site
+TE
+	trailers
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+
+    x-client-info
+    	supabase-js-web/2.57.0
+
+❌ Erro ao salvar pedido: 
+Object { code: "PGRST204", details: null, hint: null, message: "Could not find the 'cash_received' column of 'orders' in the schema cache" }
+gestao_pedidos.html:3755:21
+    saveOrder https://timepulseai.com.br/gestao_pedidos.html:3755
+    submitDeliveryOrder https://timepulseai.com.br/gestao_pedidos.html:5093
+    onclick https://timepulseai.com.br/gestao_pedidos.html:1

@@ -1,0 +1,29 @@
+Dados da instância: {instanceId: '50b2dbcb-66bb-4969-92cf-493f03237e49', instanceName: 'BuguerStar', token: 'session_1756893394318_kj8l08c4t', type: 'restaurant', userEmail: 'luishplleite@gmail.com', …}
+sharebx.js:8 1
+sharebx.js:20 1
+css.js:38 cssjs
+css.js:51 enabled.
+css.js:89 go
+css.js:336 cssjs
+gestao_entregadores.html:1086 6 entregadores carregados
+gestao_entregadores.html:1029 Página inicializada com sucesso
+gestao_entregadores.html:1547 Gerando relatório para a data: 2025-09-03 Entregador: Todos
+gestao_entregadores.html:1554 Filtro de data: {startDate: '2025-09-03T00:00:00.000Z', endDate: '2025-09-03T23:59:59.999Z'}
+gestao_entregadores.html:1582 Pedidos filtrados: 0
+gestao_entregadores.html:1587 Tentando filtrar por created_at...
+gestao_entregadores.html:1612 Pedidos encontrados por created_at: 3
+gestao_entregadores.html:1622 Buscando dados dos entregadores para IDs: ['c902498c-5193-4513-a893-1e738fafef15']
+gestao_entregadores.html:1623 Restaurant ID: 50b2dbcb-66bb-4969-92cf-493f03237e49
+gestao_entregadores.html:1634 DADOS BRUTOS dos entregadores da base de dados: [{…}]
+gestao_entregadores.html:1637 Dados RAW do entregador João Silva: {commission (raw): 5, salary (raw): 50, commission type: 'number', salary type: 'number'}
+gestao_entregadores.html:1656 Entregador João Silva - VALORES PROCESSADOS: {Taxa Entrega (commission): 5, Paga (salary): 50, Resultado final: {…}}
+gestao_entregadores.html:1667 Dados dos entregadores processados: {c902498c-5193-4513-a893-1e738fafef15: {…}}
+gestao_entregadores.html:1680 Pedidos com dados dos entregadores: (3) [{…}, {…}, {…}]
+gestao_entregadores.html:1699 Gerando dados do relatório com 3 pedidos
+gestao_entregadores.html:1710 Processando pedido para entregador: {id: 'c902498c-5193-4513-a893-1e738fafef15', name: 'João Silva', commission: 5, salary: 50}
+gestao_entregadores.html:1731 Criando stats para entregador: {id: 'c902498c-5193-4513-a893-1e738fafef15', name: 'João Silva', commission: 5, salary: 50, deliveries: 0, …}
+gestao_entregadores.html:1710 Processando pedido para entregador: {id: 'c902498c-5193-4513-a893-1e738fafef15', name: 'João Silva', commission: 5, salary: 50}
+gestao_entregadores.html:1710 Processando pedido para entregador: {id: 'c902498c-5193-4513-a893-1e738fafef15', name: 'João Silva', commission: 5, salary: 50}
+gestao_entregadores.html:1776 Cálculo de Ganho para João Silva: {Taxa Entrega (commission): 5, Número de Entregas: 3, Paga (salary): 50, Cálculo: '(5 × 3) + 50 = 65.00', Ganho Total: 65, …}
+gestao_entregadores.html:1788 Stats finais dos entregadores: {c902498c-5193-4513-a893-1e738fafef15: {…}}
+gestao_entregadores.html:1 Uncaught SyntaxError: Unexpected end of input (at gestao_entregadores.html:1:77)Understand this error

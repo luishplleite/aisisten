@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TimePulse AI</title>
+    <meta name="description" content="Dashboard de gerenciamento para o restaurante">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/config.js"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        /* Dashboard-specific styles that work with the theme system */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Sidebar está sendo carregado do styles.css global */
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1); /* Cor transparente do verde */
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: #6c757d; /* Ícones escuros por padrão */
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        /* --- Alterações aqui para o fundo branco e sombra do cabeçalho da página --- */
+        .page-header {
+            background: white; /* Fundo branco */
+            color: #333; /* Cor do texto para contraste */
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* Sombra mais pronunciada */
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color); /* Mantém a cor verde para o título */
+        }
+        
+        .page-header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #6c757d; /* Cor do subtítulo para contraste */
+        }
+        /* --- Fim das alterações --- */
+        
+        .status-badge {
+            background-color: var(--success-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-badge.offline {
+            background-color: var(--danger-color);
+        }
+
+        .dashboard-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .card-icon {
+            font-size: 2rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background-color: #f0f0f0;
+            color: #666;
+        }
+        
+        .stat-card.pendentes .card-icon {
+            background-color: #fff3cd;
+            color: #ffc107;
+        }
+
+        .stat-card.receita .card-icon {
+            background-color: #d4edda;
+            color: var(--success-color);
+        }
+
+        .stat-card.pedidos .card-icon {
+            background-color: #cce5ff;
+            color: var(--info-color);
+        }
+
+        .stat-card.entregadores .card-icon {
+            background-color: #e2e3e5;
+            color: var(--secondary-color);
+        }
+
+        .stat-card .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+        }
+        
+        .stat-card .card-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .stat-card .card-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+            line-height: 1;
+        }
+        
+        .stat-card .card-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .dashboard-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .section-header .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+    .section-header .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #ddd;
+        }
+
+        .section-header .btn-secondary:hover {
+            background: #d4d8dc;
+        }
+        
+        .section-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .section-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .section-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .list-item-title {
+            font-weight: 600;
+        }
+        
+        .list-item-subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .list-item-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .list-item-status.encerrado {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item-status.ocupado {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .list-item-status.disponivel {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: right;
+        }
+
+        .list-item-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .list-item-subtext {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .courier-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .courier-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .courier-initial {
+            width: 40px;
+            height: 40px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .courier-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .courier-name {
+            font-weight: 600;
+        }
+        
+        .courier-details {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .courier-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: capitalize;
+        }
+        
+        /* Adicionando ou ajustando as cores de fundo para os status dos entregadores */
+        .courier-status.busy {
+            background-color: #fff3cd; /* Amarelo claro */
+            color: #856404; /* Amarelo escuro */
+        }
+        
+        .courier-status.active {
+            background-color: #d4edda; /* Verde claro */
+            color: #155724; /* Verde escuro */
+        }
+
+        .courier-status.inactive { /* Nova classe para entregadores inativos */
+            background-color: #e2e3e5; /* Cinza claro */
+            color: #495057; /* Cinza escuro */
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo brand-name">TimePulse AI</div>
+                <div class="restaurant-name restaurant-brand" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                    <a href="historico_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📋</span>
+                        Histórico
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" onclick="signOut()">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content" id="mainContent">
+            <header class="page-header">
+                <div class="page-header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-line"></i>
+                        Dashboard
+                    </h1>
+                    <p class="page-subtitle" id="currentDate"></p>
+                </div>
+                <div class="status-badge" id="onlineStatusBadge">
+                    <i class="fas fa-circle"></i>
+                    <span id="onlineStatusText"></span>
+                </div>
+            </header>
+
+            <div class="dashboard-stats-grid">
+                <div class="stat-card pendentes">
+                    <div class="card-icon"><i class="fas fa-box-open"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Pedidos Pendentes</div>
+                        <div class="card-value" id="pendingOrdersCount">0</div>
+                        <div class="card-subtitle">+<span id="pendingOrdersToday">0</span> hoje</div>
+                    </div>
+                </div>
+                <div class="stat-card receita">
+                    <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Receita Hoje</div>
+                        <div class="card-value" id="todayRevenue">R$ 0.00</div>
+                        <div class="card-subtitle"><span id="revenueComparison"></span> vs ontem</div>
+                    </div>
+                </div>
+                <div class="stat-card pedidos">
+                    <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Pedidos Hoje</div>
+                        <div class="card-value" id="todayOrdersCount">0</div>
+                        <div class="card-subtitle"><span id="ordersComparison"></span> vs ontem</div>
+                    </div>
+                </div>
+                <div class="stat-card entregadores">
+                    <div class="card-icon"><i class="fas fa-motorcycle"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Entregadores Ativos</div>
+                        <div class="card-value" id="activeDeliverersCount">0</div>
+                        <div class="card-subtitle">
+                            <span id="busyDeliverers">0</span> ocupados
+                            <br>
+                            <span id="freeDeliverers">0</span> livres
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Pedidos Recentes</h3>
+                        <a href="gestao_pedidos.html" class="btn btn-secondary">Ver Todos</a>
+                    </div>
+                    <ul class="section-list" id="recentOrdersList">
+                        <li style="text-align: center; color: #6c757d;">Carregando pedidos...</li>
+                    </ul>
+                </div>
+
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Vendas dos Últimos 7 Dias</h3>
+                        <button class="btn btn-secondary" onclick="refreshChart()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                        <p class="list-item-subtext" style="text-align: center; margin-top: 1rem;">Dados dos últimos 7 dias</p>
+                    </div>
+                </div>
+                
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Entregadores</h3>
+                        <a href="gestao_entregadores.html" class="btn btn-secondary">Gerenciar</a>
+                    </div>
+                    <ul class="section-list" id="deliverersList">
+                        <li style="text-align: center; color: #6c757d;">Carregando entregadores...</li>
+                    </ul>
+                </div>
+                
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h3>Produtos Populares</h3>
+                        <a href="cardapio.html" class="btn btn-secondary">Ver Cardápio</a>
+                    </div>
+                    <ul class="section-list" id="popularProductsList">
+                        <li style="text-align: center; color: #6c757d;">Carregando produtos...</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Variáveis globais para o Supabase, Mapbox e dados do dashboard
+        let supabase;
+        let MAPBOX_ACCESS_TOKEN;
+        let currentRestaurant = null;
+        let allOrders = [];
+        let allDeliverers = [];
+        let allProducts = [];
+        // Flag para garantir que os listeners de tempo real sejam configurados apenas uma vez
+        let supabaseRealtimeListenersInitialized = false;
+
+        /**
+         * Formata um objeto Date para uma string legível, incluindo dia da semana, data e hora.
+         * @param {Date} date - O objeto Date a ser formatado.
+         * @returns {string} A string formatada da data e hora.
+         */
+        function formatDate(date) {
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            return `${date.toLocaleDateString('pt-BR', timeOptions)} - ${date.toLocaleDateString('pt-BR', options)}`;
+        }
+
+        /**
+         * Converte um objeto Date para uma string de data no formato 'YYYY-MM-DD' no fuso horário local.
+         * @param {Date} date - O objeto Date a ser formatado.
+         * @returns {string} A string da data local.
+         */
+        function getLocalDateString(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Carrega as configurações do arquivo config.js local.
+         */
+        async function loadSecureConfig() {
+            try {
+                // Usar configurações locais do arquivo config.js
+                if (!window.SUPABASE_CONFIG || !window.API_CONFIG) {
+                    throw new Error('Arquivo de configuração config.js não foi carregado corretamente.');
+                }
+
+                const supabaseConfig = window.SUPABASE_CONFIG;
+                const config = window.API_CONFIG;
+
+                // Inicializa o Supabase se as chaves estiverem disponíveis
+                if (supabaseConfig.url && supabaseConfig.anon_key) {
+                    console.log('✅ Configurações do Supabase carregadas com sucesso.');
+                    supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anon_key);
+                } else {
+                    throw new Error('As configurações do Supabase no arquivo config.js são inválidas.');
+                }
+
+                // Armazena o token do Mapbox se estiver disponível
+                if (config.mapbox?.accessToken) {
+                    MAPBOX_ACCESS_TOKEN = config.mapbox.accessToken;
+                    console.log('✅ Chave do Mapbox carregada com sucesso.');
+                } else {
+                    console.warn('⚠️ Chave do Mapbox não encontrada na configuração.');
+                }
+
+                return config;
+            } catch (error) {
+                console.error('❌ Falha ao carregar configurações.', error);
+                // Exibe uma página de erro amigável ao usuário
+                document.body.innerHTML = `<div class="error-page" style="text-align: center; padding: 50px; font-family: 'Inter', sans-serif;">
+                    <h2 style="color: #dc3545; margin-bottom: 20px;">Erro de Configuração</h2>
+                    <p style="margin-bottom: 10px;">${error.message}</p>
+                    <p style="margin-bottom: 30px;">Verifique se o arquivo config.js está carregado e recarregue a página.</p>
+                    <button onclick="window.location.reload()" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Recarregar</button>
+                </div>`;
+                throw error;
+            }
+        }
+
+        /**
+         * Verifica a autenticação do restaurante e carrega as configurações iniciais.
+         * Redireciona para a página de login se não houver instância conectada.
+         */
+        async function checkAuthenticationAndLoadConfig() {
+            // Verifica autenticação com INSTANCE_MANAGER
+            if (!INSTANCE_MANAGER.isAuthenticated()) {
+                console.log('Sessão de login não encontrada. Redirecionando para a página de login...');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const currentInstance = INSTANCE_MANAGER.getInstance();
+            const restaurantId = currentInstance.restaurantId;
+
+            try {
+                await loadSecureConfig(); // Carrega as configurações do backend
+                console.log('🎉 Configurações carregadas e autenticação verificada.');
+                
+                // Atualiza a interface com os dados da instância
+                document.getElementById('restaurantName').textContent = currentInstance.instanceName;
+                console.log('🏭 Instância carregada:', currentInstance.instanceName);
+
+                // Busca os dados do restaurante logado no Supabase
+                const { data: restaurant, error } = await supabase
+                    .from('restaurants')
+                    .select('*')
+                    .eq('id', restaurantId)
+                    .single();
+
+                if (error) {
+                    throw new Error('Restaurante não encontrado ou erro na sessão.');
+                }
+                
+                currentRestaurant = restaurant; // Armazena os dados do restaurante
+                document.getElementById('onlineStatusText').textContent = restaurant.pedidos_online ? 'Funcionando' : 'Offline';
+                if (!restaurant.pedidos_online) {
+                    document.getElementById('onlineStatusBadge').classList.add('offline');
+                }
+
+                document.getElementById('currentDate').textContent = formatDate(new Date()); // Atualiza a data atual
+
+                await loadDashboardData(); // Carrega os dados do dashboard
+            } catch (error) {
+                console.error('Falha na inicialização do dashboard.', error);
+            }
+        }
+
+        /**
+         * Configura os listeners de tempo real do Supabase para as tabelas de pedidos, entregadores e produtos.
+         * Cada vez que uma alteração é detectada, `loadDashboardData()` é chamado para atualizar o dashboard.
+         */
+        function setupRealtimeListeners() {
+            const restaurantId = currentRestaurant?.id;
+
+            if (!restaurantId) {
+                console.error('Não é possível configurar listeners de tempo real: restaurantId não está definido.');
+                return;
+            }
+
+            // Listener para a tabela 'orders'
+            supabase
+                .channel('public:orders') // Nome do canal único para a tabela de pedidos
+                .on('postgres_changes', { 
+                    event: '*', // Escuta todos os eventos (INSERT, UPDATE, DELETE)
+                    schema: 'public', 
+                    table: 'orders', 
+                    filter: `restaurant_id=eq.${restaurantId}` // Filtra por ID do restaurante
+                }, async payload => {
+                    console.log('Atualização em tempo real: Alteração de pedido recebida!', payload);
+                    // Recarrega todos os dados do dashboard para garantir consistência em todas as seções
+                    await loadDashboardData(); 
+                })
+                .subscribe(); // Inicia a escuta
+
+            // Listener para a tabela 'deliverers'
+            supabase
+                .channel('public:deliverers') // Nome do canal único para a tabela de entregadores
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'deliverers', 
+                    filter: `restaurant_id=eq.${restaurantId}` 
+                }, async payload => {
+                    console.log('Atualização em tempo real: Alteração de entregador recebida!', payload);
+                    await loadDashboardData();
+                })
+                .subscribe();
+
+            // Listener para a tabela 'products'
+            supabase
+                .channel('public:products') // Nome do canal único para a tabela de produtos
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'products', 
+                    filter: `restaurant_id=eq.${restaurantId}` 
+                }, async payload => {
+                    console.log('Atualização em tempo real: Alteração de produto recebida!', payload);
+                    await loadDashboardData();
+                })
+                .subscribe();
+
+            // Marca a flag para evitar a configuração de múltiplos listeners
+            supabaseRealtimeListenersInitialized = true;
+        }
+
+        /**
+         * Carrega todos os dados necessários para o dashboard (pedidos, entregadores, produtos).
+         * @returns {Promise<void>} Uma promessa que resolve quando os dados são carregados.
+         */
+        async function loadDashboardData() {
+            // Obtém dados da instância atual
+            const currentInstance = INSTANCE_MANAGER.getInstance();
+            const restaurantId = currentInstance.restaurantId; 
+            try {
+                // Busca todos os pedidos do restaurante
+                const { data: ordersData, error: ordersError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('restaurant_id', restaurantId)
+                    .order('created_at', { ascending: false });
+                if (ordersError) throw ordersError;
+                allOrders = ordersData; // Armazena todos os pedidos
+
+                // Busca todos os entregadores do restaurante
+                const { data: deliverersData, error: deliverersError } = await supabase
+                    .from('deliverers')
+                    .select('*')
+                    .eq('restaurant_id', restaurantId);
+                if (deliverersError) throw deliverersError;
+                allDeliverers = deliverersData; // Armazena todos os entregadores
+                
+                // Busca todos os produtos do restaurante
+                const { data: productsData, error: productsError } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('restaurant_id', restaurantId);
+                if (productsError) throw productsError;
+                allProducts = productsData; // Armazena todos os produtos
+
+                // Busca os itens de todos os pedidos
+                const { data: orderItemsData, error: orderItemsError } = await supabase
+                    .from('order_items')
+                    .select('*')
+                    .in('order_id', ordersData.map(o => o.id)); // Filtra pelos IDs dos pedidos carregados
+                if (orderItemsError) throw orderItemsError;
+
+                // Associa os itens de pedido aos seus respectivos pedidos
+                allOrders.forEach(order => {
+                    order.order_items = orderItemsData.filter(item => item.order_id === order.id);
+                });
+
+                renderDashboard(); // Renderiza o dashboard com os dados carregados
+
+                // Após o carregamento inicial dos dados, configura os listeners de tempo real, se ainda não o fez
+                if (!supabaseRealtimeListenersInitialized) {
+                    setupRealtimeListeners();
+                }
+            }
+            catch (error) {
+                console.error('Erro ao carregar dados do dashboard:', error);
+            }
+        }
+        
+        /**
+         * Função principal para renderizar todas as seções do dashboard.
+         */
+        function renderDashboard() {
+            renderStats(); // Renderiza os cartões de estatísticas
+            renderRecentOrders(); // Renderiza a lista de pedidos recentes
+            renderSalesChart(); // Renderiza o gráfico de vendas
+            renderDeliverers(); // Renderiza a lista de entregadores
+            renderPopularProducts(); // Renderiza a lista de produtos populares
+        }
+
+        /**
+         * Renderiza os dados nos cartões de estatísticas do dashboard.
+         * Calcula pedidos pendentes, receita e pedidos de hoje/ontem, e entregadores ativos.
+         */
+        function renderStats() {
+            // Obtém as strings de data local para hoje e ontem
+            const today = getLocalDateString(new Date());
+            const yesterdayDate = new Date();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterday = getLocalDateString(yesterdayDate);
+
+            // Pedidos Pendentes
+            const pendingOrders = allOrders.filter(o => !['entregue', 'cancelado', 'encerrado', 'rejeitado'].includes(o.status));
+            document.getElementById('pendingOrdersCount').textContent = pendingOrders.length;
+            
+            // Filtra pedidos pendentes criados hoje (local)
+            const pendingOrdersToday = pendingOrders.filter(o => {
+                const orderDate = new Date(o.created_at);
+                return getLocalDateString(orderDate) === today;
+            }).length;
+            document.getElementById('pendingOrdersToday').textContent = pendingOrdersToday;
+
+            // Pedidos Completos (Encerrados ou Entregues) para hoje e ontem
+            const completedOrders = allOrders.filter(o => ['encerrado', 'entregue'].includes(o.status));
+
+            const todayCompletedOrders = completedOrders.filter(o => {
+                let completionDate;
+                if (o.status === 'entregue' && o.delivered_at) {
+                    completionDate = new Date(o.delivered_at);
+                } else if (o.status === 'encerrado' && o.updated_at) { 
+                    completionDate = new Date(o.updated_at);
+                } else {
+                    return false; 
+                }
+                return getLocalDateString(completionDate) === today;
+            });
+
+            const yesterdayCompletedOrders = completedOrders.filter(o => {
+                let completionDate;
+                if (o.status === 'entregue' && o.delivered_at) {
+                    completionDate = new Date(o.delivered_at);
+                } else if (o.status === 'encerrado' && o.updated_at) {
+                    completionDate = new Date(o.updated_at);
+                } else {
+                    return false;
+                }
+                return getLocalDateString(completionDate) === yesterday;
+            });
+
+            document.getElementById('todayOrdersCount').textContent = todayCompletedOrders.length;
+
+            // Receita de Hoje e Ontem
+            const todayRevenue = todayCompletedOrders.reduce((sum, o) => sum + parseFloat(o.total), 0);
+            document.getElementById('todayRevenue').textContent = `R$ ${todayRevenue.toFixed(2)}`;
+
+            const yesterdayRevenue = yesterdayCompletedOrders.reduce((sum, o) => sum + parseFloat(o.total), 0);
+            
+            // Calcula a variação percentual da receita
+            let revenueChange = 0;
+            if (yesterdayRevenue > 0) {
+                revenueChange = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+            } else if (todayRevenue > 0) {
+                revenueChange = 100; 
+            } else {
+                revenueChange = 0; 
+            }
+            document.getElementById('revenueComparison').textContent = `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(0)}%`;
+
+            // Calcula a variação percentual de pedidos
+            let ordersChange = 0;
+            if (yesterdayCompletedOrders.length > 0) {
+                ordersChange = ((todayCompletedOrders.length - yesterdayCompletedOrders.length) / yesterdayCompletedOrders.length) * 100;
+            } else if (todayCompletedOrders.length > 0) {
+                ordersChange = 100; 
+            } else {
+                ordersChange = 0; 
+            }
+            document.getElementById('ordersComparison').textContent = `${ordersChange >= 0 ? '+' : ''}${ordersChange.toFixed(0)}%`;
+
+            // Entregadores Ativos, Ocupados e Livres
+            const busyDeliverers = allDeliverers.filter(d => d.status === 'busy').length;
+            const activeDeliverers = allDeliverers.filter(d => d.status === 'active').length;
+            document.getElementById('activeDeliverersCount').textContent = activeDeliverers + busyDeliverers;
+            document.getElementById('busyDeliverers').textContent = busyDeliverers;
+            document.getElementById('freeDeliverers').textContent = activeDeliverers;
+        }
+
+        /**
+         * Renderiza a lista de pedidos recentes.
+         * Exibe os 5 pedidos mais recentes.
+         */
+        function renderRecentOrders() {
+            const recentOrdersList = document.getElementById('recentOrdersList');
+            // Ordena os pedidos por data de criação (mais recente primeiro)
+            const sortedOrders = [...allOrders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const ordersToDisplay = sortedOrders.slice(0, 5); // Pega os 5 primeiros
+
+            if (ordersToDisplay.length === 0) {
+                recentOrdersList.innerHTML = '<li style="text-align: center; color: #6c757d;">Nenhum pedido recente.</li>';
+                return;
+            }
+
+            // Mapeia os pedidos para elementos HTML e os insere na lista
+            recentOrdersList.innerHTML = ordersToDisplay.map(order => {
+                const orderNumber = String(order.id).slice(-8).toUpperCase(); // Últimos 8 caracteres do ID
+                const timeAgo = getTimeAgo(order.created_at); // Tempo desde a criação
+                const statusClass = getStatusClass(order.status); // Classe CSS para o status
+                const statusLabel = getStatusLabel(order.status); // Texto do status
+                const total = parseFloat(order.total || 0).toFixed(2);
+                const customerName = order.customer_name === 'Cliente de Balcão' ? 'Cliente de Balcão' : order.customer_name;
+
+                return `
+                    <li class="section-list-item">
+                        <div class="list-item-content">
+                            <span class="list-item-title">#${orderNumber}</span>
+                            <span class="list-item-subtitle">${customerName}</span>
+                        </div>
+                        <div class="list-item-right">
+                            <span class="list-item-value">R$ ${total}</span>
+                            <span class="list-item-subtext">${timeAgo}</span>
+                            <span class="list-item-status ${statusClass}">${statusLabel}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        let salesChart; // Variável global para a instância do Chart.js
+        /**
+         * Renderiza o gráfico de vendas dos últimos 7 dias.
+         */
+        function renderSalesChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            // Garante que o gráfico seja sempre baseado nos últimos 7 dias completos, no fuso horário local
+            const today = new Date();
+            const salesByDay = {};
+            const labels = [];
+            const data = [];
+
+            for (let i = 6; i >= 0; i--) { // Começa 6 dias atrás para incluir hoje
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateString = getLocalDateString(date);
+                salesByDay[dateString] = 0;
+                labels.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+            }
+
+            // Para o gráfico de vendas, você pode querer usar a data de criação ou a data de conclusão.
+            // Mantendo a data de criação para consistência com a lógica anterior do gráfico.
+            allOrders.forEach(order => {
+                const orderDate = new Date(order.created_at);
+                const dateString = getLocalDateString(orderDate);
+                if (salesByDay[dateString] !== undefined) {
+                    salesByDay[dateString] += parseFloat(order.total);
+                }
+            });
+
+            // Preenche os dados na ordem correta dos rótulos
+            labels.forEach(label => {
+                // Encontra a data correspondente ao label para pegar o valor de salesByDay
+                const [day, month] = label.split('/');
+                const year = new Date().getFullYear(); // Assume o ano atual para o gráfico
+                const fullDateString = `${year}-${month}-${day}`;
+                data.push(salesByDay[fullDateString] || 0); // Usa 0 se não houver dados para o dia
+            });
+
+
+            // Destroi a instância anterior do gráfico se existir
+            if (salesChart) {
+                salesChart.destroy();
+            }
+
+            // Cria um novo gráfico de linha
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Receita Diária (R$)',
+                        data: data,
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Força a atualização do gráfico de vendas.
+         */
+        function refreshChart() {
+            renderSalesChart();
+        }
+
+        /**
+         * Renderiza a lista de entregadores, ordenando-os por status (ocupado primeiro).
+         */
+        function renderDeliverers() {
+            const deliverersList = document.getElementById('deliverersList');
+            // Ordena os entregadores: ocupados primeiro, depois os demais
+            const sortedDeliverers = [...allDeliverers].sort((a, b) => {
+                // Prioriza 'busy' (ocupado)
+                if (a.status === 'busy' && b.status !== 'busy') return -1;
+                if (a.status !== 'busy' && b.status === 'busy') return 1;
+                // Em seguida, prioriza 'active' (disponível) sobre outros status
+                if (a.status === 'active' && b.status !== 'active') return -1;
+                if (a.status !== 'active' && b.status === 'active') return 1;
+                return 0; // Mantém a ordem original para outros status
+            });
+            
+            if (sortedDeliverers.length === 0) {
+                deliverersList.innerHTML = '<li style="text-align: center; color: #6c757d;">Nenhum entregador cadastrado.</li>';
+                return;
+            }
+
+            // Mapeia os entregadores para elementos HTML e os insere na lista
+            deliverersList.innerHTML = sortedDeliverers.map(deliverer => {
+                const statusText = deliverer.status === 'busy' ? 'Ocupado' : (deliverer.status === 'active' ? 'Disponível' : 'Inativo');
+                // CORREÇÃO: Usar 'busy' ou 'active' como classe para corresponder ao CSS
+                const statusClass = deliverer.status === 'busy' ? 'busy' : (deliverer.status === 'active' ? 'active' : 'inactive'); 
+                const firstInitial = deliverer.name ? deliverer.name.charAt(0).toUpperCase() : '?';
+
+                return `
+                    <li class="courier-list-item">
+                        <div class="courier-initial">${firstInitial}</div>
+                        <div class="courier-info">
+                            <div class="courier-name">${deliverer.name}</div>
+                            <div class="courier-details">
+                                ${deliverer.type === 'own' ? 'Próprio' : 'Terceirizado'}
+                            </div>
+                        </div>
+                        <span class="courier-status ${statusClass}">${statusText}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Renderiza a lista de produtos mais populares com base nos itens de pedido.
+         * Exibe os 3 produtos mais vendidos.
+         */
+        function renderPopularProducts() {
+            const popularProductsList = document.getElementById('popularProductsList');
+            const productSales = {};
+
+            // Calcula a quantidade vendida de cada produto
+            allOrders.forEach(order => {
+                if (order.order_items) {
+                    order.order_items.forEach(item => {
+                        const productName = item.product_name;
+                        if (!productSales[productName]) {
+                            productSales[productName] = { count: 0, price: parseFloat(item.price) };
+                        }
+                        productSales[productName].count += item.quantity;
+                    });
+                }
+            });
+
+            // Ordena os produtos por quantidade vendida (maior primeiro)
+            const sortedProducts = Object.keys(productSales).sort((a, b) => productSales[b].count - productSales[a].count);
+            const productsToDisplay = sortedProducts.slice(0, 3); // Pega os 3 mais populares
+            
+            if (productsToDisplay.length === 0) {
+                popularProductsList.innerHTML = '<li style="text-align: center; color: #6c757d;">Nenhum produto vendido recentemente.</li>';
+                return;
+            }
+
+            // Mapeia os produtos para elementos HTML e os insere na lista
+            popularProductsList.innerHTML = productsToDisplay.map(name => {
+                const product = productSales[name];
+                return `
+                    <li class="section-list-item">
+                        <div class="list-item-content">
+                            <span class="list-item-title">${name}</span>
+                            <span class="list-item-subtitle">${product.count} vendidos</span>
+                        </div>
+                        <div class="list-item-right">
+                            <span class="list-item-value">R$ ${product.price.toFixed(2)}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Retorna a classe CSS apropriada para um determinado status de pedido.
+         * Mapeia para as classes CSS existentes no estilo para garantir a estilização.
+         * @param {string} status - O status do pedido.
+         * @returns {string} A classe CSS correspondente.
+         */
+        function getStatusClass(status) {
+            const classes = {
+                'novo': 'novo', 
+                'aceito': 'aceito', 
+                'preparo': 'preparo',
+                'pronto': 'pronto', 
+                'saiu_entrega': 'saiu_entrega',
+                'entregue': 'encerrado', // Mapeado para 'encerrado' para usar o estilo existente
+                'rejeitado': 'ocupado', // Mapeado para 'ocupado' para usar o estilo existente
+                'cancelado': 'ocupado', // Mapeado para 'ocupado' para usar o estilo existente
+                'Aberta': 'disponivel', // Mapeado para 'disponivel' para usar o estilo existente
+                'encerrado': 'encerrado'
+            };
+            return classes[status] || 'novo'; // Retorna 'novo' como padrão
+        }
+
+        /**
+         * Retorna o rótulo de texto para um determinado status de pedido.
+         * @param {string} status - O status do pedido.
+         * @returns {string} O rótulo de texto correspondente.
+         */
+        function getStatusLabel(status) {
+            const labels = {
+                'novo': 'Novo', 'aceito': 'Aceito', 'preparo': 'Em Preparo',
+                'pronto': 'Pronto', 'saiu_entrega': 'Saiu p/ Entrega',
+                'entregue': 'Entregue', 'rejeitado': 'Rejeitado',
+                'cancelado': 'Cancelado', 'Aberta': 'Aberta',
+                'encerrado': 'Encerrado'
+            };
+            return labels[status] || status; // Retorna o próprio status se não houver rótulo
+        }
+
+        /**
+         * Calcula o tempo decorrido desde uma data fornecida em um formato legível.
+         * @param {string} dateString - A string da data (ex: ISO 8601).
+         * @returns {string} O tempo decorrido (ex: "5min atrás", "2h atrás", "3d atrás").
+         */
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+            if (diffInMinutes < 1) return 'Agora';
+            if (diffInMinutes < 60) return `${diffInMinutes}min atrás`;
+
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) return `${diffInHours}h atrás`;
+
+            const diffInDays = Math.floor(diffInHours / 24);
+            return `${diffInDays}d atrás`;
+        }
+
+        /**
+         * Realiza o processo de logout, limpando a sessão local e redirecionando para a página de login.
+         */
+        async function signOut() {
+            // Usa um modal personalizado em vez de window.confirm para melhor UX em iframes
+            const confirmLogout = await showCustomConfirm('Deseja realmente sair?');
+            if (confirmLogout) {
+                // Limpa dados da instância usando INSTANCE_MANAGER
+                INSTANCE_MANAGER.logout();
+                console.log('Sessão e dados da instância limpos.');
+                if (supabase) {
+                    try { await supabase.auth.signOut(); } catch (e) { console.error('Erro ao deslogar do Supabase:', e); }
+                }
+                window.location.href = 'login.html';
+            }
+        }
+
+        /**
+         * Exibe um modal de confirmação personalizado.
+         * @param {string} message - A mensagem a ser exibida no modal.
+         * @returns {Promise<boolean>} Uma promessa que resolve para true se confirmado, false caso contrário.
+         */
+        function showCustomConfirm(message) {
+            return new Promise((resolve) => {
+                // Cria os elementos do modal
+                const modalOverlay = document.createElement('div');
+                modalOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 9999;
+                `;
+
+                const modalContent = document.createElement('div');
+                modalContent.style.cssText = `
+                    background-color: white;
+                    padding: 25px;
+                    border-radius: 8px;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                    text-align: center;
+                    max-width: 400px;
+                    width: 90%;
+                    font-family: 'Inter', sans-serif;
+                `;
+
+                const messageParagraph = document.createElement('p');
+                messageParagraph.textContent = message;
+                messageParagraph.style.cssText = `
+                    margin-bottom: 20px;
+                    font-size: 1.1rem;
+                    color: #333;
+                `;
+
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = `
+                    display: flex;
+                    justify-content: center;
+                    gap: 15px;
+                `;
+
+                const confirmButton = document.createElement('button');
+                confirmButton.textContent = 'Sim';
+                confirmButton.style.cssText = `
+                    background-color: var(--primary-color);
+                    color: white;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    transition: background-color 0.2s ease;
+                `;
+                confirmButton.onmouseover = () => confirmButton.style.backgroundColor = 'var(--primary-dark)';
+                confirmButton.onmouseout = () => confirmButton.style.backgroundColor = 'var(--primary-color)';
+                confirmButton.onclick = () => {
+                    document.body.removeChild(modalOverlay);
+                    resolve(true);
+                };
+
+                const cancelButton = document.createElement('button');
+                cancelButton.textContent = 'Não';
+                cancelButton.style.cssText = `
+                    background-color: #6c757d;
+                    color: white;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    transition: background-color 0.2s ease;
+                `;
+                cancelButton.onmouseover = () => cancelButton.style.backgroundColor = '#5a6268';
+                cancelButton.onmouseout = () => cancelButton.style.backgroundColor = '#6c757d';
+                cancelButton.onclick = () => {
+                    document.body.removeChild(modalOverlay);
+                    resolve(false);
+                };
+
+                buttonContainer.appendChild(cancelButton);
+                buttonContainer.appendChild(confirmButton);
+                modalContent.appendChild(messageParagraph);
+                modalContent.appendChild(buttonContainer);
+                modalOverlay.appendChild(modalContent);
+                document.body.appendChild(modalOverlay);
+            });
+        }
+
+        // Adiciona o listener para carregar as configurações e verificar a autenticação quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', checkAuthenticationAndLoadConfig);
+    </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimePulse AI - Gestão de Delivery</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .landing-container {
+            background: white;
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-2xl);
+            width: 100%;
+            max-width: 500px;
+            margin: var(--spacing-md);
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .features {
+            text-align: left;
+            margin: var(--spacing-xl) 0;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .feature i {
+            color: var(--primary-color);
+            margin-right: var(--spacing-md);
+            width: 20px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .actions .btn {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="logo">
+            <i class="fas fa-clock"></i> TimePulse AI
+        </div>
+        <p class="subtitle">Plataforma completa para gestão de delivery</p>
+        
+        <div class="features">
+            <div class="feature">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Gestão completa de pedidos em tempo real</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-motorcycle"></i>
+                <span>Controle de entregadores próprios e terceirizados</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-chart-bar"></i>
+                <span>Dashboard com estatísticas e relatórios</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-utensils"></i>
+                <span>Gestão de cardápio e produtos</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-credit-card"></i>
+                <span>Integração com sistema de pagamentos</span>
+            </div>
+            <div class="feature">
+                <i class="fas fa-mobile-alt"></i>
+                <span>Interface responsiva para todos os dispositivos</span>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="login.html" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Fazer Login
+            </a>
+            <a href="cadastro_restaurante.html" class="btn btn-secondary">
+                <i class="fas fa-plus"></i> Cadastrar Restaurante
+            </a>
+        </div>
+        
+        <div style="margin-top: var(--spacing-xl); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color);">
+            <p class="text-muted" style="font-size: var(--font-size-sm);">
+                Desenvolvido para revolucionar a gestão de delivery
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        // Verificar se já está logado e redirecionar
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Verificar se o Supabase está configurado
+                if (typeof window.supabase !== 'undefined' && window.validateSupabaseConfig()) {
+                    const supabase = window.initializeSupabase();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (user) {
+                        window.location.href = 'dashboard.html';
+                    }
+                }
+            } catch (error) {
+                console.log('Supabase não configurado ou erro na verificação:', error);
+            }
+        });
+    </script>
+</body>
+</html>

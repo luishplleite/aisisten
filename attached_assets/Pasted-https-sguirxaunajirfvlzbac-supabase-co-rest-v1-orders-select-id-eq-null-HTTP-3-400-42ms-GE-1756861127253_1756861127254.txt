@@ -1,0 +1,109 @@
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=*&id=eq.null
+[HTTP/3 400  42ms]
+
+	
+GET
+	
+scheme
+	https
+host
+	sguirxaunajirfvlzbac.supabase.co
+filename
+	/rest/v1/orders
+select
+	*
+id
+	eq.null
+Endereço
+	104.18.38.10:443
+Status
+400
+VersãoHTTP/3
+Transferido1,19 kB (tamanho 100 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+access-control-allow-origin
+	https://timepulseai.com.br
+access-control-expose-headers
+	Content-Encoding, Content-Location, Content-Range, Content-Type, Date, Location, Server, Transfer-Encoding, Range-Unit
+alt-svc
+	h3=":443"; ma=86400
+cf-cache-status
+	DYNAMIC
+cf-ray
+	9791462bad11c618-GRU
+content-encoding
+	gzip
+content-type
+	application/json; charset=utf-8
+date
+	Wed, 03 Sep 2025 00:54:07 GMT
+priority
+	u=4,i=?0
+sb-gateway-version
+	1
+sb-project-ref
+	sguirxaunajirfvlzbac
+sb-request-id
+	01990d11-174c-7937-975d-1a035330b4e6
+server
+	cloudflare
+server-timing
+	cfExtPri
+set-cookie
+	__cf_bm=djnYNU3hJhfcY6HQbHStcdThM5DrLwkZB5N8MDEg5P8-1756860847-1.0.1.1-moWUH8CQLN2Zy.uFCGxu_mxR7C.ZGaQA98oYYo.8OiWVs9h0V2i4MxssS03bm7sQZJqu770dLDuTMGCAz9IWbuMow7W8e7aT64AwDurDW_0; path=/; expires=Wed, 03-Sep-25 01:24:07 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+strict-transport-security
+	max-age=31536000; includeSubDomains; preload
+vary
+	Accept-Encoding
+x-content-type-options
+	nosniff
+x-envoy-attempt-count
+	1
+x-envoy-upstream-service-time
+	1
+	
+Accept
+	application/vnd.pgrst.object+json
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+accept-profile
+	public
+apikey
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k
+authorization
+	Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlVOZ3FBVHhZZ015ZzVJd3IiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NndWlyeGF1bmFqaXJmdmx6YmFjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU2ODYyNzY2LCJpYXQiOjE3NTY4NTkxNjYsImVtYWlsIjoibHVpc2hwbGxlaXRlQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJsdWlzaHBsbGVpdGVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJvd25lcl9uYW1lIjoiTHVpcyBIZW5yaXF1ZSBQZXJlaXJhIExlaXRlIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJyZXN0YXVyYW50X25hbWUiOiJMdWlzIEhlbnJpcXVlIFBlcmVpcmEgTGVpdGUiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc1Njg1NTY3Mn1dLCJzZXNzaW9uX2lkIjoiN2E3NDZjNjYtNWJmNC00ZTM2LThkZjctMTIxZTJjNDVlYzliIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.QxtvJ4JzFF1dMFcFo4SDDvMSb_SqqLVBIanFrgu5chw
+Connection
+	keep-alive
+Host
+	sguirxaunajirfvlzbac.supabase.co
+Origin
+	https://timepulseai.com.br
+Priority
+	u=4
+Referer
+	https://timepulseai.com.br/
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	cross-site
+TE
+	trailers
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+
+    x-client-info
+    	supabase-js-web/2.57.0
+
+❌ Erro ao atualizar pedido em tempo real: 
+Object { code: "22P02", details: null, hint: null, message: 'invalid input syntax for type uuid: "null"' }
+gestao_pedidos.html:6020:17
+    updateSingleOrderRealTime https://timepulseai.com.br/gestao_pedidos.html:6020
+    addProductToExistingOrder https://timepulseai.com.br/gestao_pedidos.html:5414
+    onclick https://timepulseai.com.br/gestao_pedidos.html:1

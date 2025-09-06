@@ -1,0 +1,118 @@
+Perfeito! Agora posso ver as **informações reais de conexão** do seu sistema TimePulse AI. Vou explicar como funciona:
+
+## 🔐 Configurações de Conexão com o Banco de Dados
+
+### **Supabase (Banco Principal)**
+```javascript
+const SUPABASE_CONFIG = {
+    url: 'https://sguirxaunajirfvlzbac.supabase.co',
+    anon_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+};
+```
+
+**Como funciona a conexão:**
+1. **Inicialização:** `initializeSupabase()` cria o cliente Supabase
+2. **Autenticação:** Usa a chave anônima para operações públicas
+3. **Banco:** Acessa tabelas como `restaurants` automaticamente
+4. **Segurança:** Row Level Security (RLS) controla permissões
+
+## 🔄 Fluxo de Funcionamento do Sistema
+
+### **1. Cadastro de Restaurante:**
+```javascript
+// 1. Cria usuário na autenticação
+const { data: authData } = await supabase.auth.signUp({
+    email: formData.email,
+    password: formData.password
+});
+
+// 2. Salva dados na tabela restaurants
+const { data: restaurant } = await supabase
+    .from('restaurants')
+    .insert([restaurantData]);
+```
+
+### **2. Integrações do Sistema:**
+
+#### **Evolution API (WhatsApp)**
+```javascript
+evolution: {
+    serverUrl: 'https://evolution.timepulseai.com.br',
+    apiKey: '47bcf64b538508dde3adbcab3b7cad89'
+}
+```
+- **Função:** Envio de mensagens WhatsApp
+- **Uso:** Notificações de pedidos, status
+
+#### **Office Integrator**
+```javascript
+officeIntegrator: {
+    apiKey: 'fc971663a1f7cd6e19b9b9b4ae4c1b895c4cc21fe19a51462469a1a069cd8235',
+    baseUrl: 'https://api.office-integrator.com/writer/officeapi/v1'
+}
+```
+- **Função:** Geração de emails HTML
+- **Uso:** Emails de boas-vindas e notificações
+
+#### **Mapbox**
+```javascript
+mapbox: {
+    accessToken: 'pk.eyJ1IjoidGltZXB1bHNlYWkiLCJhIjoiY2xoOXV5dXJhMDFndzNobzd3cjF3ZDR1ZCJ9...'
+}
+```
+- **Função:** Mapas e geolocalização
+- **Uso:** Rastreamento de entregas
+
+## 📊 Estrutura do Banco de Dados
+
+### **Tabela `restaurants`:**
+- `owner_id` → Ligação com usuário autenticado
+- `name`, `owner_name`, `owner_phone`
+- `address`, `city`, `state`, `zip_code`
+- `cnpj`, `status`, `plan`
+- `created_at`, `updated_at`
+
+### **Sistema de Autenticação:**
+- **Supabase Auth:** Gerencia usuários
+- **RLS (Row Level Security):** Controla acesso aos dados
+- **Políticas:** Usuário só vê seus próprios dados
+
+## 🔒 Segurança do Sistema
+
+### **Chaves Expostas (Cliente):**
+- ✅ **Supabase Anon Key:** Segura para frontend
+- ✅ **Mapbox Token:** Pública por design
+
+### **Chaves Sensíveis (Servidor):**
+- ⚠️ **Evolution API Key:** Deveria estar no backend
+- ⚠️ **Office Integrator Key:** Deveria estar no backend
+
+## 📱 Como o Sistema Funciona na Prática
+
+1. **Usuário acessa a página de cadastro**
+2. **JavaScript carrega as configurações** do `config.js`
+3. **Supabase é inicializado** com as credenciais
+4. **Formulário é submetido** → dados vão para Supabase
+5. **Email é enviado** via Office Integrator
+6. **WhatsApp pode notificar** via Evolution API
+7. **Mapas são carregados** via Mapbox
+
+## 🛠️ Recomendações de Segurança
+
+### **Mover para Backend:**
+```php
+// send-email.php (servidor)
+$officeIntegratorKey = 'fc971663a1f7cd6e19b9b9b4ae4c1b895c4cc21fe19a51462469a1a069cd8235';
+$evolutionApiKey = '47bcf64b538508dde3adbcab3b7cad89';
+```
+
+### **Manter no Frontend:**
+```javascript
+// config.js (cliente)
+const SUPABASE_CONFIG = {
+    url: 'https://sguirxaunajirfvlzbac.supabase.co',
+    anon_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' // OK - é pública
+};
+```
+
+O sistema está funcionando corretamente, mas algumas chaves de API deveriam ser movidas para o servidor por segurança.

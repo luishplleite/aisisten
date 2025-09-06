@@ -1,0 +1,278 @@
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  127ms]
+
+	
+GET
+	https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+Status
+400
+VersãoHTTP/3
+Transferido1,19 kB (tamanho 97 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+access-control-allow-origin
+	https://timepulseai.com.br
+access-control-expose-headers
+	Content-Encoding, Content-Location, Content-Range, Content-Type, Date, Location, Server, Transfer-Encoding, Range-Unit
+alt-svc
+	h3=":443"; ma=86400
+cf-cache-status
+	DYNAMIC
+cf-ray
+	9791ce195e3d82fa-GIG
+content-encoding
+	gzip
+content-type
+	application/json; charset=utf-8
+date
+	Wed, 03 Sep 2025 02:26:55 GMT
+priority
+	u=4,i=?0
+sb-gateway-version
+	1
+sb-project-ref
+	sguirxaunajirfvlzbac
+sb-request-id
+	01990d66-0be0-75c0-9d02-9239d3d0db10
+server
+	cloudflare
+server-timing
+	cfExtPri
+set-cookie
+	__cf_bm=SRFp8EHhl.WowvZdwB0d2qC1xZbXts_w5Bg3OZR_EvQ-1756866415-1.0.1.1-fudDUnUQ0xUmpAJDKiZS0_7q.kODfBBlbe.ngTYWIznv0kgiPO3Mz1zOJG9d862R_raZPxvwOMZaw2fYWxEcEqgZieooPonLcgo4iOGHIps; path=/; expires=Wed, 03-Sep-25 02:56:55 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+strict-transport-security
+	max-age=31536000; includeSubDomains; preload
+vary
+	Accept-Encoding
+x-content-type-options
+	nosniff
+x-envoy-attempt-count
+	1
+x-envoy-upstream-service-time
+	4
+	
+Accept
+	*/*
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+accept-profile
+	public
+apikey
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k
+authorization
+	Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlVOZ3FBVHhZZ015ZzVJd3IiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NndWlyeGF1bmFqaXJmdmx6YmFjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU2ODY4OTk1LCJpYXQiOjE3NTY4NjUzOTUsImVtYWlsIjoibHVpc2hwbGxlaXRlQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJsdWlzaHBsbGVpdGVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJvd25lcl9uYW1lIjoiTHVpcyBIZW5yaXF1ZSBQZXJlaXJhIExlaXRlIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJyZXN0YXVyYW50X25hbWUiOiJMdWlzIEhlbnJpcXVlIFBlcmVpcmEgTGVpdGUiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc1Njg2MTkwM31dLCJzZXNzaW9uX2lkIjoiYTA3MmFmYzktNTIzNi00MDU1LWIyMjctNzI3YzllNGE1ZDYyIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.RlhqwLI4p0Xl9c8KCfy42Xgod-JiCrZfDp8EPn6YJhk
+Connection
+	keep-alive
+Host
+	sguirxaunajirfvlzbac.supabase.co
+Origin
+	https://timepulseai.com.br
+Priority
+	u=4
+Referer
+	https://timepulseai.com.br/
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	cross-site
+TE
+	trailers
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+
+    x-client-info
+    	supabase-js-web/2.57.0
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+    realTimeCheckInterval https://timepulseai.com.br/gestao_pedidos.html:4307
+    setupEnhancedRealTimeCheck https://timepulseai.com.br/gestao_pedidos.html:4294
+    init https://timepulseai.com.br/gestao_pedidos.html:2909
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/gestao_pedidos.html:4716
+    (assíncrono: EventListener.handleEvent)
+    <anonymous> https://timepulseai.com.br/gestao_pedidos.html:5520
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  56ms]
+
+	
+GET
+	https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+Status
+400
+VersãoHTTP/3
+Transferido1,19 kB (tamanho 97 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+access-control-allow-origin
+	https://timepulseai.com.br
+access-control-expose-headers
+	Content-Encoding, Content-Location, Content-Range, Content-Type, Date, Location, Server, Transfer-Encoding, Range-Unit
+alt-svc
+	h3=":443"; ma=86400
+cf-cache-status
+	DYNAMIC
+cf-ray
+	9791ce2baf7782fa-GIG
+content-encoding
+	gzip
+content-type
+	application/json; charset=utf-8
+date
+	Wed, 03 Sep 2025 02:26:58 GMT
+priority
+	u=4,i=?0
+sb-gateway-version
+	1
+sb-project-ref
+	sguirxaunajirfvlzbac
+sb-request-id
+	01990d66-1750-7b28-ab32-ed25f67ad9f0
+server
+	cloudflare
+server-timing
+	cfExtPri
+set-cookie
+	__cf_bm=1JuUPH6VukVeV1aqXtXlQDXsUYZ_gMZKZMbDAlcKg7k-1756866418-1.0.1.1-QJUhjplCqQsHziA5Q2ZvhgmgKSB33Icu1EObsAiZxGM._NEaoNel4vn2jFXd_4XCsikW2Uk.P0huhT2Rq4NzXv13qny5_DLTuHRr7wRiO40; path=/; expires=Wed, 03-Sep-25 02:56:58 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+strict-transport-security
+	max-age=31536000; includeSubDomains; preload
+vary
+	Accept-Encoding
+x-content-type-options
+	nosniff
+x-envoy-attempt-count
+	1
+x-envoy-upstream-service-time
+	2
+	
+Accept
+	*/*
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+accept-profile
+	public
+apikey
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k
+authorization
+	Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlVOZ3FBVHhZZ015ZzVJd3IiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NndWlyeGF1bmFqaXJmdmx6YmFjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU2ODY4OTk1LCJpYXQiOjE3NTY4NjUzOTUsImVtYWlsIjoibHVpc2hwbGxlaXRlQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJsdWlzaHBsbGVpdGVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJvd25lcl9uYW1lIjoiTHVpcyBIZW5yaXF1ZSBQZXJlaXJhIExlaXRlIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJyZXN0YXVyYW50X25hbWUiOiJMdWlzIEhlbnJpcXVlIFBlcmVpcmEgTGVpdGUiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc1Njg2MTkwM31dLCJzZXNzaW9uX2lkIjoiYTA3MmFmYzktNTIzNi00MDU1LWIyMjctNzI3YzllNGE1ZDYyIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.RlhqwLI4p0Xl9c8KCfy42Xgod-JiCrZfDp8EPn6YJhk
+Connection
+	keep-alive
+Host
+	sguirxaunajirfvlzbac.supabase.co
+Origin
+	https://timepulseai.com.br
+Priority
+	u=4
+Referer
+	https://timepulseai.com.br/
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	cross-site
+TE
+	trailers
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+
+    x-client-info
+    	supabase-js-web/2.57.0
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  244ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  51ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  83ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  53ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  48ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  59ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  108ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  71ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  84ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  66ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  91ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }
+gestao_pedidos.html:4307:29
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/orders?select=id,status,order_number,created_at,customer_name,total&restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&status=eq.novo&order=created_at.desc
+[HTTP/3 400  54ms]
+
+❌ Erro na verificação em tempo real: 
+Object { code: "42703", details: null, hint: null, message: "column orders.order_number does not exist" }

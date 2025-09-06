@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - TimePulse AI</title>
+    <meta name="description" content="Configure seu restaurante e personalize o sistema">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">TimePulse AI</div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                    <a href="historico_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📋</span>
+                        Histórico
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link active">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" onclick="signOut()">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+            
+        </nav>
+        
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-secondary d-md-none" data-action="toggle-sidebar">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="header-title">
+                            <i class="fas fa-cog"></i>
+                            Configurações
+                        </h1>
+                    </div>
+                    
+                    <div class="header-actions">
+                        <button class="btn btn-success" onclick="saveAllSettings()" id="saveAllBtn">
+                            <i class="fas fa-save"></i>
+                            Salvar Todas
+                        </button>
+                        
+                        <div class="user-menu">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Área de Conteúdo -->
+            <div class="content-area">
+                <!-- Navegação das Configurações -->
+                <div class="settings-nav">
+                    <button class="settings-tab active" data-tab="restaurant">
+                        <i class="fas fa-store"></i>
+                        Restaurante
+                    </button>
+                    <button class="settings-tab" data-tab="schedule">
+                        <i class="fas fa-clock"></i>
+                        Horários de Funcionamento
+                    </button>
+                    <button class="settings-tab" data-tab="delivery">
+                        <i class="fas fa-motorcycle"></i>
+                        Entrega Terceiros
+                    </button>
+                    <button class="settings-tab" data-tab="timing">
+                        <i class="fas fa-clock"></i>
+                        Tempo de Entrega
+                    </button>
+                    <button class="settings-tab" data-tab="payments">
+                        <i class="fas fa-credit-card"></i>
+                        Pagamentos
+                    </button>
+                    <button class="settings-tab" data-tab="notifications">
+                        <i class="fas fa-bell"></i>
+                        Notificações
+                    </button>
+                    <button class="settings-tab" data-tab="integrations">
+                        <i class="fas fa-plug"></i>
+                        Integrações
+                    </button>
+                    <button class="settings-tab" data-tab="security">
+                        <i class="fas fa-shield-alt"></i>
+                        Segurança
+                    </button>
+                </div>
+                
+                <!-- Conteúdo das Configurações -->
+                <div class="settings-content">
+                    <!-- Configurações do Restaurante -->
+                    <div class="settings-section active" id="restaurant-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-store"></i>
+                                Informações do Restaurante
+                            </h2>
+                            <p>Configure as informações básicas do seu estabelecimento</p>
+                        </div>
+                        
+                        <form id="restaurantForm" class="settings-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Nome do Restaurante *</label>
+                                    <input type="text" id="restaurantNameInput" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Nome do Proprietário *</label>
+                                    <input type="text" id="ownerName" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">CPF do Proprietário</label>
+                                    <input type="text" id="ownerCpf" class="form-input" placeholder="000.000.000-00">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Telefone do Proprietário *</label>
+                                    <input type="tel" id="ownerPhone" class="form-input" required placeholder="(11) 99999-9999">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">CNPJ</label>
+                                    <input type="text" id="cnpj" class="form-input" placeholder="00.000.000/0000-00">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Tipo de Negócio</label>
+                                    <select id="businessType" class="form-input">
+                                        <option value="">Selecionar...</option>
+                                        <option value="restaurante">Restaurante</option>
+                                        <option value="lanchonete">Lanchonete</option>
+                                        <option value="pizzaria">Pizzaria</option>
+                                        <option value="hamburgeria">Hamburgeria</option>
+                                        <option value="sorveteria">Sorveteria</option>
+                                        <option value="padaria">Padaria</option>
+                                        <option value="bar">Bar</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">Endereço Completo *</label>
+                                    <textarea id="address" class="form-input" rows="3" required placeholder="Rua, Número, Bairro"></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Cidade *</label>
+                                    <input type="text" id="city" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Estado *</label>
+                                    <select id="state" class="form-input" required>
+                                        <option value="">Selecionar...</option>
+                                        <option value="AC">Acre</option>
+                                        <option value="AL">Alagoas</option>
+                                        <option value="AP">Amapá</option>
+                                        <option value="AM">Amazonas</option>
+                                        <option value="BA">Bahia</option>
+                                        <option value="CE">Ceará</option>
+                                        <option value="DF">Distrito Federal</option>
+                                        <option value="ES">Espírito Santo</option>
+                                        <option value="GO">Goiás</option>
+                                        <option value="MA">Maranhão</option>
+                                        <option value="MT">Mato Grosso</option>
+                                        <option value="MS">Mato Grosso do Sul</option>
+                                        <option value="MG">Minas Gerais</option>
+                                        <option value="PA">Pará</option>
+                                        <option value="PB">Paraíba</option>
+                                        <option value="PR">Paraná</option>
+                                        <option value="PE">Pernambuco</option>
+                                        <option value="PI">Piauí</option>
+                                        <option value="RJ">Rio de Janeiro</option>
+                                        <option value="RN">Rio Grande do Norte</option>
+                                        <option value="RS">Rio Grande do Sul</option>
+                                        <option value="RO">Rondônia</option>
+                                        <option value="RR">Roraima</option>
+                                        <option value="SC">Santa Catarina</option>
+                                        <option value="SP">São Paulo</option>
+                                        <option value="SE">Sergipe</option>
+                                        <option value="TO">Tocantins</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">CEP *</label>
+                                    <input type="text" id="zipCode" class="form-input" required placeholder="00000-000">
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Informações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Horários de Funcionamento -->
+                    <div class="settings-section" id="schedule-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-clock"></i>
+                                Horários de Funcionamento
+                            </h2>
+                            <p>Configure os horários de funcionamento do seu estabelecimento</p>
+                        </div>
+                        
+                        <form id="scheduleForm" class="settings-form">
+                            <div class="form-section">
+                                <div class="schedule-grid" id="scheduleGrid">
+                                    <!-- Horários serão carregados aqui -->
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Horários
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Entrega -->
+                    <div class="settings-section" id="delivery-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-motorcycle"></i>
+                                Entrega Terceiros
+                            </h2>
+                            <p>Informações sobre entrega terceirizada (somente leitura)</p>
+                        </div>
+                        
+                        <form id="deliveryForm" class="settings-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Taxa de Entrega Mínima (R$)</label>
+                                    <input type="number" id="deliveryFee" class="form-input" step="0.50" min="0" value="8.00" disabled readonly>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Taxa por Km (R$)</label>
+                                    <input type="number" id="deliveryFeePerKm" class="form-input" step="0.25" min="0" value="2.50" disabled readonly>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Distância Mínima (Km)</label>
+                                    <input type="number" id="minimumDistance" class="form-input" step="0.5" min="0" value="3.0" disabled readonly>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Raio de Entrega (Km)</label>
+                                    <input type="number" id="deliveryRadius" class="form-input" step="0.5" min="1" value="10.0" disabled readonly>
+                                </div>
+                                
+                            </div>
+                            
+                            <div class="readonly-notice">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Estas configurações são gerenciadas pelo sistema de entrega terceirizada</span>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Tempo de Entrega -->
+                    <div class="settings-section" id="timing-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-clock"></i>
+                                Tempo de Entrega
+                            </h2>
+                            <p>Configure pedido mínimo e tempo de preparo</p>
+                        </div>
+                        
+                        <form id="timingForm" class="settings-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Pedido Mínimo (R$)</label>
+                                    <input type="number" id="minimumOrderEdit" class="form-input" step="5.00" min="0" value="0.00">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Tempo de Preparo (min)</label>
+                                    <input type="number" id="preparationTimeEdit" class="form-input" min="5" value="30">
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Tempo de Entrega
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Pagamento -->
+                    <div class="settings-section" id="payments-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-credit-card"></i>
+                                Formas de Pagamento
+                            </h2>
+                            <p>Configure as formas de pagamento aceitas</p>
+                        </div>
+                        
+                        <form id="paymentsForm" class="settings-form">
+                            <div class="payment-methods">
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptCash" checked>
+                                            <i class="fas fa-money-bill"></i>
+                                            Dinheiro
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="needChange">
+                                            Aceitar com troco
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptCard">
+                                            <i class="fas fa-credit-card"></i>
+                                            Cartão na Entrega
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptDebit">
+                                            Cartão de Débito
+                                        </label>
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptCredit">
+                                            Cartão de Crédito
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptPix">
+                                            <i class="fab fa-pix"></i>
+                                            PIX
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <div class="form-group">
+                                            <label class="form-label">Chave PIX</label>
+                                            <input type="text" id="pixKey" class="form-input" placeholder="Sua chave PIX">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Pagamentos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Notificações -->
+                    <div class="settings-section" id="notifications-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-bell"></i>
+                                Notificações
+                            </h2>
+                            <p>Configure como e quando receber notificações</p>
+                        </div>
+                        
+                        <form id="notificationsForm" class="settings-form">
+                            <div class="notification-groups">
+                                <div class="notification-group">
+                                    <h3>Notificações Sonoras</h3>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="soundNewOrder" checked>
+                                        Som para novos pedidos
+                                    </label>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="soundOrderUpdate">
+                                        Som para atualizações de pedidos
+                                    </label>
+                                </div>
+                                
+                                <div class="notification-group">
+                                    <h3>Notificações por E-mail</h3>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="emailNewOrder">
+                                        E-mail para novos pedidos
+                                    </label>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="emailDailyReport">
+                                        Relatório diário por e-mail
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Notificações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Integrações -->
+                    <div class="settings-section" id="integrations-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-plug"></i>
+                                Integrações
+                            </h2>
+                            <p>Conecte o TimePulse AI com outros serviços</p>
+                        </div>
+                        
+                        <div class="integrations-grid">
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <h3>WhatsApp</h3>
+                                    <span class="integration-status" id="whatsappStatus">Desconectado</span>
+                                </div>
+                                <p>Envie notificações automáticas via WhatsApp</p>
+                                <button class="btn btn-primary" onclick="configureWhatsApp()">
+                                    Configurar
+                                </button>
+                            </div>
+                            
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <i class="fas fa-credit-card"></i>
+                                    <h3>Asaas</h3>
+                                    <span class="integration-status" id="asaasStatus">Desconectado</span>
+                                </div>
+                                <p>Processamento de pagamentos online</p>
+                                <button class="btn btn-primary" onclick="configureAsaas()">
+                                    Configurar
+                                </button>
+                            </div>
+                            
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <i class="fas fa-envelope"></i>
+                                    <h3>E-mail SMTP</h3>
+                                    <span class="integration-status" id="smtpStatus">Desconectado</span>
+                                </div>
+                                <p>Envio de e-mails automáticos</p>
+                                <button class="btn btn-primary" onclick="configureSMTP()">
+                                    Configurar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Configurações de Segurança -->
+                    <div class="settings-section" id="security-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-shield-alt"></i>
+                                Segurança
+                            </h2>
+                            <p>Gerencie a segurança da sua conta e dados</p>
+                        </div>
+                        
+                        <div class="security-options">
+                            <div class="security-card">
+                                <div>
+                                    <h3>
+                                        <i class="fas fa-key"></i>
+                                        Alterar Senha
+                                    </h3>
+                                    <p>Altere sua senha de acesso regularmente</p>
+                                </div>
+                                <button class="btn btn-warning" onclick="changePassword()">
+                                    Alterar Senha
+                                </button>
+                            </div>
+                            
+                            <div class="security-card">
+                                <div>
+                                    <h3>
+                                        <i class="fas fa-download"></i>
+                                        Backup dos Dados
+                                    </h3>
+                                    <p>Faça backup dos seus dados importantes</p>
+                                </div>
+                                <button class="btn btn-info" onclick="exportData()">
+                                    Exportar Dados
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    
+    <script>
+        // ===== GERENCIADOR DE CONFIGURAÇÕES =====
+        class SettingsManager {
+            constructor() {
+                this.hasUnsavedChanges = false;
+                this.currentSection = 'restaurant';
+                this.supabase = null;
+                this.currentRestaurant = null;
+                this.originalRestaurantData = {};
+            }
+            
+            async init() {
+                try {
+                    console.log('⚙️ Inicializando configurações...');
+                    
+                    // Verificar autenticação
+                    if (!INSTANCE_MANAGER.isAuthenticated()) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    // Inicializar Supabase
+                    this.supabase = window.initializeSupabase();
+                    if (!this.supabase) {
+                        throw new Error('Erro ao inicializar conexão com o banco de dados');
+                    }
+                    
+                    this.setupEventListeners();
+                    await this.loadSettings();
+                    this.setupScheduleGrid();
+                    
+                    console.log('✅ Configurações inicializadas');
+                    
+                } catch (error) {
+                    console.error('❌ Erro na inicialização:', error);
+                    this.showNotification('Erro ao carregar configurações', 'error');
+                }
+            }
+            
+            async loadSettings() {
+                try {
+                    const instance = INSTANCE_MANAGER.getInstance();
+                    if (!instance || !instance.restaurantId) {
+                        throw new Error('Restaurante não identificado');
+                    }
+
+                    const { data: restaurant, error } = await this.supabase
+                        .from('restaurants')
+                        .select('*')
+                        .eq('id', instance.restaurantId)
+                        .single();
+
+                    if (error) throw error;
+
+                    this.currentRestaurant = restaurant;
+                    this.originalRestaurantData = { ...restaurant };
+                    
+                    // Atualizar nome no sidebar
+                    document.getElementById('restaurantName').textContent = restaurant.name || 'Sem nome';
+                    
+                    // Preencher formulários
+                    this.populateRestaurantForm(restaurant);
+                    this.populateDeliveryForm(restaurant);
+                    this.populateTimingForm(restaurant);
+                    this.populateBusinessHoursForm(restaurant.business_hours || {});
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao carregar dados do restaurante:', error);
+                    this.showNotification('Erro ao carregar dados do restaurante: ' + error.message, 'error');
+                }
+            }
+
+            populateRestaurantForm(restaurant) {
+                document.getElementById('restaurantNameInput').value = restaurant.name || '';
+                document.getElementById('ownerName').value = restaurant.owner_name || '';
+                document.getElementById('ownerCpf').value = restaurant.owner_cpf || '';
+                document.getElementById('ownerPhone').value = restaurant.owner_phone || '';
+                document.getElementById('cnpj').value = restaurant.cnpj || '';
+                document.getElementById('businessType').value = restaurant.business_type || '';
+                document.getElementById('address').value = restaurant.address || '';
+                document.getElementById('city').value = restaurant.city || '';
+                document.getElementById('state').value = restaurant.state || '';
+                document.getElementById('zipCode').value = restaurant.zip_code || '';
+            }
+
+
+            populateDeliveryForm(restaurant) {
+                document.getElementById('deliveryFee').value = restaurant.minimum_delivery_fee || 8.00;
+                document.getElementById('deliveryFeePerKm').value = restaurant.delivery_fee_per_km || 2.50;
+                document.getElementById('minimumDistance').value = restaurant.minimum_distance_km || 3.0;
+                document.getElementById('deliveryRadius').value = restaurant.delivery_radius || 10.0;
+            }
+            
+            populateTimingForm(restaurant) {
+                document.getElementById('minimumOrderEdit').value = restaurant.minimum_order || 0.00;
+                document.getElementById('preparationTimeEdit').value = restaurant.preparation_time || 30;
+            }
+
+            populateBusinessHoursForm(businessHours) {
+                const days = [
+                    { key: 'monday', name: 'Segunda-feira' },
+                    { key: 'tuesday', name: 'Terça-feira' },
+                    { key: 'wednesday', name: 'Quarta-feira' },
+                    { key: 'thursday', name: 'Quinta-feira' },
+                    { key: 'friday', name: 'Sexta-feira' },
+                    { key: 'saturday', name: 'Sábado' },
+                    { key: 'sunday', name: 'Domingo' }
+                ];
+
+                const grid = document.getElementById('scheduleGrid');
+                grid.innerHTML = '';
+
+                days.forEach(day => {
+                    const dayData = businessHours[day.key] || { open: '08:00', close: '18:00', closed: false };
+                    
+                    const dayConfig = document.createElement('div');
+                    dayConfig.className = 'schedule-day';
+                    dayConfig.innerHTML = `
+                        <label class="day-label">${day.name}</label>
+                        <div class="schedule-inputs">
+                            <input type="time" class="form-input" data-day="${day.key}" data-type="open" value="${dayData.open}" ${dayData.closed ? 'disabled' : ''}>
+                            <input type="time" class="form-input" data-day="${day.key}" data-type="close" value="${dayData.close}" ${dayData.closed ? 'disabled' : ''}>
+                            <label class="form-label">
+                                <input type="checkbox" data-day="${day.key}" data-type="closed" ${dayData.closed ? 'checked' : ''}>
+                                Fechado
+                            </label>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(dayConfig);
+                });
+
+                // Adicionar event listeners para os toggles
+                grid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        const day = this.dataset.day;
+                        const timeInputs = grid.querySelectorAll(`input[data-day="${day}"][data-type="open"], input[data-day="${day}"][data-type="close"]`);
+                        timeInputs.forEach(input => {
+                            input.disabled = this.checked;
+                        });
+                    });
+                });
+            }
+            
+            setupEventListeners() {
+                // Navegação entre seções
+                document.querySelectorAll('.settings-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchSection(e.target.dataset.tab);
+                    });
+                });
+                
+                // Formulários
+                document.getElementById('restaurantForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveRestaurantSettings();
+                });
+                
+                document.getElementById('scheduleForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveScheduleSettings();
+                });
+                
+                document.getElementById('deliveryForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveDeliverySettings();
+                });
+                
+                document.getElementById('timingForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveTimingSettings();
+                });
+                
+                
+                // Detectar mudanças não salvas
+                document.addEventListener('input', () => {
+                    this.hasUnsavedChanges = true;
+                });
+            }
+            
+            switchSection(sectionId) {
+                // Atualizar navegação
+                document.querySelectorAll('.settings-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${sectionId}"]`).classList.add('active');
+                
+                // Atualizar conteúdo
+                document.querySelectorAll('.settings-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(`${sectionId}-section`).classList.add('active');
+                
+                this.currentSection = sectionId;
+            }
+            
+            async saveRestaurantSettings() {
+                try {
+                    const restaurantData = {
+                        name: document.getElementById('restaurantNameInput').value,
+                        owner_name: document.getElementById('ownerName').value,
+                        owner_cpf: document.getElementById('ownerCpf').value || null,
+                        owner_phone: document.getElementById('ownerPhone').value,
+                        cnpj: document.getElementById('cnpj').value || null,
+                        business_type: document.getElementById('businessType').value || null,
+                        address: document.getElementById('address').value,
+                        city: document.getElementById('city').value,
+                        state: document.getElementById('state').value,
+                        zip_code: document.getElementById('zipCode').value,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    // Salvar horários de funcionamento
+                    const businessHours = {};
+                    const grid = document.getElementById('scheduleGrid');
+                    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                    
+                    days.forEach(day => {
+                        const openInput = grid.querySelector(`input[data-day="${day}"][data-type="open"]`);
+                        const closeInput = grid.querySelector(`input[data-day="${day}"][data-type="close"]`);
+                        const closedCheckbox = grid.querySelector(`input[data-day="${day}"][data-type="closed"]`);
+                        
+                        businessHours[day] = {
+                            open: openInput.value,
+                            close: closeInput.value,
+                            closed: closedCheckbox.checked
+                        };
+                    });
+
+                    restaurantData.business_hours = businessHours;
+
+                    const { error } = await this.supabase
+                        .from('restaurants')
+                        .update(restaurantData)
+                        .eq('id', this.currentRestaurant.id);
+
+                    if (error) throw error;
+
+                    // Atualizar dados locais
+                    this.currentRestaurant = { ...this.currentRestaurant, ...restaurantData };
+                    this.originalRestaurantData = { ...this.currentRestaurant };
+                    
+                    // Atualizar nome no sidebar
+                    document.getElementById('restaurantName').textContent = restaurantData.name;
+                    
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Informações do restaurante salvas!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar configurações:', error);
+                    this.showNotification('Erro ao salvar configurações: ' + error.message, 'error');
+                }
+            }
+            
+            async saveScheduleSettings() {
+                try {
+                    const scheduleData = this.getScheduleData();
+                    
+                    const { error } = await this.supabase
+                        .from('restaurants')
+                        .update({ 
+                            operating_hours: scheduleData,
+                            updated_at: new Date().toISOString() 
+                        })
+                        .eq('id', this.currentRestaurant.id);
+                    
+                    if (error) throw error;
+                    
+                    this.currentRestaurant.operating_hours = scheduleData;
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Horários de funcionamento salvos!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar horários:', error);
+                    this.showNotification('Erro ao salvar horários: ' + error.message, 'error');
+                }
+            }
+            
+            getScheduleData() {
+                const scheduleData = {};
+                const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                
+                days.forEach(day => {
+                    const isOpenCheckbox = document.getElementById(`${day}Open`);
+                    const openTimeInput = document.getElementById(`${day}OpenTime`);
+                    const closeTimeInput = document.getElementById(`${day}CloseTime`);
+                    
+                    if (isOpenCheckbox && openTimeInput && closeTimeInput) {
+                        const isOpen = isOpenCheckbox.checked;
+                        scheduleData[day] = {
+                            is_open: isOpen,
+                            open_time: isOpen ? openTimeInput.value : null,
+                            close_time: isOpen ? closeTimeInput.value : null
+                        };
+                    }
+                });
+                
+                return scheduleData;
+            }
+            
+            async saveTimingSettings() {
+                try {
+                    const timingData = {
+                        minimum_order: parseFloat(document.getElementById('minimumOrderEdit').value) || 0.00,
+                        preparation_time: parseInt(document.getElementById('preparationTimeEdit').value) || 30,
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    const { error } = await this.supabase
+                        .from('restaurants')
+                        .update(timingData)
+                        .eq('id', this.currentRestaurant.id);
+                    
+                    if (error) throw error;
+                    
+                    this.currentRestaurant = { ...this.currentRestaurant, ...timingData };
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Configurações de tempo de entrega salvas!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar tempo de entrega:', error);
+                    this.showNotification('Erro ao salvar tempo de entrega: ' + error.message, 'error');
+                }
+            }
+            
+            async saveDeliverySettings() {
+                try {
+                    const deliveryData = {
+                        minimum_delivery_fee: parseFloat(document.getElementById('deliveryFee').value),
+                        delivery_fee_per_km: parseFloat(document.getElementById('deliveryFeePerKm').value),
+                        minimum_distance_km: parseFloat(document.getElementById('minimumDistance').value),
+                        delivery_radius: parseFloat(document.getElementById('deliveryRadius').value),
+                        minimum_order: parseFloat(document.getElementById('minimumOrder').value),
+                        preparation_time: parseInt(document.getElementById('preparationTime').value),
+                        updated_at: new Date().toISOString()
+                    };
+                    
+                    const { error } = await this.supabase
+                        .from('restaurants')
+                        .update(deliveryData)
+                        .eq('id', this.currentRestaurant.id);
+                    
+                    if (error) throw error;
+                    
+                    this.currentRestaurant = { ...this.currentRestaurant, ...deliveryData };
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Configurações de entrega salvas!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar configurações de entrega:', error);
+                    this.showNotification('Erro ao salvar configurações de entrega: ' + error.message, 'error');
+                }
+            }
+            
+            
+            setupScheduleGrid() {
+                // A grid será carregada em populateBusinessHoursForm
+            }
+            
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+        }
+        
+        // ===== INICIALIZAÇÃO =====
+        let settingsManager;
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            settingsManager = new SettingsManager();
+            await settingsManager.init();
+        });
+        
+        // ===== FUNÇÕES GLOBAIS =====
+        function saveAllSettings() {
+            // Salvar todas as configurações da seção atual
+            if (settingsManager) {
+                switch (settingsManager.currentSection) {
+                    case 'restaurant':
+                        document.getElementById('restaurantForm').dispatchEvent(new Event('submit'));
+                        break;
+                    case 'schedule':
+                        document.getElementById('scheduleForm').dispatchEvent(new Event('submit'));
+                        break;
+                    case 'delivery':
+                        settingsManager.showNotification('Seção "Entrega Terceiros" é somente leitura', 'info');
+                        break;
+                    case 'timing':
+                        document.getElementById('timingForm').dispatchEvent(new Event('submit'));
+                        break;
+                }
+            }
+        }
+        
+        function configureWhatsApp() {
+            settingsManager.showNotification('Integração com WhatsApp será implementada em breve!', 'info');
+        }
+        
+        function configureAsaas() {
+            settingsManager.showNotification('Integração com Asaas será implementada em breve!', 'info');
+        }
+        
+        function configureSMTP() {
+            settingsManager.showNotification('Configuração de SMTP será implementada em breve!', 'info');
+        }
+        
+        function changePassword() {
+            settingsManager.showNotification('Alteração de senha será implementada em breve!', 'info');
+        }
+        
+        function exportData() {
+            settingsManager.showNotification('Exportação de dados será implementada em breve!', 'info');
+        }
+        
+        function signOut() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                INSTANCE_MANAGER.logout();
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+    
+    <style>
+        /* ===== VARIÁVEIS CSS ===== */
+        :root {
+            --primary-color: #28a745;
+            --primary-color-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --text-secondary: #6c757d;
+            --text-muted: #9ca3af;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            
+            /* Font sizes */
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 2rem;
+            
+            /* Border radius */
+            --border-radius: 0.375rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            
+            /* Transitions */
+            --transition: all 0.3s ease;
+        }
+
+        /* ===== RESET E BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* ===== LAYOUT PRINCIPAL ===== */
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: none;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: none;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-email {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+
+        /* ===== CONTEÚDO PRINCIPAL ===== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 0;
+            transition: none;
+        }
+
+        .main-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-menu .user-avatar {
+            cursor: pointer;
+        }
+
+        /* ===== ÁREA DE CONTEÚDO ===== */
+        .content-area {
+            padding: 2rem;
+        }
+
+        /* ===== NAVEGAÇÃO DAS CONFIGURAÇÕES ===== */
+        .settings-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        
+        .settings-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 500;
+        }
+        
+        .settings-tab:hover {
+            background: #f8f9fa;
+        }
+        
+        .settings-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* ===== CONTEÚDO DAS CONFIGURAÇÕES ===== */
+        .settings-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .settings-section {
+            display: none;
+        }
+        
+        .settings-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .section-header h2 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .section-header p {
+            margin: 0;
+            color: #6c757d;
+        }
+        
+        .settings-form {
+            max-width: 800px;
+        }
+        
+        /* ===== FORMULÁRIOS ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .form-input:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #e9ecef;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        
+        /* ===== HORÁRIOS ===== */
+        .schedule-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .schedule-day {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .day-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .schedule-inputs {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        /* ===== MÉTODOS DE PAGAMENTO ===== */
+        .payment-methods {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .payment-method {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .method-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .method-header i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .method-options {
+            margin-left: 2rem;
+            display: grid;
+            gap: 0.5rem;
+        }
+        
+        /* ===== NOTIFICAÇÕES ===== */
+        .notification-groups {
+            display: grid;
+            gap: 2rem;
+        }
+        
+        .notification-group {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .notification-group h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        
+        /* ===== INTEGRAÇÕES ===== */
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .integration-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .integration-header {
+            margin-bottom: 1rem;
+        }
+        
+        .integration-header i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .integration-header h3 {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+        
+        .integration-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .integration-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        /* ===== SEGURANÇA ===== */
+        .security-options {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .security-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .security-card.danger {
+            border-color: #dc3545;
+            background: #f8f9fa;
+        }
+        
+        .security-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .security-card p {
+            margin: 0;
+            color: #6c757d;
+        }
+        
+        /* ===== BOTÕES ===== */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-color-dark);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        /* ===== NOTIFICAÇÕES ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .notification-content i {
+            font-size: 1.25rem;
+        }
+        
+        .notification.success .notification-content i {
+            color: #28a745;
+        }
+        
+        .notification.error .notification-content i {
+            color: #dc3545;
+        }
+        
+        .notification.info .notification-content i {
+            color: #17a2b8;
+        }
+        
+        .text-muted {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .readonly-notice {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 1rem;
+        }
+
+        .readonly-notice i {
+            color: #17a2b8;
+            font-size: 1.1rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+            
+            .settings-nav {
+                flex-wrap: wrap;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-day {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .security-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</body>
+</html>

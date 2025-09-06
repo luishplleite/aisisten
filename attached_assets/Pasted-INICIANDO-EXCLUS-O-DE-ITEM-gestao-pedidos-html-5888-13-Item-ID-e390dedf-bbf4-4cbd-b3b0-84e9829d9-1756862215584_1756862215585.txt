@@ -1,0 +1,46 @@
+INICIANDO EXCLUSÃO DE ITEM gestao_pedidos.html:5888:13
+🔍 Item ID: e390dedf-bbf4-4cbd-b3b0-84e9829d9078 gestao_pedidos.html:5889:13
+📋 Pedido ID: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:5890:13
+🔍 Verificando sistema e pedido... gestao_pedidos.html:5894:17
+✅ Pedido encontrado: B1F85AD2 gestao_pedidos.html:5907:17
+✅ Item encontrado: Capuccino Gelado Qtd: 1 gestao_pedidos.html:5915:17
+🔢 Verificando quantidade de itens no pedido: 2 gestao_pedidos.html:5918:17
+💬 Solicitando primeira confirmação do usuário... gestao_pedidos.html:5926:17
+✅ Primeira confirmação recebida gestao_pedidos.html:5932:17
+🔐 Solicitando confirmação de segurança... gestao_pedidos.html:5935:17
+✅ Confirmação de segurança recebida gestao_pedidos.html:5948:17
+🏢 Instância do restaurante: BuguerStar gestao_pedidos.html:5957:17
+🗑️ Excluindo item do banco de dados... gestao_pedidos.html:5960:17
+✅ Item excluído do banco com sucesso! gestao_pedidos.html:5971:17
+🧮 Recalculando totais do pedido... gestao_pedidos.html:5974:17
+🧮 INICIANDO RECÁLCULO DE TOTAIS gestao_pedidos.html:5993:13
+📋 Pedido ID: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:5994:13
+🔍 Buscando itens do pedido no banco... gestao_pedidos.html:6003:17
+✅ Itens encontrados: 1 itens gestao_pedidos.html:6010:17
+🧮 Calculando subtotal... gestao_pedidos.html:6013:17
+  - Item: R$ 27.90 x 1 = R$ 27.90 gestao_pedidos.html:6016:21
+✅ Subtotal calculado: R$ 27.90 gestao_pedidos.html:6019:17
+🚚 Buscando taxa de entrega... gestao_pedidos.html:6022:17
+✅ Taxa de entrega: R$ 0.00 gestao_pedidos.html:6033:17
+✅ Total final: R$ 27.90 gestao_pedidos.html:6034:17
+💾 Atualizando totais no banco... gestao_pedidos.html:6037:17
+✅ Totais atualizados no banco! gestao_pedidos.html:6047:17
+✅ Totais recalculados! gestao_pedidos.html:5976:17
+🔄 Atualizando pedido em tempo real... gestao_pedidos.html:5979:17
+🔄 INICIANDO ATUALIZAÇÃO EM TEMPO REAL gestao_pedidos.html:6057:13
+📋 Pedido ID: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:6058:13
+🔍 Buscando dados atualizados do pedido no banco... gestao_pedidos.html:6067:17
+✅ Dados do pedido obtidos: undefined gestao_pedidos.html:6075:17
+📦 Buscando itens atualizados do pedido... gestao_pedidos.html:6078:17
+✅ Itens obtidos: 1 itens gestao_pedidos.html:6085:17
+🔗 Dados combinados - Pedido com 1 itens gestao_pedidos.html:6089:17
+🔍 Procurando pedido na lista local... gestao_pedidos.html:6092:17
+✅ Pedido encontrado na posição: 0 gestao_pedidos.html:6095:21
+✅ Lista local atualizada gestao_pedidos.html:6097:21
+🎨 Atualizando card do pedido na tela... gestao_pedidos.html:6100:21
+✅ Card do pedido atualizado! gestao_pedidos.html:6102:21
+🔄 Modal de detalhes está aberto - atualizando conteúdo... gestao_pedidos.html:6107:25
+⚠️ Conteúdo do modal não encontrado gestao_pedidos.html:6114:29
+✅ ATUALIZAÇÃO EM TEMPO REAL CONCLUÍDA! gestao_pedidos.html:6123:17
+✅ Pedido atualizado em tempo real! gestao_pedidos.html:5981:17
+✅ ITEM EXCLUÍDO COM SUCESSO! gestao_pedidos.html:5983:17

@@ -1,0 +1,260 @@
+https://timepulseai.com.br/favicon.ico
+[HTTP/2 404  0ms]
+
+	
+GET
+	https://timepulseai.com.br/favicon.ico
+Status
+404
+VersãoHTTP/2
+Transferido196 B (tamanho 196 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+content-length
+	196
+content-type
+	text/html; charset=iso-8859-1
+date
+	Wed, 03 Sep 2025 01:11:45 GMT
+server
+	Apache/2.4.63 (Unix)
+X-Firefox-Spdy
+	h2
+	
+Accept
+	image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Connection
+	keep-alive
+Cookie
+	timepulse_instance_id=50b2dbcb-66bb-4969-92cf-493f03237e49; timepulse_instance_name=BuguerStar; timepulse_instance_token=session_1756992967843_fifol7vr9; timepulse_instance_type=restaurant; timepulse_user_email=luishplleite%40gmail.com; timepulse_restaurant_id=50b2dbcb-66bb-4969-92cf-493f03237e49
+Host
+	timepulseai.com.br
+Referer
+	https://timepulseai.com.br/relatorios.html
+Sec-Fetch-Dest
+	image
+Sec-Fetch-Mode
+	no-cors
+Sec-Fetch-Site
+	same-origin
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+✅ Configurações do Supabase carregadas com sucesso. relatorios.html:1243:29
+⚠️ Chave do Mapbox não encontrada na configuração. relatorios.html:1254:29
+🎉 Configurações carregadas e autenticação verificada. relatorios.html:1287:25
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/order_items?select=product_name,quantity,orders!inner(restaurant_id,status)&orders.restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&orders.status=eq.entregue
+[HTTP/3 400  79ms]
+
+	
+GET
+	https://sguirxaunajirfvlzbac.supabase.co/rest/v1/order_items?select=product_name,quantity,orders!inner(restaurant_id,status)&orders.restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&orders.status=eq.entregue
+Status
+400
+VersãoHTTP/3
+Transferido1,29 kB (tamanho 313 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+access-control-allow-origin
+	https://timepulseai.com.br
+access-control-expose-headers
+	Content-Encoding, Content-Location, Content-Range, Content-Type, Date, Location, Server, Transfer-Encoding, Range-Unit
+alt-svc
+	h3=":443"; ma=86400
+cf-cache-status
+	DYNAMIC
+cf-ray
+	979e5ab84d9acb55-GIG
+content-encoding
+	gzip
+content-type
+	application/json; charset=utf-8
+date
+	Thu, 04 Sep 2025 15:00:04 GMT
+priority
+	u=4,i=?0
+sb-gateway-version
+	1
+sb-project-ref
+	sguirxaunajirfvlzbac
+sb-request-id
+	0199153d-ef35-7319-ba48-e4cfdc9a21b8
+server
+	cloudflare
+server-timing
+	cfExtPri
+set-cookie
+	__cf_bm=q06TjUwf40QnFDIXUgDSvalfKO.1n.1aQHHwJuUaFcg-1756998004-1.0.1.1-MhoDgd7o8EyxiVSrkgvW6Cdf0YPxOr2of2crxspGqI10Dt3j3lJCffRh4r1fTxN3faPo5iWqHbZFU5GgEFVe_RhnCVusTH.d_qArxuVkang; path=/; expires=Thu, 04-Sep-25 15:30:04 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+strict-transport-security
+	max-age=31536000; includeSubDomains; preload
+vary
+	Accept-Encoding
+x-content-type-options
+	nosniff
+x-envoy-attempt-count
+	1
+x-envoy-upstream-service-time
+	1
+	
+Accept
+	*/*
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+accept-profile
+	public
+apikey
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k
+authorization
+	Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlVOZ3FBVHhZZ015ZzVJd3IiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NndWlyeGF1bmFqaXJmdmx6YmFjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU3MDAwMDY3LCJpYXQiOjE3NTY5OTY0NjcsImVtYWlsIjoibHVpc2hwbGxlaXRlQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJsdWlzaHBsbGVpdGVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJvd25lcl9uYW1lIjoiTHVpcyBIZW5yaXF1ZSBQZXJlaXJhIExlaXRlIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJyZXN0YXVyYW50X25hbWUiOiJMdWlzIEhlbnJpcXVlIFBlcmVpcmEgTGVpdGUiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc1Njk5Mjk2N31dLCJzZXNzaW9uX2lkIjoiNTcwYTNlNzYtNDQxMS00YzJlLTkzZTMtYzdjMDZmYTlmNzExIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.jpVSH6-Kcn4c_7IdhRUIF47HvqeRUuGgJEPVK4BtMTQ
+Connection
+	keep-alive
+Host
+	sguirxaunajirfvlzbac.supabase.co
+Origin
+	https://timepulseai.com.br
+Priority
+	u=4
+Referer
+	https://timepulseai.com.br/
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	cross-site
+TE
+	trailers
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+
+    x-client-info
+    	supabase-js-web/2.57.0
+
+Erro ao buscar itens dos pedidos: 
+Object { code: "PGRST200", details: "Searched for a foreign key relationship between 'order_items' and 'orders' in the schema 'public', but no matches were found.", hint: "Perhaps you meant 'products' instead of 'orders'.", message: "Could not find a relationship between 'order_items' and 'orders' in the schema cache" }
+relatorios.html:996:33
+    getTopProducts https://timepulseai.com.br/relatorios.html:996
+    calculateSalesMetrics https://timepulseai.com.br/relatorios.html:918
+    loadAnalytics https://timepulseai.com.br/relatorios.html:1355
+    initializeAnalytics https://timepulseai.com.br/relatorios.html:1338
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/relatorios.html:1293
+    <anonymous> https://timepulseai.com.br/relatorios.html:2041
+XHRGET
+https://sguirxaunajirfvlzbac.supabase.co/rest/v1/order_items?select=quantity,products!inner(category_id,product_categories!inner(name)),orders!inner(restaurant_id,status)&orders.restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&orders.status=eq.entregue
+[HTTP/3 400  93ms]
+
+	
+GET
+	https://sguirxaunajirfvlzbac.supabase.co/rest/v1/order_items?select=quantity,products!inner(category_id,product_categories!inner(name)),orders!inner(restaurant_id,status)&orders.restaurant_id=eq.50b2dbcb-66bb-4969-92cf-493f03237e49&orders.status=eq.entregue
+Status
+400
+VersãoHTTP/3
+Transferido1,29 kB (tamanho 313 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+access-control-allow-origin
+	https://timepulseai.com.br
+access-control-expose-headers
+	Content-Encoding, Content-Location, Content-Range, Content-Type, Date, Location, Server, Transfer-Encoding, Range-Unit
+alt-svc
+	h3=":443"; ma=86400
+cf-cache-status
+	DYNAMIC
+cf-ray
+	979e5abefb55cb55-GIG
+content-encoding
+	gzip
+content-type
+	application/json; charset=utf-8
+date
+	Thu, 04 Sep 2025 15:00:05 GMT
+priority
+	u=4,i=?0
+sb-gateway-version
+	1
+sb-project-ref
+	sguirxaunajirfvlzbac
+sb-request-id
+	0199153d-f36a-72fb-90a2-2cbf933c5fd3
+server
+	cloudflare
+server-timing
+	cfExtPri
+set-cookie
+	__cf_bm=V5qS.xtDtrxkEyxT5NV548c5GBAdMrNEErANOodMX5k-1756998005-1.0.1.1-Xa5BKQqLIgc.xPC7.ufqO7A.bft6YcfieA3eDAI2sjgs.2_cTCkCEPHDJyjK2Z3kdQ0FYvgY0M_g0BA40Bm.IY7RSq0AKE98EDxoo4usMTU; path=/; expires=Thu, 04-Sep-25 15:30:05 GMT; domain=.supabase.co; HttpOnly; Secure; SameSite=None
+strict-transport-security
+	max-age=31536000; includeSubDomains; preload
+vary
+	Accept-Encoding
+x-content-type-options
+	nosniff
+x-envoy-attempt-count
+	1
+x-envoy-upstream-service-time
+	1
+	
+Accept
+	*/*
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+accept-profile
+	public
+apikey
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k
+authorization
+	Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IlVOZ3FBVHhZZ015ZzVJd3IiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NndWlyeGF1bmFqaXJmdmx6YmFjLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU3MDAwMDY3LCJpYXQiOjE3NTY5OTY0NjcsImVtYWlsIjoibHVpc2hwbGxlaXRlQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJsdWlzaHBsbGVpdGVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJvd25lcl9uYW1lIjoiTHVpcyBIZW5yaXF1ZSBQZXJlaXJhIExlaXRlIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJyZXN0YXVyYW50X25hbWUiOiJMdWlzIEhlbnJpcXVlIFBlcmVpcmEgTGVpdGUiLCJzdWIiOiIyYjAwNTExZC03M2NmLTQ0ODYtODNjYS0zMTE2MzIzOGM1ODkifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc1Njk5Mjk2N31dLCJzZXNzaW9uX2lkIjoiNTcwYTNlNzYtNDQxMS00YzJlLTkzZTMtYzdjMDZmYTlmNzExIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.jpVSH6-Kcn4c_7IdhRUIF47HvqeRUuGgJEPVK4BtMTQ
+Connection
+	keep-alive
+Host
+	sguirxaunajirfvlzbac.supabase.co
+Origin
+	https://timepulseai.com.br
+Priority
+	u=4
+Referer
+	https://timepulseai.com.br/
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	cross-site
+TE
+	trailers
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+
+    x-client-info
+    	supabase-js-web/2.57.0
+
+Erro ao buscar dados de vendas por categoria: 
+Object { code: "PGRST200", details: "Searched for a foreign key relationship between 'order_items' and 'orders' in the schema 'public', but no matches were found.", hint: "Perhaps you meant 'products' instead of 'orders'.", message: "Could not find a relationship between 'order_items' and 'orders' in the schema cache" }
+relatorios.html:1999:29
+    getCategorySales https://timepulseai.com.br/relatorios.html:1999
+    createCategoryChart https://timepulseai.com.br/relatorios.html:1819
+    initializeCharts https://timepulseai.com.br/relatorios.html:2036
+    loadAnalytics https://timepulseai.com.br/relatorios.html:1359
+    initializeAnalytics https://timepulseai.com.br/relatorios.html:1338
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/relatorios.html:1293
+    <anonymous> https://timepulseai.com.br/relatorios.html:2041
+Analytics carregados: 
+Object { totalRevenue: 165.96999999999997, averageTicket: 33.193999999999996, totalOrders: 5, topProducts: [], salesGrowth: 0, hourlyDistribution: (24) […] }
+relatorios.html:1361:25
+Analytics inicializados com sucesso relatorios.html:1340:25
+✅ Aplicação Relatórios iniciada! relatorios.html:1295:25
+
+​

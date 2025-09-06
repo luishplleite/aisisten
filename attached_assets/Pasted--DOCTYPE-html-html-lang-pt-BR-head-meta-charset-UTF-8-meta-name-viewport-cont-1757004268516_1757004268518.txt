@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - TimePulse AI</title>
+    <meta name="description" content="Configure seu restaurante e personalize o sistema">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">TimePulse AI</div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Vendas
+                    </a>
+                    <a href="financeiro.html" class="nav-link">
+                        <span class="nav-icon">💰</span>
+                        Financeiro
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link active">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Carregando...</div>
+                        <div class="user-email" id="userEmail">...</div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <span class="nav-icon">🚪</span>
+                    Sair
+                </button>
+            </div>
+        </nav>
+        
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <button class="btn btn-secondary d-md-none" data-action="toggle-sidebar">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="header-title">
+                            <i class="fas fa-cog"></i>
+                            Configurações
+                        </h1>
+                    </div>
+                    
+                    <div class="header-actions">
+                        <button class="btn btn-success" onclick="saveAllSettings()" id="saveAllBtn">
+                            <i class="fas fa-save"></i>
+                            Salvar Todas
+                        </button>
+                        
+                        <div class="user-menu">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Área de Conteúdo -->
+            <div class="content-area">
+                <!-- Navegação das Configurações -->
+                <div class="settings-nav">
+                    <button class="settings-tab active" data-tab="restaurant">
+                        <i class="fas fa-store"></i>
+                        Restaurante
+                    </button>
+                    <button class="settings-tab" data-tab="appearance">
+                        <i class="fas fa-palette"></i>
+                        Aparência
+                    </button>
+                    <button class="settings-tab" data-tab="delivery">
+                        <i class="fas fa-motorcycle"></i>
+                        Entrega
+                    </button>
+                    <button class="settings-tab" data-tab="payments">
+                        <i class="fas fa-credit-card"></i>
+                        Pagamentos
+                    </button>
+                    <button class="settings-tab" data-tab="notifications">
+                        <i class="fas fa-bell"></i>
+                        Notificações
+                    </button>
+                    <button class="settings-tab" data-tab="integrations">
+                        <i class="fas fa-plug"></i>
+                        Integrações
+                    </button>
+                    <button class="settings-tab" data-tab="security">
+                        <i class="fas fa-shield-alt"></i>
+                        Segurança
+                    </button>
+                </div>
+                
+                <!-- Conteúdo das Configurações -->
+                <div class="settings-content">
+                    <!-- Configurações do Restaurante -->
+                    <div class="settings-section active" id="restaurant-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-store"></i>
+                                Informações do Restaurante
+                            </h2>
+                            <p>Configure as informações básicas do seu estabelecimento</p>
+                        </div>
+                        
+                        <form id="restaurantForm" class="settings-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Nome do Restaurante</label>
+                                    <input type="text" id="restaurantNameInput" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">CNPJ</label>
+                                    <input type="text" id="restaurantCNPJ" class="form-input" placeholder="00.000.000/0000-00">
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label class="form-label">Endereço Completo</label>
+                                    <textarea id="restaurantAddress" class="form-input" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Telefone</label>
+                                    <input type="tel" id="restaurantPhone" class="form-input">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="email" id="restaurantEmail" class="form-input">
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h3>Horários de Funcionamento</h3>
+                                <div class="schedule-grid" id="scheduleGrid">
+                                    <!-- Horários serão carregados aqui -->
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Informações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Aparência -->
+                    <div class="settings-section" id="appearance-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-palette"></i>
+                                Personalização Visual
+                            </h2>
+                            <p>Personalize as cores e aparência do sistema</p>
+                        </div>
+                        
+                        <form id="appearanceForm" class="settings-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Cor Primária</label>
+                                    <div class="color-picker-group">
+                                        <input type="color" id="primaryColor" class="color-input" value="#007bff">
+                                        <input type="text" id="primaryColorText" class="form-input" value="#007bff">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Tema</label>
+                                    <select id="themeSelect" class="form-input">
+                                        <option value="light">Claro</option>
+                                        <option value="dark">Escuro</option>
+                                        <option value="auto">Automático</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="color-presets">
+                                <h3>Cores Predefinidas</h3>
+                                <div class="preset-colors">
+                                    <button type="button" class="color-preset" data-color="#007bff" style="background: #007bff;"></button>
+                                    <button type="button" class="color-preset" data-color="#28a745" style="background: #28a745;"></button>
+                                    <button type="button" class="color-preset" data-color="#dc3545" style="background: #dc3545;"></button>
+                                    <button type="button" class="color-preset" data-color="#ffc107" style="background: #ffc107;"></button>
+                                    <button type="button" class="color-preset" data-color="#6f42c1" style="background: #6f42c1;"></button>
+                                    <button type="button" class="color-preset" data-color="#fd7e14" style="background: #fd7e14;"></button>
+                                    <button type="button" class="color-preset" data-color="#20c997" style="background: #20c997;"></button>
+                                    <button type="button" class="color-preset" data-color="#6610f2" style="background: #6610f2;"></button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Aparência
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Entrega -->
+                    <div class="settings-section" id="delivery-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-motorcycle"></i>
+                                Configurações de Entrega
+                            </h2>
+                            <p>Configure taxas, tempos e áreas de entrega</p>
+                        </div>
+                        
+                        <form id="deliveryForm" class="settings-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Taxa de Entrega Padrão (R$)</label>
+                                    <input type="number" id="defaultDeliveryFee" class="form-input" step="0.01" value="5.00">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Tempo Estimado (minutos)</label>
+                                    <input type="number" id="estimatedTime" class="form-input" value="45">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Valor Mínimo para Entrega (R$)</label>
+                                    <input type="number" id="minimumOrder" class="form-input" step="0.01" value="20.00">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Raio de Entrega (km)</label>
+                                    <input type="number" id="deliveryRadius" class="form-input" step="0.1" value="5.0">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" id="enableDelivery" checked>
+                                    Ativar serviço de entrega
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" id="enablePickup">
+                                    Ativar retirada no balcão
+                                </label>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Configurações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Pagamento -->
+                    <div class="settings-section" id="payments-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-credit-card"></i>
+                                Formas de Pagamento
+                            </h2>
+                            <p>Configure as formas de pagamento aceitas</p>
+                        </div>
+                        
+                        <form id="paymentsForm" class="settings-form">
+                            <div class="payment-methods">
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptCash" checked>
+                                            <i class="fas fa-money-bill"></i>
+                                            Dinheiro
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="needChange">
+                                            Aceitar com troco
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptCard">
+                                            <i class="fas fa-credit-card"></i>
+                                            Cartão na Entrega
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptDebit">
+                                            Cartão de Débito
+                                        </label>
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptCredit">
+                                            Cartão de Crédito
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptPix">
+                                            <i class="fab fa-pix"></i>
+                                            PIX
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <div class="form-group">
+                                            <label class="form-label">Chave PIX</label>
+                                            <input type="text" id="pixKey" class="form-input" placeholder="Sua chave PIX">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="payment-method">
+                                    <div class="method-header">
+                                        <label class="form-label">
+                                            <input type="checkbox" id="acceptOnline">
+                                            <i class="fas fa-globe"></i>
+                                            Pagamento Online
+                                        </label>
+                                    </div>
+                                    <div class="method-options">
+                                        <p class="text-muted">Configure a integração com Asaas na seção Integrações</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Pagamentos
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Notificações -->
+                    <div class="settings-section" id="notifications-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-bell"></i>
+                                Notificações
+                            </h2>
+                            <p>Configure como e quando receber notificações</p>
+                        </div>
+                        
+                        <form id="notificationsForm" class="settings-form">
+                            <div class="notification-groups">
+                                <div class="notification-group">
+                                    <h3>Notificações Sonoras</h3>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="soundNewOrder" checked>
+                                        Som para novos pedidos
+                                    </label>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="soundOrderUpdate">
+                                        Som para atualizações de pedidos
+                                    </label>
+                                </div>
+                                
+                                <div class="notification-group">
+                                    <h3>Notificações Push</h3>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="pushNewOrder">
+                                        Push para novos pedidos
+                                    </label>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="pushLowStock">
+                                        Push para estoque baixo
+                                    </label>
+                                </div>
+                                
+                                <div class="notification-group">
+                                    <h3>Notificações por E-mail</h3>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="emailDailyReport">
+                                        Relatório diário
+                                    </label>
+                                    <label class="form-label">
+                                        <input type="checkbox" id="emailWeeklyReport">
+                                        Relatório semanal
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Salvar Notificações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Configurações de Integrações -->
+                    <div class="settings-section" id="integrations-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-plug"></i>
+                                Integrações
+                            </h2>
+                            <p>Conecte o TimePulse AI com outros serviços</p>
+                        </div>
+                        
+                        <div class="integrations-grid">
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <h3>WhatsApp</h3>
+                                    <span class="integration-status" id="whatsappStatus">Desconectado</span>
+                                </div>
+                                <p>Envie notificações automáticas via WhatsApp</p>
+                                <button class="btn btn-primary" onclick="configureWhatsApp()">
+                                    Configurar
+                                </button>
+                            </div>
+                            
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <i class="fas fa-credit-card"></i>
+                                    <h3>Asaas</h3>
+                                    <span class="integration-status" id="asaasStatus">Desconectado</span>
+                                </div>
+                                <p>Processamento de pagamentos online</p>
+                                <button class="btn btn-primary" onclick="configureAsaas()">
+                                    Configurar
+                                </button>
+                            </div>
+                            
+                            <div class="integration-card">
+                                <div class="integration-header">
+                                    <i class="fas fa-envelope"></i>
+                                    <h3>E-mail SMTP</h3>
+                                    <span class="integration-status" id="smtpStatus">Desconectado</span>
+                                </div>
+                                <p>Envio de e-mails automáticos</p>
+                                <button class="btn btn-primary" onclick="configureSMTP()">
+                                    Configurar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Configurações de Segurança -->
+                    <div class="settings-section" id="security-section">
+                        <div class="section-header">
+                            <h2>
+                                <i class="fas fa-shield-alt"></i>
+                                Segurança
+                            </h2>
+                            <p>Gerencie a segurança da sua conta e dados</p>
+                        </div>
+                        
+                        <div class="security-options">
+                            <div class="security-card">
+                                <h3>
+                                    <i class="fas fa-key"></i>
+                                    Alterar Senha
+                                </h3>
+                                <p>Altere sua senha de acesso regularmente</p>
+                                <button class="btn btn-warning" onclick="changePassword()">
+                                    Alterar Senha
+                                </button>
+                            </div>
+                            
+                            <div class="security-card">
+                                <h3>
+                                    <i class="fas fa-download"></i>
+                                    Backup dos Dados
+                                </h3>
+                                <p>Faça backup dos seus dados importantes</p>
+                                <button class="btn btn-info" onclick="exportData()">
+                                    Exportar Dados
+                                </button>
+                            </div>
+                            
+                            <div class="security-card danger">
+                                <h3>
+                                    <i class="fas fa-trash-alt"></i>
+                                    Excluir Conta
+                                </h3>
+                                <p>Permanentemente excluir sua conta e todos os dados</p>
+                                <button class="btn btn-danger" onclick="deleteAccount()">
+                                    Excluir Conta
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts - SISTEMA CENTRALIZADO SEM DECLARAÇÕES DUPLICADAS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // ===== GERENCIADOR DE CONFIGURAÇÕES =====
+        class SettingsManager {
+            constructor() {
+                this.hasUnsavedChanges = false;
+                this.currentSection = 'restaurant';
+            }
+            
+            async init() {
+                try {
+                    console.log('⚙️ Inicializando configurações...');
+                    
+                    this.setupEventListeners();
+                    await this.loadSettings();
+                    this.setupScheduleGrid();
+                    
+                    console.log('✅ Configurações inicializadas');
+                    
+                } catch (error) {
+                    console.error('❌ Erro na inicialização:', error);
+                    this.showNotification('Erro ao carregar configurações', 'error');
+                }
+            }
+            
+            async loadSettings() {
+                try {
+                    if (!window.TimePulseAI.currentRestaurant()) return;
+                    
+                    const restaurant = window.TimePulseAI.currentRestaurant();
+                    
+                    // Carregar dados do restaurante
+                    document.getElementById('restaurantNameInput').value = restaurant.name || '';
+                    document.getElementById('restaurantCNPJ').value = restaurant.cnpj || '';
+                    document.getElementById('restaurantAddress').value = restaurant.address || '';
+                    document.getElementById('restaurantPhone').value = restaurant.phone || '';
+                    document.getElementById('restaurantEmail').value = restaurant.email || '';
+                    
+                    // Carregar configurações de entrega
+                    document.getElementById('defaultDeliveryFee').value = restaurant.delivery_fee || 5.00;
+                    document.getElementById('estimatedTime').value = restaurant.estimated_time || 45;
+                    document.getElementById('minimumOrder').value = restaurant.minimum_order || 20.00;
+                    document.getElementById('deliveryRadius').value = restaurant.delivery_radius || 5.0;
+                    
+                    // Carregar configurações de aparência
+                    document.getElementById('primaryColor').value = restaurant.primary_color || '#007bff';
+                    document.getElementById('primaryColorText').value = restaurant.primary_color || '#007bff';
+                    this.applyPrimaryColor(restaurant.primary_color || '#007bff');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao carregar configurações:', error);
+                }
+            }
+            
+            setupEventListeners() {
+                // Navegação entre seções
+                document.querySelectorAll('.settings-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchSection(e.target.dataset.tab);
+                    });
+                });
+                
+                // Formulários
+                document.getElementById('restaurantForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveRestaurantSettings();
+                });
+                
+                document.getElementById('appearanceForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveAppearanceSettings();
+                });
+                
+                document.getElementById('deliveryForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveDeliverySettings();
+                });
+                
+                // Color picker
+                document.getElementById('primaryColor').addEventListener('change', (e) => {
+                    document.getElementById('primaryColorText').value = e.target.value;
+                    this.applyPrimaryColor(e.target.value);
+                });
+                
+                document.getElementById('primaryColorText').addEventListener('change', (e) => {
+                    document.getElementById('primaryColor').value = e.target.value;
+                    this.applyPrimaryColor(e.target.value);
+                });
+                
+                // Preset colors
+                document.querySelectorAll('.color-preset').forEach(preset => {
+                    preset.addEventListener('click', (e) => {
+                        const color = e.target.dataset.color;
+                        document.getElementById('primaryColor').value = color;
+                        document.getElementById('primaryColorText').value = color;
+                        this.applyPrimaryColor(color);
+                    });
+                });
+                
+                // Detectar mudanças não salvas
+                document.addEventListener('input', () => {
+                    this.hasUnsavedChanges = true;
+                });
+                
+                // Aviso ao sair
+                window.addEventListener('beforeunload', (e) => {
+                    if (this.hasUnsavedChanges) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+            }
+            
+            switchSection(sectionId) {
+                // Atualizar navegação
+                document.querySelectorAll('.settings-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${sectionId}"]`).classList.add('active');
+                
+                // Atualizar conteúdo
+                document.querySelectorAll('.settings-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(`${sectionId}-section`).classList.add('active');
+                
+                this.currentSection = sectionId;
+            }
+            
+            async saveRestaurantSettings() {
+                try {
+                    const restaurantData = {
+                        name: document.getElementById('restaurantNameInput').value,
+                        cnpj: document.getElementById('restaurantCNPJ').value || null,
+                        address: document.getElementById('restaurantAddress').value || null,
+                        phone: document.getElementById('restaurantPhone').value || null,
+                        email: document.getElementById('restaurantEmail').value || null
+                    };
+                    
+                    const { error } = await window.TimePulseAI.supabase()
+                        .from('restaurants')
+                        .update(restaurantData)
+                        .eq('id', window.TimePulseAI.currentRestaurant().id);
+                    
+                    if (error) throw error;
+                    
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Informações do restaurante salvas!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar configurações:', error);
+                    this.showNotification('Erro ao salvar configurações', 'error');
+                }
+            }
+            
+            async saveAppearanceSettings() {
+                try {
+                    const appearanceData = {
+                        primary_color: document.getElementById('primaryColor').value
+                    };
+                    
+                    const { error } = await window.TimePulseAI.supabase()
+                        .from('restaurants')
+                        .update(appearanceData)
+                        .eq('id', window.TimePulseAI.currentRestaurant().id);
+                    
+                    if (error) throw error;
+                    
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Configurações de aparência salvas!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar aparência:', error);
+                    this.showNotification('Erro ao salvar aparência', 'error');
+                }
+            }
+            
+            async saveDeliverySettings() {
+                try {
+                    const deliveryData = {
+                        delivery_fee: parseFloat(document.getElementById('defaultDeliveryFee').value),
+                        estimated_time: parseInt(document.getElementById('estimatedTime').value),
+                        minimum_order: parseFloat(document.getElementById('minimumOrder').value),
+                        delivery_radius: parseFloat(document.getElementById('deliveryRadius').value)
+                    };
+                    
+                    const { error } = await window.TimePulseAI.supabase()
+                        .from('restaurants')
+                        .update(deliveryData)
+                        .eq('id', window.TimePulseAI.currentRestaurant().id);
+                    
+                    if (error) throw error;
+                    
+                    this.hasUnsavedChanges = false;
+                    this.showNotification('Configurações de entrega salvas!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao salvar configurações de entrega:', error);
+                    this.showNotification('Erro ao salvar configurações de entrega', 'error');
+                }
+            }
+            
+            applyPrimaryColor(color) {
+                document.documentElement.style.setProperty('--primary-color', color);
+                
+                // Calcular cor mais escura para hover
+                const darkerColor = this.darkenColor(color, 10);
+                document.documentElement.style.setProperty('--primary-color-dark', darkerColor);
+            }
+            
+            darkenColor(color, percent) {
+                const num = parseInt(color.replace("#", ""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) - amt;
+                const G = (num >> 8 & 0x00FF) - amt;
+                const B = (num & 0x0000FF) - amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+            }
+            
+            setupScheduleGrid() {
+                const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+                const grid = document.getElementById('scheduleGrid');
+                
+                grid.innerHTML = days.map(day => `
+                    <div class="schedule-day">
+                        <label class="day-label">${day}</label>
+                        <div class="schedule-inputs">
+                            <input type="time" class="form-input" placeholder="Abertura">
+                            <input type="time" class="form-input" placeholder="Fechamento">
+                            <label class="form-label">
+                                <input type="checkbox">
+                                Fechado
+                            </label>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+        }
+        
+        // ===== INICIALIZAÇÃO =====
+        let settingsManager;
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Aguardar inicialização do sistema principal
+            await new Promise(resolve => {
+                const checkInit = () => {
+                    if (window.TimePulseAI && window.TimePulseAI.supabase()) {
+                        resolve();
+                    } else {
+                        setTimeout(checkInit, 100);
+                    }
+                };
+                checkInit();
+            });
+            
+            settingsManager = new SettingsManager();
+            await settingsManager.init();
+        });
+        
+        // ===== FUNÇÕES GLOBAIS =====
+        function saveAllSettings() {
+            // Salvar todas as configurações do seção atual
+            if (settingsManager) {
+                switch (settingsManager.currentSection) {
+                    case 'restaurant':
+                        document.getElementById('restaurantForm').dispatchEvent(new Event('submit'));
+                        break;
+                    case 'appearance':
+                        document.getElementById('appearanceForm').dispatchEvent(new Event('submit'));
+                        break;
+                    case 'delivery':
+                        document.getElementById('deliveryForm').dispatchEvent(new Event('submit'));
+                        break;
+                }
+            }
+        }
+        
+        function configureWhatsApp() {
+            alert('Integração com WhatsApp será implementada em breve!');
+        }
+        
+        function configureAsaas() {
+            alert('Integração com Asaas será implementada em breve!');
+        }
+        
+        function configureSMTP() {
+            alert('Configuração de SMTP será implementada em breve!');
+        }
+        
+        function changePassword() {
+            alert('Alteração de senha será implementada em breve!');
+        }
+        
+        function exportData() {
+            alert('Exportação de dados será implementada em breve!');
+        }
+        
+        function deleteAccount() {
+            if (confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita!')) {
+                alert('Exclusão de conta será implementada em breve!');
+            }
+        }
+    </script>
+    
+    <style>
+        /* Estilos específicos das configurações */
+        .settings-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        
+        .settings-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .settings-tab:hover {
+            background: #f8f9fa;
+        }
+        
+        .settings-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .settings-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .settings-section {
+            display: none;
+        }
+        
+        .settings-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .section-header h2 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-header p {
+            margin: 0;
+            color: #6c757d;
+        }
+        
+        .settings-form {
+            max-width: 800px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .color-picker-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .color-input {
+            width: 60px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .preset-colors {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .color-preset {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .color-preset:hover {
+            transform: scale(1.1);
+        }
+        
+        .schedule-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .schedule-day {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .day-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .schedule-inputs {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .payment-methods {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .payment-method {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .method-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .method-header i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .method-options {
+            margin-left: 2rem;
+            display: grid;
+            gap: 0.5rem;
+        }
+        
+        .notification-groups {
+            display: grid;
+            gap: 2rem;
+        }
+        
+        .notification-group {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .notification-group h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+        
+        .integrations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .integration-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .integration-header {
+            margin-bottom: 1rem;
+        }
+        
+        .integration-header i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .integration-header h3 {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+        
+        .integration-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .integration-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .security-options {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .security-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .security-card.danger {
+            border-color: #dc3545;
+            background: #f8f9fa;
+        }
+        
+        .security-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .security-card p {
+            margin: 0;
+            color: #6c757d;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-color-dark);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 10000;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .notification-content i {
+            font-size: 1.25rem;
+        }
+        
+        .notification.success .notification-content i {
+            color: #28a745;
+        }
+        
+        .notification.error .notification-content i {
+            color: #dc3545;
+        }
+        
+        .notification.info .notification-content i {
+            color: #17a2b8;
+        }
+        
+        .text-muted {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .settings-nav {
+                flex-wrap: wrap;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-day {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .security-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .color-picker-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</body>
+</html>

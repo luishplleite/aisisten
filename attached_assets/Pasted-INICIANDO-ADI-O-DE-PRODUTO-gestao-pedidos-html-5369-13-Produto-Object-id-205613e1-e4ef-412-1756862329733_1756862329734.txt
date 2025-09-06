@@ -1,0 +1,50 @@
+INICIANDO ADIÇÃO DE PRODUTO gestao_pedidos.html:5369:13
+📦 Produto: 
+Object { id: "205613e1-e4ef-4123-bdd2-53eed2ede8fd", nome: "Banana Split", preco: 27.9 }
+gestao_pedidos.html:5370:13
+📋 Pedido atual: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:5371:13
+💬 Solicitando quantidade ao usuário... gestao_pedidos.html:5380:17
+✅ Quantidade definida: 1 gestao_pedidos.html:5387:17
+📝 Solicitando observações ao usuário... gestao_pedidos.html:5389:17
+✅ Observações: Nenhuma gestao_pedidos.html:5391:17
+🏢 Instância do restaurante: BuguerStar gestao_pedidos.html:5399:17
+📊 Dados do item a ser inserido: 
+Object { order_id: "2faf74ea-dc10-4478-8336-71fcb1f85ad2", product_id: "205613e1-e4ef-4123-bdd2-53eed2ede8fd", product_name: "Banana Split", quantity: 1, price: 27.9, notes: null }
+gestao_pedidos.html:5409:17
+💾 Inserindo item no banco de dados... gestao_pedidos.html:5412:17
+✅ Item inserido no banco com sucesso! gestao_pedidos.html:5422:17
+🔄 Iniciando processo de atualização para pedido: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:5426:17
+🧮 Recalculando totais do pedido... gestao_pedidos.html:5429:17
+🧮 INICIANDO RECÁLCULO DE TOTAIS gestao_pedidos.html:5993:13
+📋 Pedido ID: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:5994:13
+🔍 Buscando itens do pedido no banco... gestao_pedidos.html:6003:17
+✅ Itens encontrados: 2 itens gestao_pedidos.html:6010:17
+🧮 Calculando subtotal... gestao_pedidos.html:6013:17
+  - Item: R$ 27.90 x 1 = R$ 27.90 2 gestao_pedidos.html:6016:21
+✅ Subtotal calculado: R$ 55.80 gestao_pedidos.html:6019:17
+🚚 Buscando taxa de entrega... gestao_pedidos.html:6022:17
+✅ Taxa de entrega: R$ 0.00 gestao_pedidos.html:6033:17
+✅ Total final: R$ 55.80 gestao_pedidos.html:6034:17
+💾 Atualizando totais no banco... gestao_pedidos.html:6037:17
+✅ Totais atualizados no banco! gestao_pedidos.html:6047:17
+✅ Totais recalculados! gestao_pedidos.html:5431:17
+🔄 Atualizando pedido em tempo real... gestao_pedidos.html:5434:17
+🔄 INICIANDO ATUALIZAÇÃO EM TEMPO REAL gestao_pedidos.html:6057:13
+📋 Pedido ID: 2faf74ea-dc10-4478-8336-71fcb1f85ad2 gestao_pedidos.html:6058:13
+🔍 Buscando dados atualizados do pedido no banco... gestao_pedidos.html:6067:17
+✅ Dados do pedido obtidos: undefined gestao_pedidos.html:6075:17
+📦 Buscando itens atualizados do pedido... gestao_pedidos.html:6078:17
+✅ Itens obtidos: 2 itens gestao_pedidos.html:6085:17
+🔗 Dados combinados - Pedido com 2 itens gestao_pedidos.html:6089:17
+🔍 Procurando pedido na lista local... gestao_pedidos.html:6092:17
+✅ Pedido encontrado na posição: 0 gestao_pedidos.html:6095:21
+✅ Lista local atualizada gestao_pedidos.html:6097:21
+🎨 Atualizando card do pedido na tela... gestao_pedidos.html:6100:21
+✅ Card do pedido atualizado! gestao_pedidos.html:6102:21
+🔄 Modal de detalhes está aberto - atualizando conteúdo... gestao_pedidos.html:6107:25
+⚠️ Conteúdo do modal não encontrado gestao_pedidos.html:6114:29
+✅ ATUALIZAÇÃO EM TEMPO REAL CONCLUÍDA! gestao_pedidos.html:6123:17
+✅ Pedido atualizado em tempo real! gestao_pedidos.html:5436:17
+✅ PRODUTO ADICIONADO COM SUCESSO! gestao_pedidos.html:5438:17
+🔒 Fechando modal de adicionar produto... gestao_pedidos.html:5441:17
+✅ Modal fechado! gestao_pedidos.html:5443:17

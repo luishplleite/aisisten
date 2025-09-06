@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Pedidos - TimePulse AI</title>
+    <meta name="description" content="Histórico completo de pedidos com análise inteligente">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/config.js"></script>
+    
+    <style>
+        /* Reutilizando CSS base do cozinha.html */
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+            --border-color: #dee2e6;
+            --text-secondary: #6c757d;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Layout principal - reutilizado do cozinha.html */
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        /* Estilos específicos para histórico */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .history-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .history-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            grid-column: 1 / -1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Botões reutilizados do cozinha.html */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        /* Tabela de resultados */
+        .history-results {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .results-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .orders-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .orders-table tbody tr:hover {
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .order-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .order-status.entregue { background: #d4edda; color: #155724; }
+        .order-status.cancelado { background: #f8d7da; color: #721c24; }
+        .order-status.preparo { background: #fff3cd; color: #856404; }
+        .order-status.novo { background: #d1ecf1; color: #0c5460; }
+        .order-status.pronto { background: #d4edda; color: #155724; }
+
+        .order-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        /* Insights panel */
+        .insights-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .insights-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .insight-card {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .insight-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Gráficos */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+
+        /* Modal - reutilizado do cozinha.html */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 800px;
+            animation: fadeInScale 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            color: #aaa;
+            font-size: 2rem;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .current-page {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+
+            .history-title {
+                font-size: 1.5rem;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .orders-table {
+                font-size: 0.8rem;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1rem;
+            }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Sistema de notificações - reutilizado do cozinha.html */
+        #notificationContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-left: 4px solid #007bff;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+            max-width: 400px;
+            word-wrap: break-word;
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left-color: #28a745;
+        }
+
+        .notification.error {
+            border-left-color: #dc3545;
+        }
+
+        .notification.warning {
+            border-left-color: #ffc107;
+        }
+
+        .notification.info {
+            border-left-color: #17a2b8;
+        }
+
+        /* Order details in modal */
+        .order-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-item {
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            color: #495057;
+        }
+
+        .items-list {
+            border: 1px solid #dee2e6;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-row:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .item-name {
+            font-weight: 500;
+        }
+
+        .item-details {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .item-total {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar com layout idêntico ao cozinha.html -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">TimePulse AI</div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                    <a href="historico_pedidos.html" class="nav-link active">
+                        <span class="nav-icon">📋</span>
+                        Histórico
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" onclick="signOut()">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo principal -->
+        <main class="main-content">
+            <!-- Header da página -->
+            <div class="history-header">
+                <div class="history-title">
+                    <i class="fas fa-history"></i>
+                    Histórico de Pedidos
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-info" onclick="generateInsights()">
+                        <i class="fas fa-brain"></i>
+                        Gerar Insights IA
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportHistory()">
+                        <i class="fas fa-download"></i>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Painel de insights -->
+            <div class="insights-panel" id="insightsPanel" style="display: none;">
+                <div class="insights-header">
+                    <h3><i class="fas fa-lightbulb"></i> Insights Inteligentes</h3>
+                    <button class="btn-close-insights" onclick="toggleInsights()">&times;</button>
+                </div>
+                <div class="insights-grid" id="insightsContent">
+                    <!-- Insights serão carregados aqui -->
+                </div>
+            </div>
+
+            <!-- Filtros avançados -->
+            <div class="history-filters">
+                <div class="filter-grid">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Buscar por número, cliente, produto...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="startDate">Data Inicial</label>
+                        <input type="date" id="startDate" name="startDate">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="endDate">Data Final</label>
+                        <input type="date" id="endDate" name="endDate">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="statusFilter">Status</label>
+                        <select id="statusFilter" name="status">
+                            <option value="all">Todos os Status</option>
+                            <option value="entregue">Entregue</option>
+                            <option value="cancelado">Cancelado</option>
+                            <option value="pronto">Pronto</option>
+                            <option value="preparo">Em Preparo</option>
+                            <option value="novo">Novo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="customerFilter">Cliente</label>
+                        <input type="text" id="customerFilter" placeholder="Nome do cliente">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="minValue">Valor Mínimo</label>
+                        <input type="number" id="minValue" placeholder="R$ 0,00" min="0" step="0.01">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="maxValue">Valor Máximo</label>
+                        <input type="number" id="maxValue" placeholder="R$ 1000,00" min="0" step="0.01">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="paymentMethod">Forma de Pagamento</label>
+                        <select id="paymentMethod">
+                            <option value="all">Todas</option>
+                            <option value="money">Dinheiro</option>
+                            <option value="card">Cartão</option>
+                            <option value="pix">PIX</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="btn btn-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i>
+                        Limpar Filtros
+                    </button>
+                    <button class="btn btn-primary" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i>
+                        Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gráficos de análise -->
+            <div class="charts-container" id="chartsContainer" style="display: none;">
+                <div class="chart-card">
+                    <div class="chart-title">Vendas por Período</div>
+                    <canvas id="salesChart" width="400" height="200"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Status dos Pedidos</div>
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div class="history-results">
+                <div class="results-header">
+                    <div class="results-count" id="resultsCount">
+                        Carregando pedidos...
+                    </div>
+                    <div class="export-options">
+                        <button class="btn btn-small btn-info" onclick="showCharts()">
+                            <i class="fas fa-chart-bar"></i>
+                            Gráficos
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="exportToCSV()">
+                            <i class="fas fa-file-csv"></i>
+                            CSV
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="exportToPDF()">
+                            <i class="fas fa-file-pdf"></i>
+                            PDF
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="loadingState" class="loading">
+                    <div class="spinner"></div>
+                    <span>Carregando histórico de pedidos...</span>
+                </div>
+
+                <div id="tableContainer" style="display: none;">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Pedido</th>
+                                <th>Data/Hora</th>
+                                <th>Cliente</th>
+                                <th>Itens</th>
+                                <th>Status</th>
+                                <th>Pagamento</th>
+                                <th>Total</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Dados serão carregados aqui -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-search"></i>
+                    <h3>Nenhum pedido encontrado</h3>
+                    <p>Tente ajustar os filtros para encontrar pedidos.</p>
+                </div>
+            </div>
+
+            <!-- Paginação -->
+            <div class="pagination" id="pagination" style="display: none;">
+                <button id="prevPage" onclick="changePage(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                    Anterior
+                </button>
+                <span id="pageInfo">Página 1 de 1</span>
+                <button id="nextPage" onclick="changePage(1)">
+                    Próxima
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Container de notificações - reutilizado do cozinha.html -->
+    <div id="notificationContainer"></div>
+
+    <!-- Modal de detalhes do pedido -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalhes do Pedido</h3>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div id="modalBody">
+                <!-- Conteúdo será carregado dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Classe para gerenciar o histórico - aplicando Single Responsibility Principle
+        class HistoryManager {
+            constructor() {
+                this.supabase = null;
+                this.currentData = [];
+                this.filteredData = [];
+                this.cache = new Map();
+                this.currentPage = 1;
+                this.itemsPerPage = 20;
+                this.restaurantId = null;
+                this.filters = {};
+            }
+
+            // Inicialização reutilizando padrão exato do cozinha.html
+            async init() {
+                try {
+                    // Verificação de autenticação reutilizada
+                    if (!INSTANCE_MANAGER.requireAuth()) {
+                        return;
+                    }
+
+                    const instance = INSTANCE_MANAGER.getInstance();
+                    this.restaurantId = instance.restaurantId;
+                    
+                    // Configuração do Supabase - exatamente como no cozinha.html
+                    if (!window.SUPABASE_CONFIG || !window.API_CONFIG) {
+                        throw new Error('Arquivo de configuração config.js não foi carregado corretamente.');
+                    }
+
+                    const supabaseConfig = window.SUPABASE_CONFIG;
+                    
+                    if (supabaseConfig.url && supabaseConfig.anon_key) {
+                        console.log('✅ Configurações do Supabase carregadas com sucesso.');
+                        this.supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anon_key);
+                    } else {
+                        throw new Error('As configurações do Supabase no arquivo config.js são inválidas.');
+                    }
+
+                    await this.loadRestaurantInfo();
+                    await this.loadHistoricalData();
+                    this.setupEventListeners();
+                    this.setupDateDefaults();
+
+                } catch (error) {
+                    console.error('Erro ao inicializar histórico:', error);
+                    this.showError('Erro ao carregar histórico de pedidos');
+                }
+            }
+
+            // Cache e filtros reutilizados do cozinha.html com correção para foreign keys
+            async loadHistoricalData(useCache = true) {
+                const cacheKey = JSON.stringify(this.filters);
+                
+                if (useCache && this.cache.has(cacheKey)) {
+                    this.currentData = this.cache.get(cacheKey);
+                    this.applyFiltersAndRender();
+                    return;
+                }
+
+                this.showLoading(true);
+
+                try {
+                    // Buscar pedidos primeiro (sem joins para evitar erro de foreign key)
+                    let ordersQuery = this.supabase
+                        .from('orders')
+                        .select('*')
+                        .eq('restaurant_id', this.restaurantId)
+                        .order('created_at', { ascending: false });
+
+                    // Aplicar filtros dinamicamente
+                    ordersQuery = this.applyDatabaseFilters(ordersQuery);
+
+                    const { data: orders, error: ordersError } = await ordersQuery;
+                    
+                    if (ordersError) {
+                        throw ordersError;
+                    }
+
+                    if (!orders || orders.length === 0) {
+                        this.currentData = [];
+                        this.cache.set(cacheKey, this.currentData);
+                        this.applyFiltersAndRender();
+                        return;
+                    }
+
+                    // Buscar itens dos pedidos separadamente
+                    const orderIds = orders.map(order => order.id);
+                    
+                    const { data: orderItems, error: itemsError } = await this.supabase
+                        .from('order_items')
+                        .select('*')
+                        .in('order_id', orderIds);
+
+                    if (itemsError) {
+                        console.warn('Erro ao carregar itens dos pedidos:', itemsError);
+                        // Continuar sem os itens se houver erro
+                    }
+
+                    // Combinar dados
+                    const ordersWithItems = orders.map(order => {
+                        const items = orderItems ? orderItems.filter(item => item.order_id === order.id) : [];
+                        return {
+                            ...order,
+                            order_items: items
+                        };
+                    });
+
+                    this.currentData = ordersWithItems;
+                    this.cache.set(cacheKey, this.currentData);
+                    this.applyFiltersAndRender();
+
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error);
+                    this.showError('Erro ao carregar histórico de pedidos');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            // Aplicar filtros no banco - otimização de performance
+            applyDatabaseFilters(query) {
+                if (this.filters.startDate) {
+                    query = query.gte('created_at', this.filters.startDate + 'T00:00:00');
+                }
+                if (this.filters.endDate) {
+                    query = query.lte('created_at', this.filters.endDate + 'T23:59:59');
+                }
+                if (this.filters.status && this.filters.status !== 'all') {
+                    query = query.eq('status', this.filters.status);
+                }
+                if (this.filters.minValue) {
+                    query = query.gte('total', this.filters.minValue);
+                }
+                if (this.filters.maxValue) {
+                    query = query.lte('total', this.filters.maxValue);
+                }
+                if (this.filters.paymentMethod && this.filters.paymentMethod !== 'all') {
+                    query = query.eq('payment_method', this.filters.paymentMethod);
+                }
+                return query;
+            }
+
+            // Busca local para otimizar UX
+            applyFiltersAndRender() {
+                let filtered = [...this.currentData];
+
+                // Filtro de busca local com proteção contra valores nulos
+                if (this.filters.search) {
+                    const searchTerm = this.filters.search.toLowerCase();
+                    filtered = filtered.filter(order => {
+                        return (
+                            order.id.toString().includes(searchTerm) ||
+                            (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm)) ||
+                            (order.customer_phone && order.customer_phone.includes(searchTerm)) ||
+                            order.order_items?.some(item => 
+                                item.product_name && item.product_name.toLowerCase().includes(searchTerm)
+                            )
+                        );
+                    });
+                }
+
+                // Filtro de cliente local com proteção contra valores nulos
+                if (this.filters.customer) {
+                    const customerTerm = this.filters.customer.toLowerCase();
+                    filtered = filtered.filter(order => 
+                        order.customer_name && order.customer_name.toLowerCase().includes(customerTerm)
+                    );
+                }
+
+                this.filteredData = filtered;
+                this.currentPage = 1;
+                this.renderResults();
+                this.updateResultsCount();
+            }
+
+            renderResults() {
+                const tbody = document.getElementById('ordersTableBody');
+                const emptyState = document.getElementById('emptyState');
+                const tableContainer = document.getElementById('tableContainer');
+                const pagination = document.getElementById('pagination');
+
+                if (this.filteredData.length === 0) {
+                    tableContainer.style.display = 'none';
+                    pagination.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                tableContainer.style.display = 'block';
+
+                // Paginação
+                const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+                const endIndex = startIndex + this.itemsPerPage;
+                const pageData = this.filteredData.slice(startIndex, endIndex);
+                const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+
+                tbody.innerHTML = '';
+
+                pageData.forEach(order => {
+                    const row = this.createOrderRow(order);
+                    tbody.appendChild(row);
+                });
+
+                // Atualizar paginação
+                this.updatePagination(totalPages);
+            }
+
+            createOrderRow(order) {
+                const row = document.createElement('tr');
+                
+                const createdAt = new Date(order.created_at);
+                const formattedDate = createdAt.toLocaleDateString('pt-BR');
+                const formattedTime = createdAt.toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+
+                const itemsCount = order.order_items?.length || 0;
+                const itemsText = itemsCount === 1 ? '1 item' : `${itemsCount} itens`;
+
+                row.innerHTML = `
+                    <td>
+                        <strong>#${order.id.slice(-8).toUpperCase()}</strong>
+                    </td>
+                    <td>
+                        <div>${formattedDate}</div>
+                        <small class="text-muted">${formattedTime}</small>
+                    </td>
+                    <td>
+                        <div>${order.customer_name}</div>
+                        <small class="text-muted">${order.customer_phone}</small>
+                    </td>
+                    <td>
+                        <span class="text-muted">${itemsText}</span>
+                    </td>
+                    <td>
+                        <span class="order-status ${order.status}">${this.getStatusLabel(order.status)}</span>
+                    </td>
+                    <td>
+                        ${this.getPaymentMethodLabel(order.payment_method)}
+                    </td>
+                    <td>
+                        <span class="order-value">R$ ${parseFloat(order.total).toFixed(2)}</span>
+                    </td>
+                    <td>
+                        <div class="order-actions">
+                            <button class="btn btn-small btn-info" onclick="historyManager.viewOrderDetails('${order.id}')">
+                                <i class="fas fa-eye"></i>
+                                Ver
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+                return row;
+            }
+
+            getStatusLabel(status) {
+                const statusLabels = {
+                    'novo': 'Novo',
+                    'aceito': 'Aceito',
+                    'preparo': 'Em Preparo',
+                    'pronto': 'Pronto',
+                    'saiu_entrega': 'Saiu p/ Entrega',
+                    'entregue': 'Entregue',
+                    'cancelado': 'Cancelado',
+                    'rejeitado': 'Rejeitado',
+                    'Aberta': 'Mesa Aberta',
+                    'encerrado': 'Encerrado'
+                };
+                return statusLabels[status] || status;
+            }
+
+            getPaymentMethodLabel(method) {
+                const methodLabels = {
+                    'money': 'Dinheiro',
+                    'card': 'Cartão',
+                    'pix': 'PIX',
+                    'voucher': 'Vale',
+                    'Cartão de Crédito/Débito': 'Cartão'
+                };
+                return methodLabels[method] || method || 'N/A';
+            }
+
+            updatePagination(totalPages) {
+                const pagination = document.getElementById('pagination');
+                const pageInfo = document.getElementById('pageInfo');
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+
+                if (totalPages <= 1) {
+                    pagination.style.display = 'none';
+                    return;
+                }
+
+                pagination.style.display = 'flex';
+                pageInfo.textContent = `Página ${this.currentPage} de ${totalPages}`;
+                
+                prevBtn.disabled = this.currentPage === 1;
+                nextBtn.disabled = this.currentPage === totalPages;
+            }
+
+            changePage(direction) {
+                const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+                const newPage = this.currentPage + direction;
+                
+                if (newPage >= 1 && newPage <= totalPages) {
+                    this.currentPage = newPage;
+                    this.renderResults();
+                }
+            }
+
+            updateResultsCount() {
+                const count = document.getElementById('resultsCount');
+                const total = this.filteredData.length;
+                
+                if (total === 0) {
+                    count.textContent = 'Nenhum pedido encontrado';
+                } else if (total === 1) {
+                    count.textContent = '1 pedido encontrado';
+                } else {
+                    count.textContent = `${total} pedidos encontrados`;
+                }
+            }
+
+            async viewOrderDetails(orderId) {
+                const order = this.currentData.find(o => o.id === orderId);
+                if (!order) return;
+
+                const modal = document.getElementById('orderModal');
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+
+                modalTitle.textContent = `Pedido #${order.id.slice(-8).toUpperCase()}`;
+
+                const createdAt = new Date(order.created_at);
+                const deliveredAt = order.delivered_at ? new Date(order.delivered_at) : null;
+
+                modalBody.innerHTML = `
+                    <div class="order-details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">
+                                <span class="order-status ${order.status}">${this.getStatusLabel(order.status)}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Cliente</div>
+                            <div class="detail-value">${order.customer_name}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Telefone</div>
+                            <div class="detail-value">${order.customer_phone}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Data do Pedido</div>
+                            <div class="detail-value">${createdAt.toLocaleDateString('pt-BR')} ${createdAt.toLocaleTimeString('pt-BR')}</div>
+                        </div>
+                        ${deliveredAt ? `
+                        <div class="detail-item">
+                            <div class="detail-label">Data de Entrega</div>
+                            <div class="detail-value">${deliveredAt.toLocaleDateString('pt-BR')} ${deliveredAt.toLocaleTimeString('pt-BR')}</div>
+                        </div>
+                        ` : ''}
+                        <div class="detail-item">
+                            <div class="detail-label">Forma de Pagamento</div>
+                            <div class="detail-value">${this.getPaymentMethodLabel(order.payment_method)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Endereço</div>
+                            <div class="detail-value">${order.delivery_address}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Subtotal</div>
+                            <div class="detail-value">R$ ${parseFloat(order.subtotal || 0).toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Taxa de Entrega</div>
+                            <div class="detail-value">R$ ${parseFloat(order.delivery_fee || 0).toFixed(2)}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Total</div>
+                            <div class="detail-value">
+                                <strong style="color: var(--primary-color);">R$ ${parseFloat(order.total).toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${order.notes ? `
+                    <div class="detail-item" style="grid-column: 1 / -1;">
+                        <div class="detail-label">Observações</div>
+                        <div class="detail-value">${order.notes}</div>
+                    </div>
+                    ` : ''}
+
+                    <h4 style="margin: 1.5rem 0 1rem 0;">Itens do Pedido</h4>
+                    <div class="items-list">
+                        ${order.order_items?.map(item => `
+                            <div class="item-row">
+                                <div>
+                                    <div class="item-name">${item.quantity}x ${item.product_name}</div>
+                                    ${item.notes ? `<div class="item-details">Obs: ${item.notes}</div>` : ''}
+                                    ${item.selected_add_ons ? `<div class="item-details">Adicionais: ${JSON.stringify(item.selected_add_ons)}</div>` : ''}
+                                </div>
+                                <div class="item-total">R$ ${(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)}</div>
+                            </div>
+                        `).join('') || '<div class="item-row"><div>Nenhum item encontrado</div></div>'}
+                    </div>
+                `;
+
+                modal.classList.add('show');
+            }
+
+            closeOrderModal() {
+                const modal = document.getElementById('orderModal');
+                modal.classList.remove('show');
+            }
+
+            // Função para configurar listeners de eventos
+            setupEventListeners() {
+                // Filtros em tempo real
+                document.getElementById('searchInput').addEventListener('input', 
+                    this.debounce(() => this.handleSearchChange(), 300)
+                );
+
+                // Filtros de data
+                ['startDate', 'endDate', 'statusFilter', 'customerFilter', 
+                 'minValue', 'maxValue', 'paymentMethod'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.collectFilters());
+                    }
+                });
+
+                // Tecla Enter para busca
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleSearchChange();
+                    }
+                });
+
+                // Click fora do modal para fechar
+                document.getElementById('orderModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'orderModal') {
+                        this.closeOrderModal();
+                    }
+                });
+            }
+
+            // Debounce para otimizar busca
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            handleSearchChange() {
+                const searchValue = document.getElementById('searchInput').value.trim();
+                this.filters.search = searchValue;
+                this.applyFiltersAndRender();
+            }
+
+            collectFilters() {
+                this.filters = {
+                    search: document.getElementById('searchInput').value.trim(),
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value,
+                    status: document.getElementById('statusFilter').value,
+                    customer: document.getElementById('customerFilter').value.trim(),
+                    minValue: document.getElementById('minValue').value,
+                    maxValue: document.getElementById('maxValue').value,
+                    paymentMethod: document.getElementById('paymentMethod').value
+                };
+            }
+
+            setupDateDefaults() {
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+                
+                document.getElementById('endDate').value = today.toISOString().split('T')[0];
+                document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            }
+
+            async loadRestaurantInfo() {
+                try {
+                    const { data, error } = await this.supabase
+                        .from('restaurants')
+                        .select('name')
+                        .eq('id', this.restaurantId)
+                        .single();
+
+                    if (error) throw error;
+
+                    if (data) {
+                        document.getElementById('restaurantName').textContent = data.name;
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar informações do restaurante:', error);
+                }
+            }
+
+            showLoading(show) {
+                document.getElementById('loadingState').style.display = show ? 'flex' : 'none';
+                document.getElementById('tableContainer').style.display = show ? 'none' : 'block';
+            }
+
+            showError(message) {
+                this.showNotification(message, 'error');
+            }
+
+            // Sistema de notificações reutilizado do cozinha.html
+            showNotification(message, type = 'info') {
+                const container = document.getElementById('notificationContainer');
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                container.appendChild(notification);
+
+                // Trigger reflow to enable transition
+                notification.offsetWidth;
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    notification.addEventListener('transitionend', () => {
+                        notification.remove();
+                    }, { once: true });
+                }, 3000);
+            }
+        }
+
+        // Variáveis globais 
+        let historyManager;
+
+        // Função para fazer logout - reutilizada do cozinha.html
+        async function signOut() {
+            try {
+                INSTANCE_MANAGER.logout();
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error.message);
+                alert('Erro ao fazer logout.');
+            }
+        }
+
+        // Inicialização - aguardar carregamento completo
+        window.addEventListener('load', async () => {
+            historyManager = new HistoryManager();
+            await historyManager.init();
+        });
+
+        // Funções de filtro
+        function applyFilters() {
+            historyManager.collectFilters();
+            historyManager.loadHistoricalData(false); // Força nova consulta
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('customerFilter').value = '';
+            document.getElementById('minValue').value = '';
+            document.getElementById('maxValue').value = '';
+            document.getElementById('paymentMethod').value = 'all';
+            
+            historyManager.setupDateDefaults();
+            historyManager.filters = {};
+            historyManager.loadHistoricalData(false);
+        }
+
+        // Funções de paginação
+        function changePage(direction) {
+            historyManager.changePage(direction);
+        }
+
+        // Funções de modal
+        function closeOrderModal() {
+            historyManager.closeOrderModal();
+        }
+
+        // Funções de insights (placeholder para IA)
+        function generateInsights() {
+            const panel = document.getElementById('insightsPanel');
+            const content = document.getElementById('insightsContent');
+            
+            // Simulação de insights - integrar com IA posteriormente
+            const insights = [
+                {
+                    title: 'Receita Total',
+                    value: `R$ ${historyManager.filteredData.reduce((sum, order) => sum + parseFloat(order.total), 0).toFixed(2)}`,
+                    description: 'Período selecionado'
+                },
+                {
+                    title: 'Pedidos Concluídos',
+                    value: historyManager.filteredData.filter(o => o.status === 'entregue').length,
+                    description: 'Taxa de conclusão'
+                },
+                {
+                    title: 'Ticket Médio',
+                    value: `R$ ${(historyManager.filteredData.reduce((sum, order) => sum + parseFloat(order.total), 0) / historyManager.filteredData.length || 0).toFixed(2)}`,
+                    description: 'Valor médio por pedido'
+                },
+                {
+                    title: 'Cliente Frequente',
+                    value: getMostFrequentCustomer(),
+                    description: 'Maior número de pedidos'
+                }
+            ];
+
+            content.innerHTML = insights.map(insight => `
+                <div class="insight-card">
+                    <div class="insight-value">${insight.value}</div>
+                    <div class="insight-label">${insight.title}</div>
+                    <small>${insight.description}</small>
+                </div>
+            `).join('');
+
+            panel.style.display = 'block';
+        }
+
+        function getMostFrequentCustomer() {
+            const customerCounts = {};
+            historyManager.filteredData.forEach(order => {
+                customerCounts[order.customer_name] = (customerCounts[order.customer_name] || 0) + 1;
+            });
+            
+            const topCustomer = Object.entries(customerCounts)
+                .sort(([,a], [,b]) => b - a)[0];
+            
+            return topCustomer ? `${topCustomer[0]} (${topCustomer[1]})` : 'N/A';
+        }
+
+        function toggleInsights() {
+            const panel = document.getElementById('insightsPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Funções de gráficos
+        function showCharts() {
+            const container = document.getElementById('chartsContainer');
+            container.style.display = container.style.display === 'none' ? 'grid' : 'none';
+            
+            if (container.style.display === 'grid') {
+                generateCharts();
+            }
+        }
+
+        function generateCharts() {
+            // Gráfico de vendas por período
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: getLast7Days(),
+                    datasets: [{
+                        label: 'Vendas (R$)',
+                        data: getSalesDataLast7Days(),
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Gráfico de status
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusData = getStatusDistribution();
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: [
+                            '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6c757d'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function getLast7Days() {
+            const days = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                days.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+            }
+            return days;
+        }
+
+        function getSalesDataLast7Days() {
+            const data = new Array(7).fill(0);
+            const today = new Date();
+            
+            historyManager.filteredData.forEach(order => {
+                const orderDate = new Date(order.created_at);
+                const daysDiff = Math.floor((today - orderDate) / (1000 * 60 * 60 * 24));
+                
+                if (daysDiff >= 0 && daysDiff < 7) {
+                    data[6 - daysDiff] += parseFloat(order.total);
+                }
+            });
+            
+            return data;
+        }
+
+        function getStatusDistribution() {
+            const distribution = {};
+            historyManager.filteredData.forEach(order => {
+                const status = historyManager.getStatusLabel(order.status);
+                distribution[status] = (distribution[status] || 0) + 1;
+            });
+            return distribution;
+        }
+
+        // Funções de exportação
+        function exportToCSV() {
+            const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Pagamento', 'Total'];
+            const rows = historyManager.filteredData.map(order => [
+                order.id.slice(-8).toUpperCase(),
+                new Date(order.created_at).toLocaleDateString('pt-BR'),
+                order.customer_name,
+                order.customer_phone,
+                historyManager.getStatusLabel(order.status),
+                historyManager.getPaymentMethodLabel(order.payment_method),
+                parseFloat(order.total).toFixed(2)
+            ]);
+
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(cell => `"${cell}"`).join(','))
+                .join('\n');
+
+            downloadFile(csvContent, 'historico-pedidos.csv', 'text/csv');
+        }
+
+        function exportToPDF() {
+            // Implementar geração de PDF - usar jsPDF ou similar
+            alert('Funcionalidade de PDF será implementada em breve');
+        }
+
+        function exportHistory() {
+            exportToCSV();
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Função de erro global
+        window.addEventListener('error', (event) => {
+            console.error('Erro global:', event.error);
+        });
+    </script>
+</body>
+</html>

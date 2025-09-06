@@ -1,0 +1,68 @@
+https://timepulseai.com.br/favicon.ico
+[HTTP/2 404  0ms]
+
+	
+GET
+	https://timepulseai.com.br/favicon.ico
+Status
+404
+VersãoHTTP/2
+Transferido196 B (tamanho 196 B)
+Referrer Policystrict-origin-when-cross-origin
+Resolução de DNSSistema
+
+	
+content-length
+	196
+content-type
+	text/html; charset=iso-8859-1
+date
+	Tue, 02 Sep 2025 18:15:05 GMT
+server
+	Apache/2.4.63 (Unix)
+X-Firefox-Spdy
+	h2
+	
+Accept
+	image/avif,image/webp,image/png,image/svg+xml,image/*;q=0.8,*/*;q=0.5
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Connection
+	keep-alive
+Host
+	timepulseai.com.br
+Referer
+	https://timepulseai.com.br/cozinha.html
+Sec-Fetch-Dest
+	image
+Sec-Fetch-Mode
+	no-cors
+Sec-Fetch-Site
+	same-origin
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+Requisição cross-origin bloqueada: A diretiva Same Origin (mesma origem) não permite a leitura do recurso remoto em http://localhost:5000/config (motivo: falha na requisição CORS). Código de status: (null).
+
+❌ Falha crítica ao carregar configurações do backend. Error: Erro de rede ou o servidor de backend está offline.
+    response https://timepulseai.com.br/cozinha.html:1043
+    promise callback*loadSecureConfig https://timepulseai.com.br/cozinha.html:1042
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/cozinha.html:1097
+    EventHandlerNonNull* https://timepulseai.com.br/cozinha.html:2280
+cozinha.html:1068:17
+    loadSecureConfig https://timepulseai.com.br/cozinha.html:1068
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/cozinha.html:1097
+    (assíncrono: EventHandlerNonNull)
+    <anonymous> https://timepulseai.com.br/cozinha.html:2280
+Falha na inicialização da aplicação após a autenticação. Error: Erro de rede ou o servidor de backend está offline.
+    response https://timepulseai.com.br/cozinha.html:1043
+    promise callback*loadSecureConfig https://timepulseai.com.br/cozinha.html:1042
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/cozinha.html:1097
+    EventHandlerNonNull* https://timepulseai.com.br/cozinha.html:2280
+cozinha.html:1151:17
+    checkAuthenticationAndLoadConfig https://timepulseai.com.br/cozinha.html:1151
+    <anonymous> https://timepulseai.com.br/cozinha.html:2280
+
+​
+
