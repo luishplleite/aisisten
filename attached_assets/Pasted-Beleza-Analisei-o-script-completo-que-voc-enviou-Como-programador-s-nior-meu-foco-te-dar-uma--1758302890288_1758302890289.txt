@@ -1,0 +1,348 @@
+Beleza\! Analisei o script completo que você enviou. Como programador sênior, meu foco é te dar uma visão clara e direta de como a criação de pedidos de **Delivery** e **Balcão** funciona nesse sistema.
+
+A lógica principal está centralizada na classe `OrdersManager`, especialmente no método `saveOrder()`. As funções globais que você vê no HTML (`onclick`) geralmente coletam os dados do formulário e chamam os métodos dessa classe.
+
+Vamos detalhar o fluxo para cada tipo de pedido.
+
+-----
+
+## 1\. Funções de Criação para Pedidos de Delivery
+
+O processo para criar um pedido de delivery começa quando o usuário seleciona a opção "Delivery", preenche o formulário e clica em "Criar Pedido".
+
+### Fluxo Principal
+
+#### A. Início e Abertura do Modal
+
+Tudo começa com a função `selectOrderType('delivery')`, que por sua vez chama `openDeliveryOrderModal()`.
+
+  * `selectOrderType(type)`: Define o modo de pedido atual como 'delivery', limpa a lista de itens temporários e chama a função para abrir o modal específico.
+  * `openDeliveryOrderModal()`: Responsável por pegar o elemento do modal de delivery, resetar o formulário, limpar a lista de itens e exibi-lo para o usuário.
+
+<!-- end list -->
+
+```javascript
+// Abre o modal de seleção de tipo de pedido
+function openOrderTypeSelectionModal() {
+    const modal = document.getElementById('orderTypeSelectionModal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Usuário clica no botão "Delivery"
+function selectOrderType(type) {
+    closeOrderTypeSelectionModal();
+    if (!ordersManager) return;
+
+    ordersManager.currentOrderMode = type;
+    ordersManager.currentOrderContext = type;
+    ordersManager.newOrderItems = [];
+
+    switch (type) {
+        case 'delivery':
+            openDeliveryOrderModal(); // Chama a função para abrir o modal de delivery
+            break;
+        // ... outros casos
+    }
+}
+
+// Abre e prepara o modal de delivery
+function openDeliveryOrderModal() {
+    const modal = document.getElementById('deliveryOrderModal');
+    if (modal && ordersManager) {
+        ordersManager.newOrderItems = [];
+        const form = document.getElementById('deliveryOrderForm');
+        if (form) {
+            form.reset(); // Limpa o formulário
+        }
+        ordersManager.renderDeliveryOrderItems(); // Garante que a tabela de itens esteja vazia
+        modal.classList.add('show'); // Exibe o modal
+    }
+}
+```
+
+#### B. Submissão do Pedido (Função Principal)
+
+Quando o usuário preenche os dados e clica em "Criar Pedido", a função `submitDeliveryOrder()` é acionada. Esta é a função mais importante do fluxo.
+
+  * **Responsabilidade**: Coletar todos os dados do formulário de delivery, validar os campos obrigatórios, montar um objeto `orderData` e passá-lo para o método central `ordersManager.saveOrder()`.
+
+<!-- end list -->
+
+```javascript
+async function submitDeliveryOrder() {
+    if (!ordersManager) return;
+
+    // 1. Coleta todos os dados dos inputs do formulário
+    const customerName = document.getElementById('deliveryCustomerName')?.value.trim();
+    const customerPhone = document.getElementById('deliveryCustomerPhone')?.value.trim();
+
+    const rua = document.getElementById('deliveryRua')?.value.trim();
+    const numero = document.getElementById('deliveryNumber')?.value.trim();
+    const complemento = document.getElementById('deliveryComplement')?.value.trim();
+    const bairro = document.getElementById('deliveryBairro')?.value.trim();
+    const cidade = document.getElementById('deliveryCidade')?.value.trim();
+    const uf = document.getElementById('deliveryUf')?.value.trim();
+    const zipCode = document.getElementById('deliveryCep')?.value.trim();
+
+    // Monta o endereço completo
+    let deliveryAddress = '';
+    if (rua) {
+        deliveryAddress = rua;
+        if (numero) deliveryAddress += `, ${numero}`;
+        if (complemento) deliveryAddress += `, ${complemento}`;
+        if (bairro) deliveryAddress += `, ${bairro}`;
+        if (cidade) deliveryAddress += `, ${cidade}`;
+        if (uf) deliveryAddress += ` - ${uf}`;
+    } else {
+        deliveryAddress = document.getElementById('deliveryAddress')?.value.trim();
+    }
+
+    const paymentMethod = document.getElementById('deliveryPaymentMethod')?.value;
+    const deliveryFee = parseFloat(document.getElementById('deliveryFee')?.value) || 0;
+    const notes = document.getElementById('deliveryOrderNotes')?.value.trim();
+
+    // 2. Validação de campos obrigatórios
+    const missingFields = [];
+    if (!customerName) missingFields.push('Nome do Cliente');
+    if (!customerPhone) missingFields.push('Telefone');
+    if (!deliveryAddress) missingFields.push('Endereço de Entrega');
+    if (!paymentMethod) missingFields.push('Forma de Pagamento');
+    
+    if (missingFields.length > 0) {
+        const message = `Preencha os campos obrigatórios: ${missingFields.join(', ')}`;
+        if (ordersManager) ordersManager.showNotification(message, 'warning');
+        return;
+    }
+
+    if (ordersManager.newOrderItems.length === 0) {
+        if (ordersManager) ordersManager.showNotification('Adicione pelo menos um item ao pedido', 'warning');
+        return;
+    }
+
+    // 3. Calcula os totais
+    const subtotal = ordersManager.newOrderItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const totalAmount = subtotal + deliveryFee;
+
+    // Captura dados de troco se o pagamento for em dinheiro
+    const cashReceived = paymentMethod === 'money' ? parseFloat(document.getElementById('deliveryChangeForAmount')?.value) || 0 : null;
+
+    // 4. Monta o objeto `orderData` com todas as informações
+    const orderData = {
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        delivery_address: deliveryAddress,
+        zip_code: zipCode,
+        delivery_fee: deliveryFee,
+        payment_method: paymentMethod,
+        notes: notes,
+        subtotal: subtotal,
+        total_amount: totalAmount,
+        cash_received: cashReceived,
+        items: [...ordersManager.newOrderItems] // Inclui a lista de produtos
+    };
+
+    // 5. Envia os dados para o método que salva no banco
+    if (ordersManager) await ordersManager.saveOrder(orderData);
+    closeDeliveryOrderModal();
+}
+```
+
+-----
+
+## 2\. Funções de Criação para Pedidos de Balcão
+
+O fluxo para pedidos de balcão é bem parecido, porém mais simples, já que não envolve endereço de entrega nem taxa.
+
+### Fluxo Principal
+
+#### A. Início e Abertura do Modal
+
+O processo é idêntico ao de delivery, mas com o parâmetro `'balcao'`.
+
+  * `selectOrderType('balcao')`: Define o modo de pedido, limpa os itens e chama `openBalcaoOrderModal()`.
+  * `openBalcaoOrderModal()`: Prepara e exibe o modal de pedido de balcão.
+
+<!-- end list -->
+
+```javascript
+// Usuário clica no botão "Balcão"
+function selectOrderType(type) {
+    closeOrderTypeSelectionModal();
+    if (!ordersManager) return;
+
+    ordersManager.currentOrderMode = type;
+    ordersManager.currentOrderContext = type;
+    ordersManager.newOrderItems = [];
+
+    switch (type) {
+        // ...
+        case 'balcao':
+            openBalcaoOrderModal(); // Chama a função para abrir o modal de balcão
+            break;
+        // ...
+    }
+}
+
+// Abre e prepara o modal de balcão
+function openBalcaoOrderModal() {
+    const modal = document.getElementById('balcaoOrderModal');
+    if (modal && ordersManager) {
+        ordersManager.newOrderItems = [];
+        const form = document.getElementById('balcaoOrderForm');
+        if (form) {
+            form.reset(); // Limpa o formulário
+        }
+        ordersManager.renderBalcaoOrderItems(); // Garante que a tabela de itens esteja vazia
+        modal.classList.add('show'); // Exibe o modal
+    }
+}
+```
+
+#### B. Submissão do Pedido (Função Principal)
+
+A função `submitBalcaoOrder()` é a responsável por finalizar a criação do pedido.
+
+  * **Responsabilidade**: Coletar os dados do formulário de balcão, validar, montar o objeto `orderData` (com valores fixos para entrega) e enviá-lo para o mesmo método `ordersManager.saveOrder()`.
+
+<!-- end list -->
+
+```javascript
+function submitBalcaoOrder() {
+    if (!ordersManager) return;
+
+    // 1. Coleta dados do formulário
+    const customerName = document.getElementById('balcaoCustomerName')?.value.trim() || 'Cliente de Balcão';
+    const customerPhone = document.getElementById('balcaoCustomerPhone')?.value.trim() || 'N/A';
+    const paymentMethod = document.getElementById('balcaoPaymentMethod')?.value;
+    const notes = document.getElementById('balcaoOrderNotes')?.value.trim();
+
+    // 2. Validação
+    if (!paymentMethod) {
+        if (ordersManager) ordersManager.showNotification('Selecione a forma de pagamento', 'warning');
+        return;
+    }
+
+    if (ordersManager.newOrderItems.length === 0) {
+        if (ordersManager) ordersManager.showNotification('Adicione pelo menos um item ao pedido', 'warning');
+        return;
+    }
+
+    // 3. Calcula totais
+    const subtotal = ordersManager.newOrderItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const cashReceived = paymentMethod === 'money' ? parseFloat(document.getElementById('balcaoChangeForAmount')?.value) || 0 : null;
+
+    // 4. Monta o objeto `orderData`
+    const orderData = {
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        delivery_address: 'Balcão', // Valor fixo para identificar o tipo
+        delivery_fee: 0, // Valor fixo
+        payment_method: paymentMethod,
+        notes: notes,
+        subtotal: subtotal,
+        total_amount: subtotal, // Total é igual ao subtotal
+        cash_received: cashReceived,
+        items: [...ordersManager.newOrderItems]
+    };
+
+    // 5. Envia os dados para o método que salva no banco
+    if (ordersManager) ordersManager.saveOrder(orderData);
+    closeBalcaoOrderModal();
+}
+```
+
+-----
+
+## 3\. Lógica Centralizada: `OrdersManager.saveOrder()`
+
+Ambas as funções de submissão (`submitDeliveryOrder` e `submitBalcaoOrder`) levam a um único método: `saveOrder()`. Ele é inteligente o suficiente para lidar com os diferentes tipos de pedido com base no objeto `orderData` que recebe.
+
+  * **Responsabilidade**: Receber os dados do pedido, interagir com o banco de dados (Supabase) para criar/atualizar o cliente (apenas para delivery), inserir o pedido na tabela `orders` e, em seguida, inserir os itens na tabela `order_items`.
+
+<!-- end list -->
+
+```javascript
+// Dentro da classe OrdersManager
+async saveOrder(orderData) {
+    try {
+        // Valida se existem itens
+        if (!orderData.items || orderData.items.length === 0) {
+            throw new Error('Adicione pelo menos um item ao pedido');
+        }
+
+        // Bloco de código para criar ou atualizar o cliente (executado apenas para delivery)
+        if (this.currentOrderMode === 'delivery' && orderData.customer_phone) {
+            // ...lógica para normalizar telefone e salvar/atualizar na tabela 'customers'
+        }
+        
+        // Prepara os dados principais do pedido para a tabela 'orders'
+        let orderInsertData = {
+            restaurant_id: getInstanceData().restaurantId,
+            subtotal: orderData.subtotal,
+            total: orderData.total_amount,
+            notes: orderData.notes?.trim() || null,
+            // ... outros campos ...
+        };
+
+        // Adiciona campos específicos dependendo do tipo de pedido
+        switch (this.currentOrderMode) {
+            case 'delivery':
+                Object.assign(orderInsertData, {
+                    customer_name: orderData.customer_name.trim(),
+                    customer_phone: orderData.customer_phone?.trim() || 'N/A',
+                    delivery_address: orderData.delivery_address.trim(),
+                    delivery_fee: parseFloat(orderData.delivery_fee) || 0,
+                    status: 'preparo'
+                });
+                break;
+            case 'balcao':
+                Object.assign(orderInsertData, {
+                    customer_name: orderData.customer_name?.trim() || 'Cliente de Balcão',
+                    customer_phone: orderData.customer_phone?.trim() || 'N/A',
+                    delivery_address: 'Balcão',
+                    delivery_fee: 0,
+                    status: 'Aberta'
+                });
+                break;
+            // ... caso 'mesa' ...
+        }
+
+        // Insere o pedido principal no banco de dados
+        const { data: order, error: orderError } = await supabase
+            .from('orders')
+            .insert([orderInsertData])
+            .select()
+            .single();
+
+        if (orderError) throw orderError;
+
+        // Prepara os itens do pedido para a tabela 'order_items'
+        const orderItems = orderData.items.map(item => ({
+            order_id: order.id,
+            product_id: item.productId || null,
+            product_name: item.name.trim(),
+            quantity: parseInt(item.quantity),
+            price: parseFloat(item.price),
+            notes: item.notes?.trim() || null
+        }));
+
+        // Insere os itens no banco
+        const { error: itemsError } = await supabase
+            .from('order_items')
+            .insert(orderItems);
+
+        // Se houver erro ao inserir os itens, desfaz a criação do pedido (rollback manual)
+        if (itemsError) {
+            await supabase.from('orders').delete().eq('id', order.id);
+            throw itemsError;
+        }
+
+        this.showNotification('Pedido criado com sucesso!', 'success');
+        await this.loadOrders(); // Atualiza a lista de pedidos na tela
+    } catch (error) {
+        this.showNotification('Erro ao criar pedido: ' + error.message, 'error');
+    }
+}
+```

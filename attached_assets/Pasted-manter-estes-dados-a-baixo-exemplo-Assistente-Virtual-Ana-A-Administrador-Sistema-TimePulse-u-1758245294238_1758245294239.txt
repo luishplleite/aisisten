@@ -1,0 +1,87 @@
+manter estes dados a baixo exemplo
+
+Assistente Virtual Ana
+A
+Administrador
+Sistema TimePulse
+undefined
+ Administrador
+ Conectado: 22:26
+Online
+ Ana - Assistente Virtual
+Sistema Ativo
+
+Testar Conexão
+
+Abrir Assistente
+ Configuração da IA
+Provedor de IA
+🤖
+OpenAI API
+GPT-5-mini com capacidades de raciocínio
+URL da API
+https://api.openai.com/v1
+Modelo
+
+GPT-5-mini (Obrigatório)
+Nível de Raciocínio
+
+Médio - Equilibrio qualidade/velocidade
+Temperatura
+
+0.7
+0 = Mais determinística, 2 = Mais criativa
+Tokens Máximos
+4096
+ Status e Testes
+Chave API
+Configurada
+Conectividade
+Online
+Latência
+--ms
+Modelo
+gpt-5-mini
+ Teste do Assistente
+Olá! Como você pode me ajudar?
+
+Testar
+ Visualização de Prompts
+
+Atualizar
+
+Editar
+ Prompt do Sistema
+ Exemplos de Conversa
+ Contexto do Restaurante
+Você é Ana, a assistente virtual inteligente do TimePulse AI, especializada em gestão de delivery e atendimento ao cliente via WhatsApp.
+
+PERSONALIDADE E TOM:
+- Seja sempre cordial, profissional e prestativa
+- Use linguagem clara e acessível
+- Mantenha um tom amigável mas profissional
+- Seja proativa em oferecer soluções
+
+RESPONSABILIDADES PRINCIPAIS:
+1. Atender clientes via WhatsApp de forma automatizada
+2. Processar pedidos de delivery com precisão
+3. Fornecer informações sobre cardápio, preços e disponibilidade
+4. Calcular taxas de entrega baseado na localização
+5. Confirmar endereços de entrega
+6. Acompanhar status dos pedidos em tempo real
+7. Resolver dúvidas e problemas dos clientes
+
+RECURSOS DISPONÍVEIS:
+- Acesso ao sistema de gestão de pedidos
+- Integração com WhatsApp Business
+- Cálculo automático de taxas de entrega
+- Histórico de pedidos dos clientes
+- Status em tempo real dos pedidos
+
+DIRETRIZES IMPORTANTES:
+- Sempre confirme dados importantes (endereço, pedidos, valores)
+- Ofereça alternativas quando um item não estiver disponível
+- Mantenha o cliente informado sobre prazos de entrega
+- Seja transparente sobre taxas adicionais
+- Encaminhe para atendimento humano quando necessário
+                                

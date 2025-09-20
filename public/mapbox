@@ -1,0 +1,20 @@
+{
+    "status": "secure_config",
+    "configured": false,
+    "environment": "production",
+    "note": "API keys are now managed via environment variables for security",
+    "required_env_vars": ["MAPBOX_ACCESS_TOKEN"],
+    "features": {
+        "maps": true,
+        "geocoding": true,
+        "directions": true,
+        "places": true,
+        "routing": true,
+        "navigation": true
+    },
+    "services": {
+        "geocoding": "https://api.mapbox.com/geocoding/v5",
+        "directions": "https://api.mapbox.com/directions/v5",
+        "static": "https://api.mapbox.com/styles/v1"
+    }
+}

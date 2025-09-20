@@ -1,0 +1,549 @@
+<body>
+
+    <div class="login-container" id="loginContainer">
+        <div class="login-header">
+            <h1 class="logo brand-name" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></h1>
+            <p class="tagline">Gestão Inteligente para seu Negócio</p>
+        </div>
+        <form class="login-form" id="loginForm">
+            <div class="alert" id="alertBox"></div>
+            <div class="form-group">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" id="email" class="form-input" required="" autocomplete="email" placeholder="seu@email.com">
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Senha</label>
+                <input type="password" id="password" class="form-input" required="" autocomplete="current-password" placeholder="Sua senha">
+            </div>
+            <div class="form-group" id="instanceGroup" style="display: none;">
+                <label for="instance" class="form-label">Selecionar Instância</label>
+                <select id="instance" class="form-input">
+                    <option value="">Carregando instâncias...</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" id="loginButton">
+                <span id="loginButtonText">Entrar</span>
+                <div class="loading-spinner" id="loginSpinner" style="display: none;"></div>
+            </button>
+            <div class="debug-info" id="debugInfo"></div>
+        </form>
+    </div>
+
+    <script>
+    let supabase;
+    let publicConfig;
+
+    function showAlert(message, type = 'error') {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.textContent = message;
+        alertBox.className = `alert ${type}`;
+        alertBox.style.display = 'block';
+    }
+
+    function showDebugInfo(info) {
+        const debugBox = document.getElementById('debugInfo');
+        debugBox.innerHTML = info;
+        // debugBox.style.display = 'block'; // Manter elemento oculto
+    }
+
+    function setLoginButtonState(isLoading) {
+        const button = document.getElementById('loginButton');
+        const text = document.getElementById('loginButtonText');
+        const spinner = document.getElementById('loginSpinner');
+        
+        button.disabled = isLoading;
+        text.style.display = isLoading ? 'none' : 'inline';
+        spinner.style.display = isLoading ? 'block' : 'none';
+    }
+
+    async function loadUserInstances(userId) {
+        try {
+            const { data: instances, error } = await supabase
+                .from('restaurants')
+                .select('id, name')
+                .eq('owner_id', userId);
+
+            if (error) throw error;
+
+            const instanceSelect = document.getElementById('instance');
+            const instanceGroup = document.getElementById('instanceGroup');
+            
+            if (instances && instances.length > 1) {
+                instanceGroup.style.display = 'block';
+                instanceSelect.innerHTML = '<option value="">Selecione uma instância</option>';
+                
+                instances.forEach(instance => {
+                    const option = document.createElement('option');
+                    option.value = instance.id;
+                    option.textContent = `${instance.name} (Restaurante)`;
+                    option.dataset.instanceId = instance.id;
+                    instanceSelect.appendChild(option);
+                });
+                
+                return null;
+            } else if (instances && instances.length === 1) {
+                return {
+                    restaurantId: instances[0].id,
+                    instanceId: instances[0].id,
+                    instanceName: instances[0].name,
+                    type: 'restaurant'
+                };
+            } else {
+                throw new Error('Nenhuma instância encontrada para este usuário.');
+            }
+        } catch (error) {
+            throw new Error('Erro ao carregar instâncias do usuário.');
+        }
+    }
+
+    async function handleLogin(event) {
+        event.preventDefault();
+        setLoginButtonState(true);
+        showAlert('', 'error');
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        console.log('🚀 Iniciando processo de login...');
+
+        try {
+            
+            // Verificar se cliente Supabase está configurado corretamente
+            if (!supabase) {
+                console.error('❌ Cliente Supabase não está configurado. Verifique a configuração do servidor.');
+                throw new Error('Sistema temporariamente indisponível. Tente novamente em alguns instantes.');
+            }
+            
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            if (authError) {
+                console.error('❌ Erro de autenticação:', authError.message);
+                
+                let errorMessage = 'Credenciais inválidas. Verifique seu e-mail e senha.';
+                if (authError.message.includes('Invalid login credentials')) {
+                    errorMessage = 'E-mail ou senha incorretos. Verifique suas credenciais.';
+                } else if (authError.message.includes('Email not confirmed')) {
+                    errorMessage = 'Email ainda não confirmado. Verifique sua caixa de entrada.';
+                }
+                throw new Error(errorMessage);
+            }
+
+            const user = authData.user;
+            if (!user) {
+                throw new Error('Não foi possível obter os dados do usuário após o login.');
+            }
+
+            const instanceData = await loadUserInstances(user.id);
+            
+            if (!instanceData) {
+                setLoginButtonState(false);
+                showAlert('Selecione uma instância para continuar.', 'success');
+                
+                document.getElementById('instance').addEventListener('change', async (e) => {
+                    const selectedOption = e.target.selectedOptions[0];
+                    if (selectedOption && selectedOption.value) {
+                        const instanceInfo = {
+                            restaurantId: selectedOption.value,
+                            instanceId: selectedOption.dataset.instanceId,
+                            instanceName: selectedOption.textContent.split(' (')[0],
+                            type: 'restaurant'
+                        };
+                        await completeLogin(user, instanceInfo);
+                    }
+                });
+                return;
+            }
+
+            await completeLogin(user, instanceData);
+
+        } catch (error) {
+            console.error('❌ Erro no processo de login:', error.message);
+            
+            // Verificar se é erro de rede
+            if (error.message && error.message.includes('Failed to fetch')) {
+                console.error('🌐 ERRO DE REDE DETECTADO - verificando configuração do cliente');
+                
+                // Log do estado atual do cliente Supabase
+                if (supabase) {
+                    console.error('🔧 Cliente Supabase ainda existe:', !!supabase);
+                    if (supabase.supabaseUrl) {
+                        console.error('🌐 URL do cliente no erro:', supabase.supabaseUrl);
+                    }
+                }
+                
+                // Tentar buscar a configuração novamente
+                try {
+                    console.error('🔄 Tentando recarregar configuração...');
+                    const checkConfig = await fetch('/api/config/supabase');
+                    const checkConfigData = await checkConfig.json();
+                    console.error('✅ Configuração atual da API:', checkConfigData);
+                } catch (configError) {
+                    console.error('❌ Erro ao verificar configuração:', configError);
+                }
+            }
+            
+            console.error('🔍 =========================== FIM ERRO DEBUG ===========================');
+            showAlert(error.message, 'error');
+            setLoginButtonState(false);
+        }
+    }
+
+    async function completeLogin(user, instanceInfo) {
+        try {
+            const sessionToken = user.access_token || `session_${Date.now()}`;
+            
+            const instanceData = {
+                instanceId: instanceInfo.instanceId,
+                instanceName: instanceInfo.instanceName,
+                token: sessionToken,
+                type: instanceInfo.type,
+                userEmail: user.email,
+                restaurantId: instanceInfo.restaurantId
+            };
+            // Configurar cookie para funcionar em ambientes de proxy como Replit
+            const isSecure = window.location.protocol === 'https:';
+            const cookieValue = encodeURIComponent(JSON.stringify(instanceData));
+            
+            // Para Replit, usar SameSite=None com Secure para permitir cookies em iframe/proxy
+            const cookieOptions = isSecure 
+                ? 'path=/; secure; samesite=none; max-age=86400'
+                : 'path=/; samesite=lax; max-age=86400';
+            
+            // Definir cookie principal (JSON) - padrão que funciona no gestao_pedidos.html
+            document.cookie = `timepulse_instance_token=${cookieValue}; ${cookieOptions}`;
+            console.log('✅ Cookie JSON definido:', cookieValue.substring(0, 50) + '...');
+            
+            // Verificar se o cookie foi definido corretamente
+            const testCookie = document.cookie.includes('timepulse_instance_token');
+            console.log('🍪 Teste de cookie após definição:', testCookie);
+            
+            console.log('🍪 Cookie de sessão definido:', {
+                isSecure,
+                cookieSet: testCookie,
+                instanceData: instanceData.instanceName
+            });
+
+            showAlert('Login bem-sucedido! Redirecionando...', 'success');
+            
+            setTimeout(() => {
+                console.log('🔄 Redirecionando para gestão de pedidos...');
+                window.location.href = 'gestao_pedidos.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('❌ Erro ao salvar dados da sessão:', error);
+            showAlert('Erro ao salvar dados da sessão. Tente novamente.', 'error');
+            setLoginButtonState(false);
+        }
+    }
+
+    async function fetchPublicConfig() {
+        try {
+            // Força limpeza de cache
+            sessionStorage.removeItem('supabase_config_cache');
+            localStorage.removeItem('supabase_config_cache');
+            
+            const currentHost = window.location.hostname;
+            const currentPort = window.location.port;
+            
+            // Determinar URL base - sempre usar URL relativa para evitar problemas de proxy
+            const timestamp = Date.now();
+            const configUrl = `/api/config?t=${timestamp}&nocache=1`;
+            
+            console.log(`🔍 Tentando carregar configuração de: ${configUrl}`);
+            // showDebugInfo(`Carregando configuração...`); // Mensagem oculta
+            
+            // Buscar configuração básica do servidor
+            const response = await fetch(configUrl, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
+            console.log(`📡 Resposta do servidor: ${response.status} ${response.statusText}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ Erro do servidor: ${response.status} - ${errorText}`);
+                throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+            }
+            
+            const basicConfig = await response.json();
+            console.log('✅ Configuração básica carregada:', basicConfig);
+            
+            // Buscar configuração do Supabase com cache limpo
+            const supabaseUrl = `/api/config/supabase?t=${timestamp}&nocache=1`;
+            console.log(`🔍 Carregando configuração Supabase de: ${supabaseUrl}`);
+            
+            const supabaseResponse = await fetch(supabaseUrl, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
+            if (!supabaseResponse.ok) {
+                console.error(`❌ Erro ao carregar Supabase: ${supabaseResponse.status}`);
+                throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+            }
+            
+            const supabaseConfig = await supabaseResponse.json();
+            console.log('✅ Configuração Supabase carregada:', supabaseConfig);
+            
+            const finalConfig = {
+                ...basicConfig,
+                supabaseUrl: supabaseConfig.supabaseUrl || supabaseConfig.url,
+                supabaseAnonKey: supabaseConfig.supabaseAnonKey || supabaseConfig.anon_key
+            };
+            
+            console.log('🔧 Configuração final do Supabase:', {
+                url: finalConfig.supabaseUrl,
+                hasKey: !!finalConfig.supabaseAnonKey
+            });
+            
+            // showDebugInfo(`✅ Sistema configurado`); // Mensagem oculta
+            
+            return finalConfig;
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar configuração:', error);
+            showDebugInfo(`❌ Erro: ${error.message}`);
+            
+            // Se estiver em produção e falhar, tentar configuração hardcoded como fallback
+            if (window.location.hostname === 'timepulseai.com.br' || window.location.hostname === 'www.timepulseai.com.br') {
+                console.log('🔄 Tentando configuração de fallback para produção...');
+                showDebugInfo('🔄 Usando configuração de fallback...');
+                
+                return {
+                    app: {
+                        name: 'TimePulse AI',
+                        domain: `https://${window.location.hostname}`,
+                        version: '2.0.0',
+                        supportEmail: 'contato@timepulseai.com.br'
+                    },
+                    environment: 'production',
+                    features: {
+                        notifications: true,
+                        realTimeUpdates: true,
+                        mapIntegration: true,
+                        whatsappIntegration: true
+                    },
+                    // Chaves Supabase removidas do frontend por segurança.
+                };
+            }
+            
+            showAlert('Erro ao carregar configurações do servidor. Verifique sua conexão.', 'error');
+            return null;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            console.log('🚀 Iniciando carregamento da página de login...');
+            
+            // FORÇA LIMPEZA COMPLETA DE CACHE DO BROWSER E DADOS ANTIGOS
+            console.log('🧹 Limpando cache completo do browser e dados antigos...');
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+            
+            // LIMPAR ESPECIFICAMENTE dados do Supabase antigo
+            ['indexedDB', 'webSQL', 'localStorage', 'sessionStorage'].forEach(storage => {
+                try {
+                    if (window[storage]) {
+                        if (storage === 'localStorage' || storage === 'sessionStorage') {
+                            Object.keys(window[storage]).forEach(key => {
+                                if (key.includes('xbpfhkmwdpcfdgstpcjh') || key.includes('supabase') || key.includes('sb-')) {
+                                    console.log(`🗑️ Removendo ${storage}: ${key}`);
+                                    window[storage].removeItem(key);
+                                }
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.log('Limpeza de storage:', e.message);
+                }
+            });
+            
+            // Limpar todos os tipos de storage COMPLETAMENTE
+            console.log('🧹 Limpando TODOS os dados de storage...');
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // Limpar ESPECIFICAMENTE qualquer configuração Supabase em cache
+            Object.keys(localStorage).forEach(key => {
+                if (key.includes('supabase') || key.includes('sb-') || key.includes('SUPABASE')) {
+                    console.log(`🗑️ Removendo cache Supabase: ${key}`);
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.includes('supabase') || key.includes('sb-') || key.includes('SUPABASE')) {
+                    console.log(`🗑️ Removendo cache de sessão Supabase: ${key}`);
+                    sessionStorage.removeItem(key);
+                }
+            });
+            
+            // Forçar recarregamento da biblioteca Supabase
+            const existingSupabaseScript = document.querySelector('script[src*="supabase"]');
+            if (existingSupabaseScript) {
+                existingSupabaseScript.remove();
+            }
+            
+            publicConfig = await fetchPublicConfig();
+            if (!publicConfig || !publicConfig.supabaseUrl || !publicConfig.supabaseAnonKey) {
+                showAlert('Erro de configuração. Sistema temporariamente indisponível.', 'error');
+                return;
+            }
+            
+            console.log('✅ Configuração carregada, inicializando Supabase...');
+            
+            // FORÇA LIMPEZA DE QUALQUER CONFIG SUPABASE CACHED
+            console.log('🧹 Limpando dados do Supabase antigos...');
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('sb-') || key.includes('SUPABASE') || key.includes('supabase')) {
+                    console.log(`🗑️ Removendo chave: ${key}`);
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            // BUSCA CONFIGURAÇÃO SEGURA DO SUPABASE VIA API
+            console.log('🔄 Carregando configuração Supabase do servidor...');
+            const freshSupabaseResponse = await fetch('/api/config/supabase', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
+            
+            if (!freshSupabaseResponse.ok) {
+                throw new Error('Falha ao buscar configuração do Supabase');
+            }
+            
+            const freshSupabaseConfig = await freshSupabaseResponse.json();
+            console.log('✅ Configuração do Supabase carregada do servidor');
+            
+            // VALIDAÇÃO CRÍTICA: Verificar se não está vindo URL errada
+            if (freshSupabaseConfig.supabaseUrl && freshSupabaseConfig.supabaseUrl.includes('xbpfhkmwdpcfdgstpcjh')) {
+                console.error('❌ ERRO: API retornou URL incorreta!');
+                throw new Error('Configuração do servidor com URL incorreta. Atualize as variáveis de ambiente.');
+            }
+            
+            if (window.supabase) {
+                // USAR CONFIGURAÇÃO DO SERVIDOR
+                const finalSupabaseUrl = freshSupabaseConfig.supabaseUrl || freshSupabaseConfig.url;
+                const finalAnonKey = freshSupabaseConfig.supabaseAnonKey || freshSupabaseConfig.anon_key;
+                
+                // Verificar se configuração está completa
+                if (!finalSupabaseUrl || !finalAnonKey) {
+                    throw new Error('Configuração do Supabase incompleta. Verifique as variáveis de ambiente do servidor.');
+                }
+                
+                // VALIDAÇÃO: Garantir que é a URL correta
+                const expectedUrl = 'https://sguirxaunajirfvlzbac.supabase.co';
+                if (finalSupabaseUrl !== expectedUrl) {
+                    console.error(`❌ URL INCORRETA! Esperado: ${expectedUrl}, Recebido: ${finalSupabaseUrl}`);
+                    throw new Error(`URL do Supabase incorreta. Esperado: ${expectedUrl}`);
+                }
+                
+                console.log('✅ Configuração Supabase validada - URL:', finalSupabaseUrl);
+                
+                // Criar cliente Supabase com configuração do servidor
+                supabase = window.supabase.createClient(finalSupabaseUrl, finalAnonKey, {
+                    auth: {
+                        persistSession: false // Evitar problemas de cache
+                    }
+                });
+                
+                console.log('✅ Cliente Supabase inicializado com sucesso');
+                
+                // showDebugInfo(`✅ Sistema Supabase configurado - ${finalSupabaseUrl}`); // Mensagem oculta
+            } else {
+                throw new Error('Biblioteca Supabase não encontrada.');
+            }
+
+            // Verificar se já está logado - verificar tanto cookies quanto Supabase
+            const tokenCookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+            
+            // Verificar status de autenticação do Supabase
+            let supabaseUser = null;
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                supabaseUser = user;
+                console.log('🔍 Verificação Supabase - Usuário:', user ? 'logado' : 'não logado');
+            } catch (error) {
+                console.log('⚠️ Erro ao verificar usuário do Supabase:', error.message);
+                // Se houver erro, continuar assumindo que não está logado
+            }
+            
+            // Só redirecionar se AMBOS (cookie E Supabase) indicarem que está logado
+            if (tokenCookie && supabaseUser) {
+                console.log('🔄 Usuário já logado (cookie + Supabase), redirecionando...');
+                window.location.href = 'gestao_pedidos.html';
+                return;
+            }
+            
+            // Se apenas um dos dois estiver logado, limpar ambos para garantir estado consistente
+            if (tokenCookie && !supabaseUser) {
+                console.log('🧹 Cookie presente mas Supabase deslogado - limpando cookies...');
+                // Limpar cookies órfãos
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                localStorage.clear();
+                sessionStorage.clear();
+            } else if (!tokenCookie && supabaseUser) {
+                console.log('🧹 Supabase logado mas cookies ausentes - fazendo logout do Supabase...');
+                // Fazer logout do Supabase se não tiver cookies
+                try {
+                    await supabase.auth.signOut();
+                    console.log('✅ Logout do Supabase realizado');
+                } catch (error) {
+                    console.log('⚠️ Erro ao fazer logout do Supabase:', error.message);
+                }
+            }
+            
+            console.log('👋 Tela de login carregada - usuário deslogado');
+
+            // Preencher email da URL se fornecido
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailFromUrl = urlParams.get('email');
+            if (emailFromUrl) {
+                document.getElementById('email').value = emailFromUrl;
+                document.getElementById('password').focus();
+            }
+            
+            // Configurar evento de submit do formulário
+            const loginForm = document.getElementById('loginForm');
+            loginForm.addEventListener('submit', handleLogin);
+            
+            console.log('✅ Página de login carregada com sucesso');
+            
+        } catch (error) {
+            console.error('❌ Erro crítico ao carregar a página:', error);
+            showAlert('Erro crítico ao carregar a página. Por favor, recarregue.', 'error');
+            showDebugInfo(`❌ Erro crítico: ${error.message}`);
+        }
+    });
+</script>
+
+
+<div id="secure-notifications" style="position: fixed; top: 20px; right: 20px; z-index: 9999; pointer-events: none;"></div></body>

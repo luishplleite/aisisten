@@ -1,0 +1,154 @@
+Olá\! Como um desenvolvedor sênior, analisei o seu script para detalhar o fluxo de criação de pedidos. O código está bem estruturado em torno da classe `OrdersManager`, que centraliza a lógica principal.
+
+A seguir, apresento uma análise completa das funções envolvidas na criação de pedidos de **Delivery** e **Balcão**, desde a interação do usuário até a gravação no banco de dados.
+
+-----
+
+## Visão Geral do Fluxo de Criação de Pedidos
+
+O processo de criação de um novo pedido segue um fluxo bem definido e modular:
+
+1.  **Seleção do Tipo:** O usuário clica no botão "Novo Pedido", que aciona a função `openOrderTypeSelectionModal()`. Esta abre um modal onde o usuário escolhe entre "Delivery", "Balcão" ou "Mesa".
+2.  **Abertura do Modal Específico:** A escolha do tipo de pedido chama a função `selectOrderType(type)`, que por sua vez abre o modal correspondente (`openDeliveryOrderModal()` ou `openBalcaoOrderModal()`).
+3.  **Preenchimento dos Dados:** O usuário preenche as informações no formulário do modal. Durante este processo, funções auxiliares são acionadas para buscar clientes, calcular frete (no caso de delivery) e adicionar produtos.
+4.  **Submissão:** Ao clicar em "Criar Pedido", a função de submissão específica (`submitDeliveryOrder()` ou `submitBalcaoOrder()`) é chamada.
+5.  **Centralização da Lógica:** A função de submissão coleta, valida e formata todos os dados em um objeto `orderData`.
+6.  **Gravação no Banco de Dados:** Este objeto `orderData` é então passado para a função central `saveOrder()`, que lida com a lógica de inserir o cliente (se for delivery), o pedido e os itens do pedido no Supabase.
+
+Abaixo, detalho as funções de cada etapa para os tipos **Delivery** e **Balcão**.
+
+-----
+
+## 1\. Funções de Criação para Pedido de Delivery
+
+O fluxo de delivery é o mais completo, envolvendo busca de cliente, validação de endereço, cálculo de rota e taxa de entrega.
+
+### Etapa 1: Abertura e Preparação do Modal
+
+#### `openDeliveryOrderModal()`
+
+Esta função é o ponto de partida para a criação de um pedido de delivery.
+
+  * **Objetivo:** Preparar e exibir o modal de novo pedido de delivery (`deliveryOrderModal`).
+  * **Ações Realizadas:**
+    1.  Obtém a referência do modal pelo ID `deliveryOrderModal`.
+    2.  Limpa o array `ordersManager.newOrderItems`, que armazena temporariamente os produtos do novo pedido.
+    3.  Reseta o formulário (`deliveryOrderForm`) para garantir que todos os campos estejam vazios.
+    4.  Chama `ordersManager.renderDeliveryOrderItems()` para exibir a mensagem "Nenhum item adicionado ainda".
+    5.  Adiciona a classe `show` ao modal para torná-lo visível.
+
+### Etapa 2: Coleta e Validação dos Dados
+
+Enquanto o modal está aberto, várias funções auxiliares são acionadas pela interação do usuário:
+
+  * `checkCustomerByPhone(phone)`: Ao sair do campo de telefone, esta função busca no banco de dados se o cliente já existe e, em caso positivo, preenche automaticamente o nome e o endereço.
+  * `pesquisacep(valor, context)`: Ao sair do campo CEP, busca o endereço via API ViaCEP e preenche os campos de rua, bairro, cidade e estado.
+  * `calculateRouteDistance()`: Após o preenchimento do endereço, calcula a distância, o tempo estimado e a taxa de entrega usando a API do Mapbox.
+  * `performProductSearch()`: Permite a busca e adição de produtos ao pedido.
+
+### Etapa 3: Submissão do Pedido
+
+#### `submitDeliveryOrder()`
+
+Esta é a função principal que orquestra a criação do pedido após o clique no botão "Criar Pedido".
+
+  * **Objetivo:** Coletar todos os dados do formulário de delivery, validá-los e enviá-los para a função `saveOrder()`.
+  * **Ações Realizadas:**
+    1.  **Coleta de Dados:** Extrai os valores de todos os campos do formulário:
+          * `customerName`, `customerPhone`.
+          * `rua`, `numero`, `complemento`, `bairro`, `cidade`, `uf`, `zipCode`.
+          * Monta o `deliveryAddress` a partir das partes do endereço.
+          * `paymentMethod`, `deliveryFee`, `notes`.
+    2.  **Validação:** Verifica se os campos obrigatórios (nome, telefone, endereço, forma de pagamento) foram preenchidos e se há pelo menos um item no pedido. Se algo faltar, exibe uma notificação com `ordersManager.showNotification()` e interrompe a execução.
+    3.  **Cálculos Finais:** Calcula o `subtotal` com base nos itens em `ordersManager.newOrderItems` e o `totalAmount` (subtotal + taxa de entrega).
+    4.  **Criação do Payload:** Monta o objeto `orderData` com todas as informações coletadas, formatadas para serem enviadas ao backend. A estrutura é a seguinte:
+        ```javascript
+        const orderData = {
+            customer_name: "Nome do Cliente",
+            customer_phone: "13999999999",
+            delivery_address: "Rua Exemplo, 123, Bairro, Cidade - UF",
+            zip_code: "11000000",
+            delivery_fee: 8.00,
+            payment_method: "pix",
+            notes: "Observações do pedido",
+            subtotal: 50.00,
+            total_amount: 58.00,
+            cash_received: null, // ou valor se for dinheiro
+            items: [/* array de objetos de item */]
+        };
+        ```
+    5.  **Delegação:** Chama a função `ordersManager.saveOrder(orderData)` para efetivamente salvar o pedido.
+    6.  **Finalização:** Fecha o modal com `closeDeliveryOrderModal()`.
+
+-----
+
+## 2\. Funções de Criação para Pedido de Balcão
+
+O fluxo de balcão é uma versão simplificada do delivery, sem a necessidade de endereço ou taxa de entrega.
+
+### Etapa 1: Abertura e Preparação do Modal
+
+#### `openBalcaoOrderModal()`
+
+  * **Objetivo:** Preparar e exibir o modal de novo pedido de balcão (`balcaoOrderModal`).
+  * **Ações Realizadas:**
+    1.  Obtém a referência do modal pelo ID `balcaoOrderModal`.
+    2.  Limpa o array `ordersManager.newOrderItems`.
+    3.  Reseta o formulário (`balcaoOrderForm`).
+    4.  Chama `ordersManager.renderBalcaoOrderItems()` para exibir a mensagem inicial.
+    5.  Adiciona a classe `show` ao modal.
+
+### Etapa 2: Submissão do Pedido
+
+#### `submitBalcaoOrder()`
+
+Função acionada pelo botão "Criar Pedido" no modal de balcão.
+
+  * **Objetivo:** Coletar os dados do formulário de balcão, validá-los e enviá-los para a função `saveOrder()`.
+  * **Ações Realizadas:**
+    1.  **Coleta de Dados:** Extrai os valores dos campos:
+          * `customerName` (com valor padrão "Cliente de Balcão" se vazio).
+          * `customerPhone` (com valor padrão "N/A" se vazio).
+          * `paymentMethod`, `notes`.
+    2.  **Validação:** Verifica se a forma de pagamento foi selecionada e se há pelo menos um item no pedido.
+    3.  **Cálculos Finais:** Calcula apenas o `subtotal`, que também é o valor total.
+    4.  **Criação do Payload:** Monta o objeto `orderData` com valores fixos para os campos de entrega:
+        ```javascript
+        const orderData = {
+            customer_name: "Nome do Cliente ou Padrão",
+            customer_phone: "Telefone ou N/A",
+            delivery_address: "Balcão", // Valor fixo
+            delivery_fee: 0,           // Valor fixo
+            payment_method: "card",
+            notes: "Observações",
+            subtotal: 35.00,
+            total_amount: 35.00,
+            cash_received: null,
+            items: [/* array de objetos de item */]
+        };
+        ```
+    5.  **Delegação:** Chama a mesma função central `ordersManager.saveOrder(orderData)`.
+    6.  **Finalização:** Fecha o modal com `closeBalcaoOrderModal()`.
+
+-----
+
+## 3\. Lógica Central e Compartilhada
+
+Ambos os fluxos convergem para uma única função que lida com a persistência dos dados.
+
+#### `saveOrder(orderData)`
+
+Esta é a função mais importante do processo, atuando como um "motor" de gravação de pedidos.
+
+  * **Objetivo:** Receber um objeto `orderData` padronizado e realizar as operações de inserção no banco de dados Supabase de forma transacional.
+  * **Ações Realizadas:**
+    1.  **Gestão de Cliente (Apenas para Delivery):**
+          * Verifica se `this.currentOrderMode` é `'delivery'`.
+          * Se for, normaliza o número de telefone do cliente.
+          * Busca o cliente na tabela `customers`.
+          * Se o cliente existe, atualiza seu registro (total de pedidos, total gasto).
+          * Se não existe, insere um novo registro na tabela `customers`.
+    2.  **Inserção do Pedido:** Insere um novo registro na tabela `orders` com os dados do cliente, totais, endereço, etc.
+    3.  **Inserção dos Itens:** Mapeia o array `orderData.items` e insere todos os itens na tabela `order_items`, vinculando-os ao `order.id` recém-criado.
+    4.  **Tratamento de Erro:** Se a inserção dos itens falhar, a função tenta excluir o pedido principal que foi criado, simulando um rollback.
+    5.  **Feedback e Atualização:** Exibe uma notificação de sucesso e chama `loadOrders()` para atualizar a lista de pedidos na tela principal.

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Simples</title>
+</head>
+<body>
+    <h1>Teste JavaScript Simples</h1>
+    <div id="status">Aguardando...</div>
+    <div id="restaurantName">Nome: Aguardando...</div>
+    
+    <script>
+        console.log('🚀 JavaScript carregado!');
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('📅 DOMContentLoaded executado!');
+            
+            // Simular obtenção dos dados de instância
+            function getInstanceData() {
+                const cookies = document.cookie.split(';');
+                for (let cookie of cookies) {
+                    const trimmed = cookie.trim();
+                    if (trimmed.startsWith('timepulse_instance_token=')) {
+                        try {
+                            const value = trimmed.split('=')[1];
+                            const decoded = decodeURIComponent(value);
+                            return JSON.parse(decoded);
+                        } catch (e) {
+                            console.error('Erro ao parsear cookie:', e);
+                            return null;
+                        }
+                    }
+                }
+                return null;
+            }
+            
+            const instanceData = getInstanceData();
+            console.log('🔍 Dados da instância:', instanceData);
+            
+            if (instanceData) {
+                document.getElementById('status').textContent = 'Dados encontrados!';
+                document.getElementById('restaurantName').textContent = `Nome: ${instanceData.instanceName || 'N/A'}`;
+                console.log('✅ Interface atualizada com sucesso!');
+            } else {
+                document.getElementById('status').textContent = 'Nenhum dado encontrado no cookie';
+                console.log('❌ Nenhum dado de instância encontrado');
+            }
+        });
+    </script>
+</body>
+</html>

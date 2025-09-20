@@ -1,0 +1,39 @@
+TimePulse AI - Sistema de Configuração Segura carregado
+secure-config.js:811 🚀 Inicializando sistema de configuração segura...
+secure-config.js:36 🔧 Inicializando configuração segura...
+secure-config.js:69 📋 Buscando configuração via URL relativa: /api/config
+admin.html:2156 🎯 Painel administrativo carregado
+admin.html:2180 🔐 Verificando autenticação de administrador...
+admin.html:2180 🔐 Verificando autenticação de administrador...
+secure-config.js:146 📋 Configuração básica carregada
+secure-config.js:456 🍪 Aplicando configuração de cookies para ambiente Replit
+secure-config.js:45 ✅ Configuração segura inicializada
+secure-config.js:813 ✅ Sistema seguro inicializado com sucesso
+admin.html:2212 ✅ Admin autenticado: undefined (undefined)
+admin.html:2174 ✅ Painel administrativo inicializado com sucesso
+admin.html:2212 ✅ Admin autenticado: undefined (undefined)
+admin.html:3098 ✅ Painel administrativo inicializado com sucesso
+admin.html:3059 ✅ Atualização automática ativada (2 minutos)
+admin.html:3511  GET https://85271732-b3be-4ab6-bd67-8b01342dd4f4-00-10zmd8wvl9zci.worf.replit.dev/api/admin/business-type-prompt?tipo_negocio=restaurante 500 (Internal Server Error)
+loadBusinessTypePrompt @ admin.html:3511
+onchange @ VM117 admin.html:1
+handleMouseUp_ @ unknownUnderstand this error
+admin.html:3076 📱 Página oculta - pausando atualizações
+admin.html:3074 📱 Página visível - atualização automática ativa
+admin.html:3630  POST https://85271732-b3be-4ab6-bd67-8b01342dd4f4-00-10zmd8wvl9zci.worf.replit.dev/api/admin/business-type-prompt 500 (Internal Server Error)
+saveBusinessTypePrompt @ admin.html:3630
+await in saveBusinessTypePrompt
+onclick @ VM126 admin.html:1Understand this error
+admin.html:3666 ❌ Erro ao salvar prompt: Error: Erro ao salvar prompt por tipo de negócio
+    at saveBusinessTypePrompt (admin.html:3647:27)
+saveBusinessTypePrompt @ admin.html:3666
+await in saveBusinessTypePrompt
+onclick @ VM126 admin.html:1Understand this error
+admin.html:3076 📱 Página oculta - pausando atualizações
+admin.html:3074 📱 Página visível - atualização automática ativa
+admin.html:3630  POST https://85271732-b3be-4ab6-bd67-8b01342dd4f4-00-10zmd8wvl9zci.worf.replit.dev/api/admin/business-type-prompt 500 (Internal Server Error)
+saveBusinessTypePrompt @ admin.html:3630
+await in saveBusinessTypePrompt
+onclick @ VM126 admin.html:1Understand this error
+admin.html:3666 ❌ Erro ao salvar prompt: Error: Erro ao salvar prompt por tipo de negócio
+    at saveBusinessTypePrompt (admin.html:3647:27)
