@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimePulse AI - Teste Evolution API</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-outline {
+            background: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+        .debug-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .debug-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .debug-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fab fa-whatsapp"></i> Teste Evolution API</h1>
+            <p>Criar instância WhatsApp e gerar QR Code</p>
+
+            <!-- Status de Login -->
+            <div class="login-status">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-user-check"></i>
+                    <strong>Conectado como:</strong>
+                    <span id="connectedUserName">Carregando...</span>
+                </div>
+                <div style="margin-top: 10px;">
+                    <small>
+                        Restaurante: <span id="restaurantName">Carregando...</span>
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Debug Area -->
+            <div id="debugArea" style="margin-top: 20px; text-align: left;">
+                <h4>Debug Info:</h4>
+                <div id="debugLogs"></div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3><i class="fas fa-cog"></i> Configuração da Instância</h3>
+
+            <div class="form-group">
+                <label for="instanceName">Nome da Instância:</label>
+                <input type="text" id="instanceName" placeholder="Ex: restaurante-principal" required>
+                <small>Use apenas letras, números e hífens</small>
+            </div>
+
+            <div class="form-group">
+                <label for="webhookUrl">URL do Webhook:</label>
+                <input type="url" id="webhookUrl" value="https://n8n.timepulseai.com.br/webhook/7398cf3b-43ae-4d12-9f0b-443e3b66dfd1" required>
+                <small>URL para receber eventos do WhatsApp</small>
+            </div>
+
+            <div>
+                <button class="btn btn-primary" onclick="createInstance()">
+                    <i class="fas fa-plus"></i> Criar Instância
+                </button>
+                <button class="btn btn-secondary" onclick="checkInstanceStatus()">
+                    <i class="fas fa-sync"></i> Verificar Status
+                </button>
+                <button class="btn btn-primary" onclick="generateQRCode()">
+                    <i class="fas fa-qrcode"></i> Gerar QR Code
+                </button>
+                <button class="btn btn-outline" onclick="clearResults()">
+                    <i class="fas fa-trash"></i> Limpar
+                </button>
+            </div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="form-section">
+                <h3><i class="fas fa-qrcode"></i> QR Code para Conexão</h3>
+                <div id="statusMessages"></div>
+                <div id="qrCodeContainer" style="display: none;">
+                    <p><strong>Escaneie o QR Code com seu WhatsApp:</strong></p>
+                    <div id="qrCode" style="text-align: center; padding: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de debug visual
+        function debugLog(message, type = 'info') {
+            const debugDiv = document.getElementById('debugLogs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `debug-log ${type === 'success' ? 'debug-success' : type === 'error' ? 'debug-error' : ''}`;
+            logEntry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            debugDiv.appendChild(logEntry);
+        }
+
+        // Função para obter dados da instância
+        function getInstanceData() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const trimmed = cookie.trim();
+                if (trimmed.startsWith('timepulse_instance_token=')) {
+                    try {
+                        const value = trimmed.split('=')[1];
+                        const decoded = decodeURIComponent(value);
+                        return JSON.parse(decoded);
+                    } catch (e) {
+                        debugLog(`Erro ao parsear cookie: ${e.message}`, 'error');
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Função para carregar informações do restaurante
+        async function loadRestaurantInfo() {
+            debugLog('Iniciando carregamento de informações do restaurante...', 'info');
+            
+            try {
+                // 1. Obter dados da instância
+                const instanceData = getInstanceData();
+                if (!instanceData) {
+                    throw new Error('Dados de instância não encontrados');
+                }
+                
+                debugLog(`Dados da instância encontrados: ${instanceData.instanceName}`, 'success');
+                
+                const restaurantId = instanceData.restaurantId || instanceData.instanceId;
+                debugLog(`Restaurant ID: ${restaurantId}`, 'info');
+                
+                // Preencher automaticamente o campo Nome da Instância
+                const instanceNameField = document.getElementById('instanceName');
+                if (instanceNameField && instanceData.instanceName) {
+                    // Manter formato idêntico, apenas substituir caracteres inválidos por hífens
+                    const formattedInstanceName = instanceData.instanceName
+                        .replace(/[^a-zA-Z0-9\-]/g, '-')
+                        .replace(/-+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    
+                    instanceNameField.value = formattedInstanceName || 'restaurante-principal';
+                    debugLog(`Campo Nome da Instância preenchido automaticamente: ${instanceNameField.value}`, 'success');
+                }
+                
+                // 2. Carregar configuração Supabase
+                debugLog('Carregando configuração Supabase...', 'info');
+                const response = await fetch('/api/config/supabase', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const supabaseConfig = await response.json();
+                debugLog('Configuração Supabase carregada com sucesso', 'success');
+                
+                // 3. Criar cliente Supabase
+                if (!window.supabase) {
+                    throw new Error('Biblioteca Supabase não carregada');
+                }
+                
+                const client = window.supabase.createClient(
+                    supabaseConfig.supabaseUrl, 
+                    supabaseConfig.supabaseAnonKey
+                );
+                
+                debugLog('Cliente Supabase criado', 'success');
+                
+                // 4. Consultar banco
+                debugLog(`Consultando banco para restaurantId: ${restaurantId}`, 'info');
+                const { data: restaurant, error } = await client
+                    .from('restaurants')
+                    .select('*')
+                    .eq('id', restaurantId)
+                    .single();
+
+                if (error) {
+                    throw new Error(`Erro Supabase: ${error.message}`);
+                }
+                
+                if (!restaurant) {
+                    throw new Error('Restaurante não encontrado no banco');
+                }
+
+                debugLog(`Restaurante encontrado: ${restaurant.name}`, 'success');
+
+                // 5. Atualizar interface
+                const restaurantNameElement = document.getElementById('restaurantName');
+                if (restaurantNameElement) {
+                    restaurantNameElement.textContent = restaurant.name;
+                    debugLog(`Nome do restaurante atualizado: ${restaurant.name}`, 'success');
+                }
+                
+                const connectedUserElement = document.getElementById('connectedUserName');
+                if (connectedUserElement) {
+                    const userName = instanceData.userEmail || restaurant.name;
+                    connectedUserElement.textContent = userName;
+                    debugLog(`Usuário conectado atualizado: ${userName}`, 'success');
+                }
+
+                debugLog('Carregamento de informações do restaurante concluído com sucesso!', 'success');
+                
+            } catch (error) {
+                debugLog(`ERRO: ${error.message}`, 'error');
+                
+                // Mostrar erro na interface
+                const restaurantElement = document.getElementById('restaurantName');
+                const userElement = document.getElementById('connectedUserName');
+                
+                if (restaurantElement) {
+                    restaurantElement.textContent = 'Erro ao carregar';
+                    restaurantElement.style.color = '#f44336';
+                }
+                
+                if (userElement) {
+                    userElement.textContent = 'Erro na consulta';
+                    userElement.style.color = '#f44336';
+                }
+            }
+        }
+
+        // Variáveis globais para Evolution API
+        let currentEvolutionInstance = null;
+        let qrCodeData = null;
+        let csrfToken = null;
+
+        // Função para obter token CSRF
+        async function getCSRFToken() {
+            try {
+                debugLog('🔐 Obtendo token CSRF...', 'info');
+                
+                const response = await fetch('/api/csrf-token', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                csrfToken = result.csrfToken;
+                
+                debugLog('✅ Token CSRF obtido com sucesso', 'success');
+                return csrfToken;
+                
+            } catch (error) {
+                debugLog(`❌ Erro ao obter token CSRF: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Função para criar instância Evolution API
+        async function createInstance() {
+            debugLog('🚀 Iniciando criação de instância Evolution API...', 'info');
+            
+            try {
+                const instanceName = document.getElementById('instanceName').value;
+                const webhookUrl = document.getElementById('webhookUrl').value;
+                
+                if (!instanceName) {
+                    throw new Error('Nome da instância é obrigatório');
+                }
+                
+                if (!webhookUrl) {
+                    throw new Error('URL do webhook é obrigatória');
+                }
+                
+                debugLog(`Criando instância: ${instanceName}`, 'info');
+                debugLog(`Webhook: ${webhookUrl}`, 'info');
+                
+                // Configuração da instância conforme especificado pelo usuário
+                const instanceConfig = {
+                    instanceName: instanceName,
+                    qrcode: true,
+                    integration: "WHATSAPP-BAILEYS",
+                    webhook: {
+                        url: webhookUrl,
+                        byEvents: false,
+                        base64: false,
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        events: [
+                            "APPLICATION_STARTUP",
+                            "MESSAGES_UPDATE",
+                            "MESSAGES_UPSERT",
+                            "PRESENCE_UPDATE",
+                            "QRCODE_UPDATED"
+                        ]
+                    }
+                };
+                
+                debugLog('Enviando configuração para Evolution API...', 'info');
+                
+                // Obter token CSRF antes da requisição
+                const csrf = await getCSRFToken();
+                
+                // Fazer requisição através do servidor proxy
+                const response = await fetch('/api/evolution/instance/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrf
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(instanceConfig)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Erro HTTP ${response.status}: ${errorData}`);
+                }
+                
+                const result = await response.json();
+                debugLog('✅ Instância criada com sucesso!', 'success');
+                debugLog(`Resposta: ${JSON.stringify(result, null, 2)}`, 'info');
+                
+                currentEvolutionInstance = {
+                    name: instanceName,
+                    data: result
+                };
+                
+                // Mostrar área de resultados
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('statusMessages').innerHTML = `
+                    <div class="debug-log debug-success">
+                        <strong>✅ Instância "${instanceName}" criada com sucesso!</strong><br>
+                        <small>ID: ${result.instanceId || 'N/A'}</small>
+                    </div>
+                `;
+                
+                debugLog('🎉 Instância Evolution API criada com sucesso!', 'success');
+                
+            } catch (error) {
+                debugLog(`❌ Erro ao criar instância: ${error.message}`, 'error');
+                document.getElementById('statusMessages').innerHTML = `
+                    <div class="debug-log debug-error">
+                        <strong>❌ Erro ao criar instância:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Função para verificar status da instância
+        async function checkInstanceStatus() {
+            debugLog('🔍 Verificando status da instância...', 'info');
+            
+            try {
+                const instanceName = document.getElementById('instanceName').value;
+                
+                if (!instanceName) {
+                    throw new Error('Nome da instância é obrigatório');
+                }
+                
+                debugLog(`Consultando status para: ${instanceName}`, 'info');
+                
+                // Verificar status através do servidor proxy
+                const response = await fetch(`/api/evolution/instance/fetchInstances?instanceName=${instanceName}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Erro HTTP ${response.status}: ${errorData}`);
+                }
+                
+                const result = await response.json();
+                debugLog('📊 Status obtido com sucesso!', 'success');
+                debugLog(`Status: ${JSON.stringify(result, null, 2)}`, 'info');
+                
+                let statusHtml = '';
+                
+                if (result && result.length > 0) {
+                    const instance = result[0];
+                    const status = instance.instance?.status || 'unknown';
+                    const owner = instance.instance?.owner || 'N/A';
+                    const profileName = instance.instance?.profileName || 'N/A';
+                    
+                    statusHtml = `
+                        <div class="debug-log debug-success">
+                            <strong>📱 Status da Instância "${instanceName}":</strong><br>
+                            <strong>Status:</strong> ${status}<br>
+                            <strong>Proprietário:</strong> ${owner}<br>
+                            <strong>Nome do Perfil:</strong> ${profileName}<br>
+                            <strong>ID:</strong> ${instance.instance?.instanceId || 'N/A'}
+                        </div>
+                    `;
+                } else {
+                    statusHtml = `
+                        <div class="debug-log debug-error">
+                            <strong>❌ Instância "${instanceName}" não encontrada</strong><br>
+                            <small>Verifique se o nome está correto ou crie uma nova instância.</small>
+                        </div>
+                    `;
+                }
+                
+                // Mostrar área de resultados
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('statusMessages').innerHTML = statusHtml;
+                
+                debugLog('✅ Verificação de status concluída!', 'success');
+                
+            } catch (error) {
+                debugLog(`❌ Erro ao verificar status: ${error.message}`, 'error');
+                document.getElementById('statusMessages').innerHTML = `
+                    <div class="debug-log debug-error">
+                        <strong>❌ Erro ao verificar status:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Função para gerar QR Code
+        async function generateQRCode() {
+            debugLog('📱 Gerando QR Code para conexão WhatsApp...', 'info');
+            
+            try {
+                const instanceName = document.getElementById('instanceName').value;
+                
+                if (!instanceName) {
+                    throw new Error('Nome da instância é obrigatório');
+                }
+                
+                debugLog(`Conectando instância: ${instanceName}`, 'info');
+                
+                // Conectar instância para gerar QR code
+                const response = await fetch(`/api/evolution/instance/connect/${instanceName}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Erro HTTP ${response.status}: ${errorData}`);
+                }
+                
+                const result = await response.json();
+                debugLog('📊 QR Code gerado com sucesso!', 'success');
+                debugLog(`Resposta: ${JSON.stringify(result, null, 2)}`, 'info');
+                
+                if (result.base64 || result.code) {
+                    // Limpar QR code anterior
+                    const qrCodeContainer = document.getElementById('qrCode');
+                    qrCodeContainer.innerHTML = '';
+                    
+                    // Priorizar base64 da Evolution API (mais confiável)
+                    if (result.base64) {
+                        debugLog('✅ Usando QR Code base64 da Evolution API', 'success');
+                        
+                        // Criar imagem com base64 fornecido pela API
+                        const img = document.createElement('img');
+                        img.src = result.base64;
+                        img.style.width = '300px';
+                        img.style.height = '300px';
+                        img.style.border = '2px solid #007bff';
+                        img.style.borderRadius = '8px';
+                        img.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                        img.alt = 'QR Code para conectar WhatsApp';
+                        qrCodeContainer.appendChild(img);
+                        
+                    } else if (result.code && typeof QRCode !== 'undefined') {
+                        debugLog('✅ Gerando QR Code com biblioteca QRCode.js', 'success');
+                        
+                        // Usar biblioteca QRCode.js se disponível
+                        const canvas = document.createElement('canvas');
+                        qrCodeContainer.appendChild(canvas);
+                        
+                        try {
+                            await QRCode.toCanvas(canvas, result.code, {
+                                width: 300,
+                                margin: 2,
+                                color: {
+                                    dark: '#000000',
+                                    light: '#FFFFFF'
+                                }
+                            });
+                        } catch (qrError) {
+                            debugLog(`❌ Erro ao gerar QR com biblioteca: ${qrError.message}`, 'error');
+                            throw qrError;
+                        }
+                        
+                    } else if (result.code) {
+                        debugLog('⚠️ QRCode.js não disponível, exibindo código como texto', 'info');
+                        
+                        // Fallback: mostrar código como texto se biblioteca não estiver disponível
+                        const codeDiv = document.createElement('div');
+                        codeDiv.style.padding = '20px';
+                        codeDiv.style.border = '2px solid #007bff';
+                        codeDiv.style.borderRadius = '8px';
+                        codeDiv.style.backgroundColor = '#f8f9fa';
+                        codeDiv.style.fontFamily = 'monospace';
+                        codeDiv.style.fontSize = '12px';
+                        codeDiv.style.wordBreak = 'break-all';
+                        codeDiv.innerHTML = `
+                            <strong>📱 Código QR (texto):</strong><br>
+                            <small style="color: #666;">Escaneie com WhatsApp ou use app gerador QR</small><br><br>
+                            <code>${result.code}</code>
+                        `;
+                        qrCodeContainer.appendChild(codeDiv);
+                    }
+                    
+                    // Mostrar instruções
+                    const instructions = document.createElement('div');
+                    instructions.style.marginTop = '15px';
+                    instructions.style.textAlign = 'center';
+                    instructions.innerHTML = `
+                        <div class="debug-log debug-success">
+                            <strong>✅ QR Code gerado!</strong><br>
+                            <small>Escaneie com seu WhatsApp para conectar</small>
+                        </div>
+                    `;
+                    qrCodeContainer.appendChild(instructions);
+                    
+                    // Mostrar área do QR code
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('qrCodeContainer').style.display = 'block';
+                    
+                    // Atualizar mensagens de status
+                    document.getElementById('statusMessages').innerHTML = `
+                        <div class="debug-log debug-success">
+                            <strong>📱 QR Code gerado para "${instanceName}"</strong><br>
+                            <small>Escaneie o QR Code acima com seu WhatsApp</small>
+                        </div>
+                    `;
+                    
+                    qrCodeData = result;
+                    debugLog('🎉 QR Code exibido na tela!', 'success');
+                    
+                } else {
+                    throw new Error('QR Code não foi retornado pela API');
+                }
+                
+            } catch (error) {
+                debugLog(`❌ Erro ao gerar QR Code: ${error.message}`, 'error');
+                document.getElementById('statusMessages').innerHTML = `
+                    <div class="debug-log debug-error">
+                        <strong>❌ Erro ao gerar QR Code:</strong><br>
+                        ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function clearResults() {
+            debugLog('🧹 Limpando resultados...', 'info');
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('qrCodeContainer').style.display = 'none';
+            document.getElementById('qrCode').innerHTML = '';
+            document.getElementById('statusMessages').innerHTML = '';
+            currentEvolutionInstance = null;
+            qrCodeData = null;
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            debugLog('Página carregada! Iniciando sistema...', 'success');
+            
+            try {
+                await loadRestaurantInfo();
+            } catch (error) {
+                debugLog(`Erro durante inicialização: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
