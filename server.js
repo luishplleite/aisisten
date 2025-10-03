@@ -1732,7 +1732,7 @@ app.get("/api/status", async (req, res) => {
         
         // Check Evolution API connectivity
         try {
-            const evolutionUrl = process.env.EVOLUTION_API_BASE_URL;
+            const evolutionUrl = process.env.EVOLUTION_API_BASE_URL || process.env.EVOLUTION_API_URL;
             const evolutionKey = process.env.EVOLUTION_API_KEY;
             
             if (evolutionUrl && evolutionKey) {
@@ -1757,7 +1757,7 @@ app.get("/api/status", async (req, res) => {
         
         // Check Mapbox connectivity
         try {
-            const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN;
+            const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN || process.env.MAPBOX_TOKEN;
             if (mapboxToken) {
                 const fetch = require('node-fetch');
                 const response = await Promise.race([
