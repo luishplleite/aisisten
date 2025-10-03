@@ -18,6 +18,13 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Deployment Configured**: Autoscale deployment setup for production ready
 - ✅ **Frontend Verified**: Landing page loads correctly with full UI functionality
 
+**October 3, 2025 - WhatsApp Subscription Access Fix:**
+- ✅ **Subscription Logic Fixed**: WhatsApp now correctly unlocks when status is 'active' OR 'trial' (line 5818)
+- ✅ **Button ID Consistency**: Fixed event listener to use correct button ID 'configure-whatsapp' (line 1907)
+- ✅ **Function Reference Fixed**: Corrected click handler to call 'openWhatsAppModal' function (line 1909)
+- ✅ **Access Control Working**: Active subscriptions now have full WhatsApp configuration access
+- ✅ **Trial Support Restored**: Trial users can now configure WhatsApp during trial period
+
 **October 3, 2025 - Order Management Fixes:**
 - ✅ **JavaScript Error Fixed**: Resolved "deliverersData already declared" error in gestao_pedidos.html
 - ✅ **Order Loading Fixed**: Orders now load and display correctly on the management page
