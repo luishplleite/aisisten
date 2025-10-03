@@ -1901,9 +1901,9 @@
                 console.log('🔗 CONFIGURAÇÕES - Configurando event listeners dos botões...');
                 
                 // Botão WhatsApp
-                const btnWhatsApp = document.getElementById('btnConfigureWhatsApp');
+                const btnWhatsApp = document.getElementById('configure-whatsapp');
                 if (btnWhatsApp) {
-                    btnWhatsApp.addEventListener('click', configureWhatsApp);
+                    btnWhatsApp.addEventListener('click', openWhatsAppModal);
                     console.log('✅ CONFIGURAÇÕES - Event listener WhatsApp configurado');
                 } else {
                     console.error('❌ CONFIGURAÇÕES - Botão WhatsApp não encontrado');
@@ -5812,18 +5812,20 @@
                 const trialWarning = document.getElementById('whatsapp-trial-warning');
                 const statusBadge = document.querySelector('#whatsapp-status .status-badge');
 
-                if (trialData.subscription_status === 'expired' || trialData.trial_days_remaining <= 0) {
-                    // Teste expirado - bloquear funcionalidade
+                if (trialData.subscription_status === 'active' || trialData.subscription_status === 'trial') {
+                    // Assinatura ativa ou teste - desbloquear funcionalidade
+                    configureBtn.disabled = false;
+                    configureBtn.innerHTML = '<i class="fas fa-cog"></i> Configurar';
+                    trialWarning.style.display = 'none';
+                    statusBadge.textContent = 'Configurar';
+                    statusBadge.className = 'status-badge status-success';
+                } else {
+                    // Teste expirado ou status não permitido - bloquear funcionalidade
                     configureBtn.disabled = true;
                     configureBtn.innerHTML = '<i class="fas fa-lock"></i> Bloqueado';
                     trialWarning.style.display = 'block';
                     statusBadge.textContent = 'Bloqueado';
                     statusBadge.className = 'status-badge status-blocked';
-                } else {
-                    // Teste ativo ou assinatura válida
-                    configureBtn.disabled = false;
-                    configureBtn.innerHTML = '<i class="fas fa-cog"></i> Configurar';
-                    trialWarning.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Erro ao atualizar status do WhatsApp:', error);
