@@ -1,0 +1,39 @@
+{
+    "status": "secure_config",
+    "configured": false,
+    "environment": "production",
+    "note": "API keys are now managed via environment variables for security. Using OpenAI API for GPT-5-mini access",
+    "required_env_vars": ["OPENAI_API_KEY"],
+    "baseUrl": "https://api.openai.com/v1",
+    "features": {
+        "chat": true,
+        "completions": true,
+        "embeddings": true,
+        "images": false,
+        "audio": false,
+        "reasoning": true,
+        "tools": true,
+        "streaming": true
+    },
+    "models": {
+        "chat": "gpt-5-mini",
+        "completion": "gpt-5-mini",
+        "embedding": "text-embedding-ada-002"
+    },
+    "parameters": {
+        "reasoning_effort": "medium",
+        "max_completion_tokens": 4096,
+        "stream": false,
+        "response_format": {"type": "text"}
+    },
+    "reasoning_levels": {
+        "minimal": "Para instruções claras e diretas",
+        "low": "Para tarefas simples com raciocínio básico", 
+        "medium": "Equilíbrio entre qualidade e velocidade (padrão)",
+        "high": "Para análises complexas e raciocínio aprofundado"
+    },
+    "limits": {
+        "requests_per_minute": 60,
+        "tokens_per_minute": 40000
+    }
+}

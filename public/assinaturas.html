@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinaturas - TimePulse AI</title>
+    
+    <!-- Sistema de ocultação de logs para produção -->
+    <script>
+        if (typeof console !== 'undefined') {
+            console.log = function() {};
+            console.warn = function() {};
+            console.error = function() {};
+            console.info = function() {};
+            console.debug = function() {};
+        }
+    </script>
+    
+    <meta name="description" content="Planos e assinaturas TimePulse AI">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https: wss: *.supabase.co; font-src 'self' https:; object-src 'none'; media-src 'self'; frame-src 'none';">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .subscription-status {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.trial {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .subscription-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .plan-card.recommended {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        }
+
+        .plan-card.recommended::before {
+            content: "RECOMENDADO";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .plan-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .plan-price {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .currency {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .period {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .plan-description {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features {
+            margin-bottom: 2rem;
+        }
+
+        .plan-features ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .plan-features li i.fa-check {
+            color: var(--success-color);
+        }
+
+        .plan-features li i.fa-times {
+            color: #dc3545;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #d4d8dc;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .billing-history {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .billing-history h3 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .billing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .billing-table th,
+        .billing-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .billing-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .payment-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .payment-status.paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payment-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .payment-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+
+            .subscription-plans {
+                grid-template-columns: 1fr;
+            }
+
+            /* Assinaturas específico mobile */
+            .plan-card {
+                padding: 1.5rem;
+            }
+
+            .plan-features {
+                margin: 1rem 0;
+            }
+
+            .plan-features li {
+                font-size: 0.9rem;
+                padding: 0.4rem 0;
+            }
+
+            .plan-price {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            .plan-card {
+                padding: 1rem;
+            }
+
+            .plan-price {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo brand-name" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name restaurant-brand" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link active">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" id="logoutButton">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-credit-card"></i>
+                    Assinaturas
+                </h1>
+                <p class="page-subtitle">Gerencie seus planos e assinaturas TimePulse AI</p>
+            </div>
+
+            <!-- Status da Assinatura Atual -->
+            <div class="subscription-status" id="currentSubscription">
+                <div class="status-header">
+                    <div>
+                        <h3>Status da Assinatura</h3>
+                        <p class="status-description">Seu plano atual e informações de cobrança</p>
+                    </div>
+                    <div class="status-badge trial" id="subscriptionStatus">
+                        Teste Gratuito
+                    </div>
+                </div>
+                <div class="status-details" id="statusDetails">
+                    <p><strong>Plano:</strong> <span id="currentPlan">Teste Gratuito de 7 dias</span></p>
+                    <p><strong>Expira em:</strong> <span id="expirationDate">Carregando...</span></p>
+                    <p><strong>Próximo pagamento:</strong> <span id="nextPayment">N/A</span></p>
+                </div>
+            </div>
+
+            <!-- Planos Disponíveis -->
+            <div class="subscription-plans">
+                <!-- Plano Teste Gratuito -->
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3 class="plan-title">Teste Gratuito</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">0</span>
+                            <span class="period">/7 dias</span>
+                        </div>
+                        <p class="plan-description">Experimente todas as funcionalidades por 7 dias</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Gestão completa de pedidos</li>
+                            <li><i class="fas fa-check"></i> Cardápio digital interativo</li>
+                            <li><i class="fas fa-check"></i> Integração WhatsApp básica</li>
+                            <li><i class="fas fa-check"></i> Dashboard de análises</li>
+                            <li><i class="fas fa-times"></i> Relatórios avançados</li>
+                            <li><i class="fas fa-times"></i> Suporte prioritário</li>
+                            <li><i class="fas fa-times"></i> Múltiplos usuários</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-secondary" disabled>
+                        Plano Atual
+                    </button>
+                </div>
+
+                <!-- Plano Premium -->
+                <div class="plan-card recommended">
+                    <div class="plan-header">
+                        <h3 class="plan-title">Premium</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">49</span>
+                            <span class="period">/mês</span>
+                        </div>
+                        <p class="plan-description">Plano completo para restaurantes em crescimento</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Todas as funcionalidades do teste</li>
+                            <li><i class="fas fa-check"></i> Relatórios avançados e insights</li>
+                            <li><i class="fas fa-check"></i> WhatsApp ilimitado</li>
+                            <li><i class="fas fa-check"></i> Integração com pagamentos</li>
+                            <li><i class="fas fa-check"></i> Suporte prioritário</li>
+                            <li><i class="fas fa-check"></i> Backup automático</li>
+                            <li><i class="fas fa-check"></i> Até 5 usuários</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-primary" onclick="createSubscription('premium')">
+                        <i class="fas fa-crown"></i>
+                        Assinar Premium
+                    </button>
+                </div>
+
+                <!-- Plano Empresarial -->
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3 class="plan-title">Empresarial</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">99</span>
+                            <span class="period">/mês</span>
+                        </div>
+                        <p class="plan-description">Para redes e restaurantes de grande porte</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Todas as funcionalidades Premium</li>
+                            <li><i class="fas fa-check"></i> Múltiplas unidades</li>
+                            <li><i class="fas fa-check"></i> API personalizada</li>
+                            <li><i class="fas fa-check"></i> Relatórios customizados</li>
+                            <li><i class="fas fa-check"></i> Suporte 24/7</li>
+                            <li><i class="fas fa-check"></i> Treinamento incluído</li>
+                            <li><i class="fas fa-check"></i> Usuários ilimitados</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-primary" onclick="createSubscription('enterprise')">
+                        <i class="fas fa-building"></i>
+                        Assinar Empresarial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Histórico de Cobrança -->
+            <div class="billing-history">
+                <h3><i class="fas fa-file-invoice"></i> Histórico de Cobrança</h3>
+                <table class="billing-table" id="billingTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Fatura</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #6c757d; padding: 2rem;">
+                                Nenhuma cobrança encontrada
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentSubscriptionData = null;
+
+        // Inicialização da página
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSubscriptionStatus();
+            await loadBillingHistory();
+            setupEventListeners();
+        });
+
+        // Carregar status da assinatura atual
+        async function loadSubscriptionStatus() {
+            try {
+                const instanceData = window.getInstanceData ? window.getInstanceData() : null;
+                if (!instanceData?.restaurantId) {
+                    console.error('Dados da instância não encontrados');
+                    return;
+                }
+
+                const response = await fetch(`/api/trial-status/${instanceData.restaurantId}`);
+                const data = await response.json();
+                currentSubscriptionData = data;
+
+                updateSubscriptionDisplay(data);
+            } catch (error) {
+                console.error('Erro ao carregar status da assinatura:', error);
+                document.getElementById('statusDetails').innerHTML = `
+                    <p style="color: #dc3545;">Erro ao carregar informações da assinatura</p>
+                `;
+            }
+        }
+
+        // Atualizar display do status da assinatura
+        function updateSubscriptionDisplay(data) {
+            const statusBadge = document.getElementById('subscriptionStatus');
+            const currentPlan = document.getElementById('currentPlan');
+            const expirationDate = document.getElementById('expirationDate');
+            const nextPayment = document.getElementById('nextPayment');
+
+            // Atualizar status badge
+            statusBadge.className = `status-badge ${data.subscription_status}`;
+            
+            switch (data.subscription_status) {
+                case 'trial':
+                    statusBadge.textContent = 'Teste Gratuito';
+                    currentPlan.textContent = 'Teste Gratuito de 7 dias';
+                    break;
+                case 'active':
+                    statusBadge.textContent = 'Ativo';
+                    currentPlan.textContent = 'Plano Premium';
+                    break;
+                case 'expired':
+                    statusBadge.textContent = 'Expirado';
+                    currentPlan.textContent = 'Teste Expirado';
+                    break;
+                default:
+                    statusBadge.textContent = 'Indefinido';
+                    currentPlan.textContent = 'Status indefinido';
+            }
+
+            // Atualizar datas
+            if (data.trial_end_date) {
+                const endDate = new Date(data.trial_end_date);
+                expirationDate.textContent = endDate.toLocaleDateString('pt-BR');
+            }
+
+            if (data.subscription_end_date) {
+                const nextPaymentDate = new Date(data.subscription_end_date);
+                nextPayment.textContent = nextPaymentDate.toLocaleDateString('pt-BR');
+            } else {
+                nextPayment.textContent = 'N/A';
+            }
+        }
+
+        // Criar nova assinatura
+        async function createSubscription(planType) {
+            try {
+                const instanceData = window.getInstanceData ? window.getInstanceData() : null;
+                if (!instanceData?.restaurantId) {
+                    alert('Erro: Dados da instância não encontrados');
+                    return;
+                }
+
+                // Confirmar ação
+                const confirmMessage = planType === 'premium' ? 
+                    'Confirma a assinatura do Plano Premium por R$ 49/mês?' :
+                    'Confirma a assinatura do Plano Empresarial por R$ 99/mês?';
+                
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+
+                // Desabilitar botão durante o processo
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+                const response = await fetch('/api/asaas/create-subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        plan: planType,
+                        restaurantId: instanceData.restaurantId,
+                        customerEmail: instanceData.userEmail,
+                        restaurantName: instanceData.instanceName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Assinatura criada com sucesso! Você será redirecionado para a página de pagamento.');
+                    if (result.checkoutUrl) {
+                        window.open(result.checkoutUrl, '_blank');
+                    }
+                    // Recarregar status após alguns segundos
+                    setTimeout(() => {
+                        loadSubscriptionStatus();
+                    }, 3000);
+                } else {
+                    throw new Error(result.error || 'Erro ao criar assinatura');
+                }
+            } catch (error) {
+                console.error('Erro ao criar assinatura:', error);
+                alert('Erro ao processar assinatura: ' + error.message);
+            } finally {
+                // Reabilitar botão
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+
+        // Carregar histórico de cobrança
+        async function loadBillingHistory() {
+            try {
+                const instanceData = window.getInstanceData ? window.getInstanceData() : null;
+                if (!instanceData?.restaurantId) return;
+
+                const response = await fetch(`/api/asaas/billing-history/${instanceData.restaurantId}`);
+                const data = await response.json();
+
+                if (data.success && data.invoices && data.invoices.length > 0) {
+                    updateBillingTable(data.invoices);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar histórico de cobrança:', error);
+            }
+        }
+
+        // Atualizar tabela de cobrança
+        function updateBillingTable(invoices) {
+            const tbody = document.querySelector('#billingTable tbody');
+            tbody.innerHTML = invoices.map(invoice => `
+                <tr>
+                    <td>${new Date(invoice.date).toLocaleDateString('pt-BR')}</td>
+                    <td>${invoice.description}</td>
+                    <td>R$ ${invoice.amount.toFixed(2).replace('.', ',')}</td>
+                    <td>
+                        <span class="payment-status ${invoice.status}">
+                            ${invoice.status === 'paid' ? 'Pago' : 
+                              invoice.status === 'pending' ? 'Pendente' : 'Falhou'}
+                        </span>
+                    </td>
+                    <td>
+                        ${invoice.invoiceUrl ? 
+                            `<a href="${invoice.invoiceUrl}" target="_blank" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-download"></i> Baixar
+                            </a>` : 
+                            'N/A'
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Logout
+            document.getElementById('logoutButton').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (confirm('Tem certeza que deseja sair?')) {
+                    SECURE_INSTANCE_MANAGER.logout();
+                }
+            });
+
+            // Atualizar nome do restaurante
+            const instanceData = window.getInstanceData ? window.getInstanceData() : null;
+            if (instanceData?.instanceName) {
+                document.getElementById('restaurantName').textContent = instanceData.instanceName;
+            }
+        }
+
+        // Função para cancelar assinatura
+        async function cancelSubscription() {
+            if (!confirm('Tem certeza que deseja cancelar sua assinatura? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            try {
+                const instanceData = window.getInstanceData ? window.getInstanceData() : null;
+                const response = await fetch('/api/asaas/cancel-subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        restaurantId: instanceData.restaurantId
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Assinatura cancelada com sucesso.');
+                    loadSubscriptionStatus();
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('Erro ao cancelar assinatura:', error);
+                alert('Erro ao cancelar assinatura: ' + error.message);
+            }
+        }
+
+        // Função para controlar o menu mobile
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        // Fechar menu ao clicar em um link (em mobile)
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        toggleMobileMenu();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
