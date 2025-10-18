@@ -1,0 +1,27 @@
+{
+    "status": "secure_config",
+    "configured": false,
+    "environment": "production",
+    "note": "API keys are now managed via environment variables for security",
+    "required_env_vars": ["SUPABASE_URL", "SUPABASE_ANON_KEY"],
+    "project": {
+        "ref": "sguirxaunajirfvlzbac",
+        "region": "us-east-1"
+    },
+    "features": {
+        "auth": true,
+        "database": true,
+        "storage": true,
+        "realtime": true,
+        "rls": true
+    },
+    "tables": {
+        "users": true,
+        "profiles": true,
+        "sessions": true,
+        "restaurants": true,
+        "orders": true,
+        "deliveries": true,
+        "payments": true
+    }
+}

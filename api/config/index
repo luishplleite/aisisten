@@ -1,0 +1,59 @@
+{
+    "status": "ok",
+    "environment": "development",
+    "apiUrl": "/api",
+    "frontendUrl": "",
+    "baseUrl": "",
+    "protocol": "http",
+    "secure": false,
+    "version": "1.0.0",
+    "timestamp": "2025-09-13T14:40:00Z",
+    "ssl": {
+        "enabled": false,
+        "force": false
+    },
+    "cors": {
+        "origin": "*",
+        "credentials": true,
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allowedHeaders": ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
+    },
+    "services": {
+        "supabase": {
+            "enabled": true,
+            "endpoint": "/api/config/supabase",
+            "secure": false,
+            "project_ref": "sguirxaunajirfvlzbac"
+        },
+        "evolution": {
+            "enabled": true,
+            "endpoint": "/api/config/evolution",
+            "secure": false
+        },
+        "mapbox": {
+            "enabled": true,
+            "endpoint": "/api/config/mapbox",
+            "secure": false
+        },
+        "openai": {
+            "enabled": true,
+            "endpoint": "/api/config/openai",
+            "secure": false
+        }
+    },
+    "features": {
+        "authentication": true,
+        "realtime": true,
+        "whatsapp": true,
+        "maps": true,
+        "ai": true,
+        "documents": true,
+        "ssl": true
+    },
+    "docker": {
+        "service_name": "timepulse_api",
+        "container_port": 3001,
+        "network": "timepulsai",
+        "traefik_enabled": true
+    }
+}

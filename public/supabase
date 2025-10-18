@@ -1,0 +1,27 @@
+{
+    "status": "ok",
+    "configured": true,
+    "environment": "production",
+    "supabaseUrl": "https://sguirxaunajirfvlzbac.supabase.co",
+    "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNndWlyeGF1bmFqaXJmdmx6YmFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAwOTQ4MDIsImV4cCI6MjA2NTY3MDgwMn0.5vQj3LmBbpP0WosMwreboRww97wZyXBByQqG8oaI59k",
+    "project": {
+        "ref": "sguirxaunajirfvlzbac",
+        "region": "us-east-1"
+    },
+    "features": {
+        "auth": true,
+        "database": true,
+        "storage": true,
+        "realtime": true,
+        "rls": true
+    },
+    "tables": {
+        "users": true,
+        "profiles": true,
+        "sessions": true,
+        "restaurants": true,
+        "orders": true,
+        "deliveries": true,
+        "payments": true
+    }
+}

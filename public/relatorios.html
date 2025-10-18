@@ -1,0 +1,2802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análises e Relatórios - TimePulse AI</title>
+    <meta name="description" content="Análise avançada de vendas e assistente virtual para redes sociais">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .page-header {
+            background: white;
+            color: #333;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .page-header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #6c757d;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .filter-input {
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        /* ===== MODAL STYLES ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .metric-icon.revenue { background-color: var(--success-color); }
+        .metric-icon.growth { background-color: var(--info-color); }
+        .metric-icon.orders { background-color: var(--warning-color); }
+        .metric-icon.ticket { background-color: var(--primary-color); }
+
+        .metric-content {
+            flex: 1;
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .metric-change.positive { color: var(--success-color); }
+        .metric-change.negative { color: var(--danger-color); }
+
+        .dashboard-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .social-assistant-container {
+            padding: 1rem;
+        }
+
+        .tip-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        .tip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .platform-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .tip-action {
+            margin: 0.5rem 0;
+            color: var(--dark-color);
+        }
+
+        .tip-reasoning {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .ai-insights-container {
+            padding: 1rem;
+        }
+
+        .insight-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .insight-type {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-description {
+            margin-bottom: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .insight-action {
+            background: rgba(255,255,255,0.1);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive Grid Classes */
+        .col-12 { grid-column: span 12; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        /* Chart sections styling */
+        .chart-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: 300px;
+        }
+
+        .chart-section h4 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .small-chart {
+            min-height: 250px;
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Mobile First Responsive */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+            
+            .metrics-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .analytics-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .col-12, .col-6, .col-4, .col-3 {
+                grid-column: span 1;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .page-actions {
+                margin-top: 1rem;
+            }
+
+            .metric-card {
+                padding: 1rem;
+            }
+
+            .metric-value {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            .metric-value {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Desktop Small */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .metrics-row {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .analytics-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+
+            .col-12 { grid-column: span 8; }
+            .col-6 { grid-column: span 4; }
+            .col-4 { grid-column: span 3; }
+            .col-3 { grid-column: span 2; }
+        }
+
+        /* Desktop Large */
+        @media (min-width: 1025px) {
+            .metrics-row {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        /* Estilos para ofuscação de dados em período trial */
+        .trial-blur-container {
+            position: relative;
+        }
+        
+        .trial-blur-content {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .trial-blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 12px;
+            pointer-events: auto;
+        }
+        
+        .trial-blur-overlay .lock-icon {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .trial-blur-overlay h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .trial-blur-overlay p {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .trial-blur-overlay .btn-upgrade {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 1rem;
+            pointer-events: auto;
+            z-index: 101;
+        }
+        
+        .trial-blur-overlay .btn-upgrade:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link active">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" id="logoutButton">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+        
+        <main class="main-content" id="mainContent">
+            <header class="page-header">
+                <div class="page-header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-line"></i>
+                        Análises e Relatórios
+                    </h1>
+                    <p class="page-subtitle">Insights inteligentes para impulsionar seu negócio</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="refreshAnalytics()">
+                        <i class="fas fa-sync-alt"></i>
+                        Atualizar Dados
+                    </button>
+                </div>
+            </header>
+
+            <!-- Filtros -->
+            <div class="filters-section">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Período</label>
+                        <select id="periodFilter" class="filter-input" onchange="updateAnalytics()">
+                            <option value="7days">Últimos 7 dias</option>
+                            <option value="30days" selected>Últimos 30 dias</option>
+                            <option value="90days">Últimos 3 meses</option>
+                            <option value="year">Último ano</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Comparar com</label>
+                        <select id="compareFilter" class="filter-input" onchange="updateAnalytics()">
+                            <option value="previous">Período anterior</option>
+                            <option value="same_last_year">Mesmo período ano passado</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Categoria</label>
+                        <select id="categoryFilter" class="filter-input" onchange="updateAnalytics()">
+                            <option value="all">Todas as categorias</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-secondary" onclick="exportReport()">
+                            <i class="fas fa-download"></i>
+                            Exportar Relatório
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Métricas Principais -->
+            <div class="metrics-row" id="report-metrics-row">
+                <div class="metric-card">
+                    <div class="metric-icon revenue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Faturamento</div>
+                        <div class="metric-value" id="totalRevenue">R$ 0,00</div>
+                        <div class="metric-change positive" id="revenueChange">+0%</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon" style="background-color: #17a2b8;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Total Custos</div>
+                        <div class="metric-value" id="totalCosts">R$ 0,00</div>
+                        <div class="metric-change" id="costsChange">-</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon" style="background-color: #ffc107;">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Total Lucro</div>
+                        <div class="metric-value" id="totalProfit">R$ 0,00</div>
+                        <div class="metric-change positive" id="profitChange">+0%</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon orders">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Número de Pedidos</div>
+                        <div class="metric-value" id="totalOrders">0</div>
+                        <div class="metric-change positive" id="ordersChange">+0%</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon ticket">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-title">Itens Vendidos</div>
+                        <div class="metric-value" id="totalItems">0</div>
+                        <div class="metric-change positive" id="itemsChange">+0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos Organizados em Grid Responsivo -->
+            <div class="analytics-grid" id="report-charts-grid">
+                <!-- Faturamento Anual -->
+                <div class="col-6 chart-section">
+                    <h4><i class="fas fa-chart-bar"></i> Faturamento Anual</h4>
+                    <div class="chart-container">
+                        <canvas id="annualChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Faturamento Mensal -->
+                <div class="col-6 chart-section">
+                    <h4><i class="fas fa-chart-line"></i> Faturamento Mensal</h4>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top 5 Clientes -->
+                <div class="col-6 chart-section">
+                    <h4><i class="fas fa-users"></i> Top 5 Clientes</h4>
+                    <div class="chart-container">
+                        <canvas id="clientsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Composição Categoria -->
+                <div class="col-6 chart-section">
+                    <h4><i class="fas fa-chart-pie"></i> Composição Categoria</h4>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Vendas por Horário -->
+                <div class="col-12 chart-section">
+                    <h4><i class="fas fa-clock"></i> Vendas por Horário</h4>
+                    <div class="chart-container">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Insights com IA (Layout melhorado) -->
+            <div class="analytics-grid" id="report-insights-grid">
+                <!-- Insights com IA -->
+                <div class="col-6 chart-section">
+                    <h4><i class="fas fa-brain"></i> Insights Inteligentes</h4>
+                    <div style="padding: 1rem 0;">
+                        <button class="btn btn-primary" onclick="generateAIInsights()" id="generateInsightsBtn" style="width: 100%; margin-bottom: 1rem;">
+                            <i class="fas fa-magic"></i> Gerar Insights
+                        </button>
+                        <div id="aiInsightsContainer" class="ai-insights-container" style="max-height: 250px; overflow-y: auto;">
+                            <div class="empty-state">
+                                <i class="fas fa-brain"></i>
+                                <p>Gere insights baseados nos dados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assistente de Redes Sociais -->
+                <div class="col-6 chart-section">
+                    <h4><i class="fas fa-share-alt"></i> Assistente de Redes Sociais</h4>
+                    <div style="padding: 1rem 0;">
+                        <button class="btn btn-primary" onclick="generateSocialTips()" id="generateTipsBtn" style="width: 100%; margin-bottom: 1rem;">
+                            <i class="fas fa-lightbulb"></i> Gerar Dicas
+                        </button>
+                        <div id="socialAssistantContainer" class="social-assistant-container" style="max-height: 250px; overflow-y: auto;">
+                            <div class="empty-state">
+                                <i class="fas fa-share-alt"></i>
+                                <p>Gere dicas para redes sociais</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    
+    <script>
+        // Variáveis globais para o Supabase e dados da aplicação
+        let supabase;
+        let MAPBOX_ACCESS_TOKEN;
+        let currentRestaurant = null;
+        let restaurantId = null;
+        let analyticsData = {
+            orders: [],
+            products: [],
+            metrics: {}
+        };
+        let charts = {};
+
+        // Classes para análise (seguindo princípios SOLID)
+        class RestaurantAnalytics {
+            constructor(supabaseClient, restaurantData) {
+                this.supabase = supabaseClient;
+                this.restaurant = restaurantData;
+                this.cache = new Map();
+            }
+
+            async calculateSalesMetrics(period = '30days') {
+                const cacheKey = `metrics_${period}`;
+                if (this.cache.has(cacheKey)) {
+                    return this.cache.get(cacheKey);
+                }
+
+                try {
+                    const dateRange = this.getDateRange(period);
+                    const orders = await this.getOrdersInRange(dateRange);
+                    
+                    const metrics = {
+                        totalRevenue: this.calculateTotalRevenue(orders),
+                        averageTicket: this.calculateAverageTicket(orders),
+                        totalOrders: orders.length,
+                        topProducts: await this.getTopProducts(5),
+                        salesGrowth: await this.calculateGrowth(period),
+                        hourlyDistribution: this.getHourlyDistribution(orders)
+                    };
+
+                    this.cache.set(cacheKey, metrics);
+                    return metrics;
+                } catch (error) {
+                    console.error('Erro ao calcular métricas:', error);
+                    return this.getDefaultMetrics();
+                }
+            }
+
+            getDateRange(period) {
+                const end = new Date();
+                const start = new Date();
+                
+                switch(period) {
+                    case '7days':
+                        start.setDate(end.getDate() - 7);
+                        break;
+                    case '30days':
+                        start.setDate(end.getDate() - 30);
+                        break;
+                    case '90days':
+                        start.setDate(end.getDate() - 90);
+                        break;
+                    case 'year':
+                        start.setFullYear(end.getFullYear() - 1);
+                        break;
+                    default:
+                        start.setDate(end.getDate() - 30);
+                }
+
+                return { start, end };
+            }
+
+            async getOrdersInRange(dateRange) {
+                if (!this.supabase || !this.restaurant) return [];
+
+                const { data, error } = await this.supabase
+                    .from('orders')
+                    .select('id, total, subtotal, created_at, customer_name, customer_phone')
+                    .eq('restaurant_id', this.restaurant.id)
+                    .gte('created_at', dateRange.start.toISOString())
+                    .lte('created_at', dateRange.end.toISOString())
+                    .eq('status', 'entregue');
+
+                if (error) throw error;
+                return data || [];
+            }
+
+            calculateTotalRevenue(orders) {
+                return orders.reduce((total, order) => {
+                    const value = parseFloat(order.total) || 0;
+                    return total + value;
+                }, 0);
+            }
+
+            calculateAverageTicket(orders) {
+                if (orders.length === 0) return 0;
+                return this.calculateTotalRevenue(orders) / orders.length;
+            }
+
+            async getTopProducts(limit = 5) {
+                try {
+                    // Primeiro buscar pedidos entregues deste restaurante
+                    const { data: orders, error: ordersError } = await this.supabase
+                        .from('orders')
+                        .select('id')
+                        .eq('restaurant_id', this.restaurant.id)
+                        .eq('status', 'entregue');
+
+                    if (ordersError) {
+                        console.error('Erro ao buscar pedidos:', ordersError);
+                        return [];
+                    }
+
+                    if (!orders || orders.length === 0) {
+                        return [];
+                    }
+
+                    const orderIds = orders.map(order => order.id);
+
+                    // Buscar itens dos pedidos entregues
+                    const { data: orderItems, error } = await this.supabase
+                        .from('order_items')
+                        .select('product_name, quantity')
+                        .in('order_id', orderIds);
+
+                    if (error) {
+                        console.error('Erro ao buscar itens dos pedidos:', error);
+                        return [];
+                    }
+
+                    // Contar produtos
+                    const productCount = {};
+                    (orderItems || []).forEach(item => {
+                        const name = item.product_name;
+                        productCount[name] = (productCount[name] || 0) + (item.quantity || 1);
+                    });
+
+                    return Object.entries(productCount)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, limit)
+                        .map(([name, count]) => ({ name, count }));
+                } catch (error) {
+                    console.error('Erro ao calcular produtos mais vendidos:', error);
+                    return [];
+                }
+            }
+
+            getHourlyDistribution(orders) {
+                const hourly = new Array(24).fill(0);
+                
+                orders.forEach(order => {
+                    const hour = new Date(order.created_at).getHours();
+                    hourly[hour]++;
+                });
+
+                return hourly;
+            }
+
+            async calculateGrowth(period) {
+                try {
+                    const currentRange = this.getDateRange(period);
+                    const currentOrders = await this.getOrdersInRange(currentRange);
+                    const currentRevenue = this.calculateTotalRevenue(currentOrders);
+
+                    // Período anterior
+                    const previousEnd = new Date(currentRange.start);
+                    const previousStart = new Date(previousEnd);
+                    const daysDiff = (currentRange.end - currentRange.start) / (1000 * 60 * 60 * 24);
+                    previousStart.setDate(previousEnd.getDate() - daysDiff);
+
+                    const previousOrders = await this.getOrdersInRange({ start: previousStart, end: previousEnd });
+                    const previousRevenue = this.calculateTotalRevenue(previousOrders);
+
+                    if (previousRevenue === 0) return 0;
+                    return ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+                } catch (error) {
+                    console.error('Erro ao calcular crescimento:', error);
+                    return 0;
+                }
+            }
+
+            getDefaultMetrics() {
+                return {
+                    totalRevenue: 0,
+                    averageTicket: 0,
+                    totalOrders: 0,
+                    topProducts: [],
+                    salesGrowth: 0,
+                    hourlyDistribution: new Array(24).fill(0)
+                };
+            }
+        }
+
+        // Função para buscar os top 5 clientes da tabela customers
+        async function getTopCustomers(limit = 5) {
+            try {
+                console.log('🔍 Debug - getTopCustomers chamada, currentRestaurant:', currentRestaurant);
+                
+                if (!currentRestaurant) {
+                    console.warn('❌ Restaurant not loaded yet');
+                    return [];
+                }
+
+                console.log('🔍 Debug - Buscando clientes para restaurant_id:', currentRestaurant.id);
+
+                // Buscar clientes e seus pedidos
+                const { data: customers, error: customersError } = await supabase
+                    .from('customers')
+                    .select('id, name, phone, email')
+                    .eq('restaurant_id', currentRestaurant.id);
+
+                console.log('🔍 Debug - Resposta customers:', { count: customers?.length || 0, error: customersError });
+
+                if (customersError) {
+                    console.error('Erro ao buscar clientes:', customersError);
+                    return [];
+                }
+
+                if (!customers || customers.length === 0) {
+                    return [];
+                }
+
+                // Para cada cliente, calcular o valor total gasto
+                const customersWithSpending = await Promise.all(
+                    customers.map(async (customer) => {
+                        console.log(`🔍 Debug - Buscando pedidos para cliente ${customer.name} (${customer.id})`);
+                        
+                        const { data: orders, error: ordersError } = await supabase
+                            .from('orders')
+                            .select('total')
+                            .eq('customer_id', customer.id)
+                            .eq('restaurant_id', currentRestaurant.id)
+                            .eq('status', 'entregue');
+
+                        console.log(`🔍 Debug - Pedidos do cliente ${customer.name}:`, { count: orders?.length || 0, orders, error: ordersError });
+
+                        if (ordersError) {
+                            console.error(`Erro ao buscar pedidos do cliente ${customer.id}:`, ordersError);
+                            return { ...customer, totalSpent: 0, orderCount: 0 };
+                        }
+
+                        const totalSpent = (orders || []).reduce((sum, order) => {
+                            const orderValue = parseFloat(order.total) || 0;
+                            console.log(`🔍 Debug - Pedido total: ${order.total} -> parsed: ${orderValue}`);
+                            return sum + orderValue;
+                        }, 0);
+
+                        console.log(`🔍 Debug - Cliente ${customer.name} gastou total: R$ ${totalSpent}`);
+
+                        return {
+                            ...customer,
+                            totalSpent,
+                            orderCount: orders ? orders.length : 0
+                        };
+                    })
+                );
+
+                console.log('🔍 Debug - Clientes com gastos calculados:', customersWithSpending);
+
+                // Ordenar por valor gasto (decrescente) e pegar os top 5
+                const result = customersWithSpending
+                    .sort((a, b) => b.totalSpent - a.totalSpent)
+                    .slice(0, limit);
+                    // Removido o filtro para mostrar todos os clientes, mesmo com totalSpent = 0
+                
+                console.log('🔍 Debug - Top clientes final:', result);
+                return result;
+
+            } catch (error) {
+                console.error('Erro ao calcular top clientes:', error);
+                return [];
+            }
+        }
+
+        class SocialMediaAssistant {
+            constructor(restaurantData, salesMetrics) {
+                this.restaurant = restaurantData;
+                this.metrics = salesMetrics;
+            }
+
+            async generateDailyTips() {
+                // Simulação de dicas baseadas em dados reais
+                // Em produção, isso seria conectado a uma API de LLM
+                const tips = this.generateMockTips();
+                return tips;
+            }
+
+            generateMockTips() {
+                const topProduct = this.metrics.topProducts[0];
+                const peakHour = this.findPeakHour();
+                
+                return [
+                    {
+                        title: "Destaque do Produto Campeão",
+                        action: `Poste uma foto apetitosa do ${topProduct?.name || 'seu produto mais vendido'} com a hashtag #MaisVendido`,
+                        why: "Produtos populares geram mais engajamento e podem impulsionar vendas adicionais",
+                        platform: "Instagram"
+                    },
+                    {
+                        title: "Story no Horário de Pico",
+                        action: `Crie um story promocional às ${peakHour}h mostrando o movimento da cozinha`,
+                        why: "Postar durante o horário de pico aumenta as chances de alcançar clientes famintos",
+                        platform: "Stories"
+                    }
+                ];
+            }
+
+            findPeakHour() {
+                let maxOrders = 0;
+                let peakHour = 12;
+
+                this.metrics.hourlyDistribution.forEach((orders, hour) => {
+                    if (orders > maxOrders) {
+                        maxOrders = orders;
+                        peakHour = hour;
+                    }
+                });
+
+                return peakHour;
+            }
+        }
+
+        class AIInsightsGenerator {
+            constructor(analyticsEngine) {
+                this.analytics = analyticsEngine;
+            }
+
+            async generateInsights(salesData) {
+                // Simulação de insights gerados por IA
+                // Em produção, isso seria conectado a uma API de LLM
+                return this.generateMockInsights(salesData);
+            }
+
+            generateMockInsights(salesData) {
+                const insights = [];
+
+                // Insight sobre crescimento
+                if (salesData.salesGrowth > 10) {
+                    insights.push({
+                        type: "opportunity",
+                        title: "Crescimento Acelerado Detectado",
+                        description: `Suas vendas cresceram ${salesData.salesGrowth.toFixed(1)}% no período. Esse é um excelente momento para expandir.`,
+                        action: "Considere aumentar o estoque dos produtos mais vendidos e investir em marketing."
+                    });
+                } else if (salesData.salesGrowth < -5) {
+                    insights.push({
+                        type: "warning",
+                        title: "Queda nas Vendas Requer Atenção",
+                        description: `Houve uma queda de ${Math.abs(salesData.salesGrowth).toFixed(1)}% nas vendas.`,
+                        action: "Analise os fatores externos e considere promoções para reativar as vendas."
+                    });
+                }
+
+                // Insight sobre ticket médio
+                if (salesData.averageTicket < 25) {
+                    insights.push({
+                        type: "opportunity",
+                        title: "Oportunidade de Aumentar Ticket Médio",
+                        description: `Seu ticket médio de R$ ${salesData.averageTicket.toFixed(2)} pode ser melhorado.`,
+                        action: "Implemente combos e sugestões de acompanhamentos para aumentar o valor por pedido."
+                    });
+                }
+
+                // Insight sobre produtos
+                if (salesData.topProducts.length > 0) {
+                    insights.push({
+                        type: "trend",
+                        title: "Produto em Destaque",
+                        description: `${salesData.topProducts[0].name} é seu produto mais vendido com ${salesData.topProducts[0].count} vendas.`,
+                        action: "Crie variações deste produto e use-o como âncora em suas campanhas."
+                    });
+                }
+
+                return insights;
+            }
+        }
+
+        /**
+         * Carrega as configurações do arquivo config.js local.
+         */
+        async function fetchPublicConfig() {
+            try {
+                const currentHost = window.location.hostname;
+                const currentPort = window.location.port;
+                const currentProtocol = window.location.protocol;
+                
+                // Determinar URL base baseada no ambiente atual
+                let baseUrl;
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                    baseUrl = `${currentProtocol}//${currentHost}:${currentPort || '5000'}`;
+                } else if (currentHost === 'timepulseai.com.br' || currentHost === 'www.timepulseai.com.br') {
+                    baseUrl = `https://${currentHost}`;
+                } else if (currentHost.includes('replit')) {
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                } else {
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                }
+                
+                const timestamp = Date.now();
+                const configUrl = `${baseUrl}/api/config?t=${timestamp}`;
+                
+                console.log(`🔍 Relatórios - Carregando configuração de: ${configUrl}`);
+                
+                // Buscar configuração básica do servidor
+                const response = await fetch(configUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+                }
+                
+                const basicConfig = await response.json();
+                console.log('✅ Configuração básica carregada nos relatórios');
+                
+                // Buscar configuração do Supabase
+                const supabaseUrl = `${baseUrl}/api/config/supabase`;
+                const supabaseResponse = await fetch(supabaseUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!supabaseResponse.ok) {
+                    throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+                }
+                
+                const supabaseConfig = await supabaseResponse.json();
+                console.log('✅ Configuração Supabase carregada nos relatórios');
+                
+                const finalConfig = {
+                    ...basicConfig,
+                    supabaseUrl: supabaseConfig.url,
+                    supabaseAnonKey: supabaseConfig.anon_key
+                };
+                
+                return finalConfig;
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar configuração nos relatórios:', error);
+                return null;
+            }
+        }
+
+
+        // ===== FUNÇÕES DE AUTENTICAÇÃO E CONFIGURAÇÃO =====
+        // Adicionadas do gestao_pedidos.html para funcionar corretamente
+
+        /**
+         * Função para buscar configuração do servidor seguro
+         */
+        async function fetchPublicConfig() {
+            try {
+                const currentHost = window.location.hostname;
+                const currentPort = window.location.port;
+                const currentProtocol = window.location.protocol;
+                
+                // Determinar URL base baseada no ambiente atual
+                let baseUrl;
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                    // Desenvolvimento local
+                    baseUrl = `${currentProtocol}//${currentHost}:${currentPort || '5000'}`;
+                } else if (currentHost === 'timepulseai.com.br' || currentHost === 'www.timepulseai.com.br') {
+                    // Produção - usar HTTPS sem especificar porta
+                    baseUrl = `https://${currentHost}`;
+                } else if (currentHost.includes('replit')) {
+                    // Replit - usar a URL atual sem modificação
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                } else {
+                    // Outros ambientes
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                }
+                
+                const timestamp = Date.now();
+                const configUrl = `${baseUrl}/api/config?t=${timestamp}`;
+                
+                // Buscar configuração básica do servidor
+                const response = await fetch(configUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+                }
+                
+                const basicConfig = await response.json();
+                
+                // Buscar configuração do Supabase
+                const supabaseUrl = `${baseUrl}/api/config/supabase`;
+                
+                const supabaseResponse = await fetch(supabaseUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!supabaseResponse.ok) {
+                    throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+                }
+                
+                const supabaseConfig = await supabaseResponse.json();
+                
+                // Buscar configuração de APIs (Mapbox, etc.)
+                const apisUrl = `${baseUrl}/api/config/apis`;
+                
+                const apisResponse = await fetch(apisUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                let apisConfig = {};
+                if (apisResponse.ok) {
+                    apisConfig = await apisResponse.json();
+                }
+                
+                const finalConfig = {
+                    ...basicConfig,
+                    supabaseUrl: supabaseConfig.url,
+                    supabaseAnonKey: supabaseConfig.anon_key,
+                    mapbox: apisConfig.mapbox || {},
+                };
+                
+                return finalConfig;
+                
+            } catch (error) {
+                throw new Error('Erro ao carregar configurações do servidor. Verifique sua conexão e recarregue a página.');
+            }
+        }
+
+        /**
+         * Função para obter dados da instância dos cookies, localStorage ou sessionStorage
+         */
+        function getInstanceData() {
+            try {
+                const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    try {
+                        const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                        const tokenData = JSON.parse(cookieValue);
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing cookie:', e);
+                    }
+                }
+                
+                const localStorageData = localStorage.getItem('timepulse_instance_token');
+                if (localStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(localStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing localStorage:', e);
+                    }
+                }
+                
+                const sessionStorageData = sessionStorage.getItem('timepulse_instance_token');
+                if (sessionStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(sessionStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing sessionStorage:', e);
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('getInstanceData error:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Função para verificar se está autenticado
+         */
+        function isAuthenticated() {
+            const instanceData = getInstanceData();
+            return instanceData && instanceData.instanceId && instanceData.restaurantId;
+        }
+
+        /**
+         * Função para inicializar configuração
+         */
+        async function initializeConfiguration() {
+            try {
+                console.log('🔧 Iniciando configuração segura...');
+                
+                // Buscar configuração usando o sistema seguro
+                const config = await fetchPublicConfig();
+                
+                if (!config) {
+                    throw new Error('Não foi possível carregar a configuração');
+                }
+                
+                console.log('✅ Configuração carregada do backend');
+
+                // Inicializar Supabase
+                if (config.supabaseUrl && config.supabaseAnonKey) {
+                    supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                    console.log('✅ Supabase inicializado com sucesso');
+                } else {
+                    throw new Error('Configuração do Supabase não encontrada');
+                }
+
+                // Configurar Mapbox
+                if (config.mapbox?.accessToken) {
+                    MAPBOX_ACCESS_TOKEN = config.mapbox.accessToken;
+                    console.log('✅ Mapbox configurado com sucesso');
+                } else {
+                    console.warn('⚠️ Chave do Mapbox não encontrada. Cálculo de entrega será desabilitado.');
+                    MAPBOX_ACCESS_TOKEN = null;
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro na inicialização das configurações:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * Verifica se há uma sessão de login ativa nos cookies.
+         * Se não houver, redireciona para a página de login.
+         */
+        async function checkAuthenticationAndLoadConfig() {
+            try {
+                console.log('🚀 RELATÓRIOS - Inicializando configurações...');
+                await initializeConfiguration();
+                
+                console.log('🔍 RELATÓRIOS - Verificando status de autenticação...');
+                
+                // Debug dos cookies disponíveis
+                console.log('🍪 RELATÓRIOS - Cookies atuais:', document.cookie);
+                
+                // Verifica autenticação
+                const instanceData = getInstanceData();
+                console.log('📊 RELATÓRIOS - Dados da instância obtidos:', instanceData);
+                
+                const authCheck = isAuthenticated();
+                console.log('🔐 RELATÓRIOS - Status de autenticação:', authCheck);
+                
+                if (!authCheck) {
+                    console.log('❌ RELATÓRIOS - Usuário não autenticado. Redirecionando para login...');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const currentInstance = getInstanceData();
+                restaurantId = currentInstance.restaurantId;
+
+            console.log('🔍 Debug - Current Instance:', currentInstance);
+            console.log('🔍 Debug - Restaurant ID:', restaurantId);
+
+                console.log('✅ Usuário autenticado com instância:', currentInstance.instanceId);
+
+                if (!restaurantId) {
+                    console.error('❌ Restaurant ID não encontrado na instância');
+                    showError('Erro: Restaurante não encontrado. Faça login novamente.');
+                    return;
+                }
+
+                console.log('🎉 Configurações carregadas e autenticação verificada.');
+                
+                // Fetch restaurant name
+                await fetchRestaurantName(restaurantId);
+                
+                console.log('🔍 Debug - Current Restaurant após fetch:', currentRestaurant);
+                
+                // Inicializar analytics
+                await initializeAnalytics();
+
+                console.log('✅ Aplicação Relatórios iniciada!');
+
+            } catch (error) {
+                console.error('❌ Falha na inicialização da aplicação.', error);
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; font-family: 'Inter', sans-serif;">
+                        <div style="padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 1rem;">Erro na Inicialização</h2>
+                            <p style="margin-bottom: 1rem;">${error.message}</p>
+                            <button onclick="window.location.reload()" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Recarregar</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * Fetches the restaurant name and updates the sidebar.
+         * @param {string} id - The restaurant ID.
+         */
+        async function fetchRestaurantName(id) {
+            try {
+                console.log('🔍 Debug - Buscando restaurante com ID:', id);
+                
+                const { data, error } = await supabase
+                    .from('restaurants')
+                    .select('name')
+                    .eq('id', id)
+                    .single();
+
+                console.log('🔍 Debug - Supabase response:', { data, error });
+
+                if (error) {
+                    console.error('❌ Erro Supabase:', error);
+                    throw error;
+                }
+
+                if (data) {
+                    document.getElementById('restaurantName').textContent = data.name;
+                    currentRestaurant = { id: id, name: data.name };
+                    console.log('✅ Restaurante carregado:', currentRestaurant);
+                } else {
+                    console.warn('⚠️ Nenhum restaurante encontrado com o ID:', id);
+                    document.getElementById('restaurantName').textContent = 'Restaurante Desconhecido';
+                    currentRestaurant = { id: id, name: 'Desconhecido' };
+                }
+            }
+            catch (error) {
+                console.error('❌ Erro ao carregar nome do restaurante:', error);
+                document.getElementById('restaurantName').textContent = 'Erro ao Carregar';
+                // Ainda assim define o currentRestaurant para permitir que outras funções funcionem
+                currentRestaurant = { id: id, name: 'Erro' };
+                showError('Erro ao carregar dados do restaurante: ' + error.message);
+            }
+        }
+
+        /**
+         * Verifica se o usuário está em trial e se deve ofuscar os dados
+         */
+        async function checkTrialAndBlurData() {
+            try {
+                if (!restaurantId) {
+                    console.warn('⚠️ Restaurant ID não disponível para verificação de trial');
+                    return;
+                }
+
+                // Buscar dados de assinatura do restaurante
+                const { data: restaurant, error } = await supabase
+                    .from('restaurants')
+                    .select('subscription_status, trial_start_date, trial_end_date')
+                    .eq('id', restaurantId)
+                    .single();
+
+                if (error) {
+                    console.error('❌ Erro ao buscar dados de assinatura:', error);
+                    return;
+                }
+
+                if (!restaurant) {
+                    console.warn('⚠️ Dados do restaurante não encontrados');
+                    return;
+                }
+
+                console.log('🔍 Dados de assinatura:', restaurant);
+
+                // Verifica se está em trial
+                if (restaurant.subscription_status !== 'trial') {
+                    console.log('✅ Usuário não está em trial. Dados visíveis.');
+                    return;
+                }
+
+                // Verificação defensiva: trial_start_date existe?
+                if (!restaurant.trial_start_date) {
+                    console.warn('⚠️ trial_start_date não definido. Mantendo dados visíveis.');
+                    return;
+                }
+
+                // Calcular dias desde o início do trial (usando dias de calendário)
+                const trialStartDate = new Date(restaurant.trial_start_date);
+                const today = new Date();
+
+                // Resetar horas para calcular apenas dias de calendário
+                trialStartDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+
+                // Calcular diferença em dias
+                const daysSinceTrialStart = Math.floor((today - trialStartDate) / (1000 * 60 * 60 * 24));
+
+                console.log('📅 Trial iniciado em:', trialStartDate.toLocaleDateString('pt-BR'));
+                console.log('📅 Hoje:', today.toLocaleDateString('pt-BR'));
+                console.log('📊 Dias desde início do trial:', daysSinceTrialStart);
+
+                // Se passou mais de 1 dia (dia 0 = primeiro dia, dia 1 = segundo dia)
+                if (daysSinceTrialStart >= 1) {
+                    console.log('🔒 Trial expirou o período de 1 dia. Aplicando ofuscação...');
+                    applyDataBlur();
+                } else {
+                    console.log('✅ Ainda dentro do primeiro dia de trial. Dados visíveis.');
+                }
+
+            } catch (error) {
+                console.error('❌ Erro na verificação de trial:', error);
+            }
+        }
+
+        /**
+         * Aplica ofuscação nos dados dos relatórios
+         */
+        function applyDataBlur() {
+            // IDs das seções a serem ofuscadas
+            const sectionsToBlur = [
+                'report-metrics-row',
+                'report-charts-grid',
+                'report-insights-grid'
+            ];
+
+            // Aplica blur em cada seção
+            sectionsToBlur.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    // Adiciona container
+                    section.classList.add('trial-blur-container');
+                    
+                    // Cria wrapper para o conteúdo original
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.className = 'trial-blur-content';
+                    
+                    // Move todo o conteúdo atual para o wrapper
+                    while (section.firstChild) {
+                        contentWrapper.appendChild(section.firstChild);
+                    }
+                    
+                    // Adiciona o wrapper de volta à seção
+                    section.appendChild(contentWrapper);
+                    
+                    // Cria overlay com mensagem (fora do blur)
+                    const overlay = document.createElement('div');
+                    overlay.className = 'trial-blur-overlay';
+                    overlay.innerHTML = `
+                        <div class="lock-icon">🔒</div>
+                        <h4>Conteúdo Premium</h4>
+                        <p>Assine para visualizar todos os dados</p>
+                        <a href="assinaturas.html" class="btn-upgrade">Assinar Agora</a>
+                    `;
+                    
+                    // Adiciona overlay à seção (não afetado pelo blur)
+                    section.appendChild(overlay);
+                    
+                    console.log(`🔒 Seção ${sectionId} ofuscada com sucesso`);
+                }
+            });
+
+            console.log('✅ Ofuscação de dados aplicada com sucesso');
+        }
+
+        // Funções principais
+        async function initializeAnalytics() {
+            try {
+                if (!currentRestaurant) {
+                    throw new Error('Restaurante não encontrado');
+                }
+
+                // Carregar dados iniciais
+                await loadAnalytics();
+                
+                // Verificar trial e aplicar ofuscação se necessário
+                await checkTrialAndBlurData();
+                
+                console.log('Analytics inicializados com sucesso');
+
+            } catch (error) {
+                console.error('Erro ao inicializar analytics:', error);
+                showError('Erro ao carregar análises. Tente novamente.');
+            }
+        }
+
+        async function loadAnalytics() {
+            showLoading();
+            
+            try {
+                const analytics = new RestaurantAnalytics(supabase, currentRestaurant);
+                const period = document.getElementById('periodFilter')?.value || '30days';
+                
+                analyticsData.metrics = await analytics.calculateSalesMetrics(period);
+                
+                // Atualizar interface
+                updateMetricsDisplay();
+                await initializeCharts();
+                
+                console.log('Analytics carregados:', analyticsData.metrics);
+                
+            } catch (error) {
+                console.error('Erro ao carregar analytics:', error);
+                showError('Erro ao carregar dados de análise');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updateMetricsDisplay() {
+            const metrics = analyticsData.metrics;
+            
+            // Calcular valores derivados
+            const totalCosts = metrics.totalRevenue * 0.65; // 65% dos custos
+            const totalProfit = metrics.totalRevenue - totalCosts;
+            const totalItems = metrics.totalOrders * 2.3; // Média de 2.3 itens por pedido
+            
+            // Atualizar cards de métricas
+            document.getElementById('totalRevenue').textContent = 
+                formatCurrency(metrics.totalRevenue);
+            
+            document.getElementById('totalCosts').textContent = 
+                formatCurrency(totalCosts);
+                
+            document.getElementById('totalProfit').textContent = 
+                formatCurrency(totalProfit);
+            
+            document.getElementById('totalOrders').textContent = 
+                metrics.totalOrders.toLocaleString('pt-BR');
+            
+            document.getElementById('totalItems').textContent = 
+                Math.round(totalItems).toLocaleString('pt-BR');
+
+            // Atualizar classes de mudança
+            updateChangeIndicators();
+        }
+
+        function updateChangeIndicators() {
+            const growth = analyticsData.metrics.salesGrowth;
+            
+            const elements = ['revenueChange', 'growthChange', 'ordersChange', 'ticketChange'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.className = `metric-change ${growth >= 0 ? 'positive' : 'negative'}`;
+                    element.textContent = `${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`;
+                }
+            });
+        }
+
+        async function initializeCharts() {
+            // Gráfico de vendas
+            await createSalesChart();
+            
+            
+            // Gráfico por horário
+            await createHourlyChart();
+        }
+
+        async function createSalesChart() {
+            const ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+
+            if (charts.sales) {
+                charts.sales.destroy();
+            }
+
+            try {
+                // Buscar dados dos últimos 7 dias
+                const salesData = await getDailySales(7);
+                
+                if (salesData.length === 0) {
+                    ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-line"></i><p>Nenhuma venda encontrada</p></div>';
+                    return;
+                }
+
+                const labels = salesData.map(item => item.day_name);
+                const data = salesData.map(item => item.total_sales);
+
+                charts.sales = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Vendas (R$)',
+                            data: data,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + value.toLocaleString('pt-BR');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar dados de vendas diárias:', error);
+                ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar vendas diárias</p></div>';
+            }
+        }
+
+
+        async function createHourlyChart() {
+            const ctx = document.getElementById('hourlyChart');
+            if (!ctx) return;
+
+            if (charts.hourly) {
+                charts.hourly.destroy();
+            }
+
+            const hourlyData = analyticsData.metrics.hourlyDistribution;
+            const labels = Array.from({length: 24}, (_, i) => `${i}h`);
+
+            charts.hourly = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pedidos por hora',
+                        data: hourlyData,
+                        backgroundColor: '#28a745',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        async function generateSocialTips() {
+            const button = document.getElementById('generateTipsBtn');
+            const container = document.getElementById('socialAssistantContainer');
+            
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+            
+            try {
+                const assistant = new SocialMediaAssistant(currentRestaurant, analyticsData.metrics);
+                const tips = await assistant.generateDailyTips();
+                
+                renderSocialTips(tips);
+                
+            } catch (error) {
+                console.error('Erro ao gerar dicas:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao gerar dicas. Tente novamente.</p></div>';
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-lightbulb"></i> Gerar Novas Dicas';
+            }
+        }
+
+        function renderSocialTips(tips) {
+            const container = document.getElementById('socialAssistantContainer');
+            
+            const html = tips.map(tip => `
+                <div class="tip-card">
+                    <div class="tip-header">
+                        <div class="tip-title">${tip.title}</div>
+                        <div class="platform-badge">${tip.platform}</div>
+                    </div>
+                    <div class="tip-action">${tip.action}</div>
+                    <div class="tip-reasoning">${tip.why}</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        async function generateAIInsights() {
+            const button = document.getElementById('generateInsightsBtn');
+            const container = document.getElementById('aiInsightsContainer');
+            
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analisando...';
+            
+            try {
+                const generator = new AIInsightsGenerator();
+                const insights = await generator.generateInsights(analyticsData.metrics);
+                
+                renderAIInsights(insights);
+                
+            } catch (error) {
+                console.error('Erro ao gerar insights:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao gerar insights. Tente novamente.</p></div>';
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-magic"></i> Gerar Insights';
+            }
+        }
+
+        function renderAIInsights(insights) {
+            const container = document.getElementById('aiInsightsContainer');
+            
+            const html = insights.map(insight => `
+                <div class="insight-card">
+                    <div class="insight-type">${insight.type.toUpperCase()}</div>
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-description">${insight.description}</div>
+                    <div class="insight-action"><strong>Recomendação:</strong> ${insight.action}</div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // Funções de controle
+        async function updateAnalytics() {
+            await loadAnalytics();
+        }
+
+        async function refreshAnalytics() {
+            await loadAnalytics();
+        }
+
+        function toggleChartView() {
+            // Implementar alternância entre diferentes tipos de gráfico
+            console.log('Alternar visualização do gráfico');
+        }
+
+        function refreshHourlyData() {
+            createHourlyChart();
+        }
+
+        function exportReport() {
+            // Implementar exportação de relatório
+            console.log('Exportar relatório');
+            showInfo('Funcionalidade de exportação em desenvolvimento');
+        }
+
+        // Funções utilitárias
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value || 0);
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function showLoading() {
+            const containers = document.querySelectorAll('.dashboard-section');
+            containers.forEach(container => {
+                if (!container.querySelector('.loading')) {
+                    const loading = document.createElement('div');
+                    loading.className = 'loading';
+                    loading.innerHTML = '<i class="fas fa-spinner fa-spin"></i><p>Carregando dados...</p>';
+                    container.appendChild(loading);
+                }
+            });
+        }
+
+        function hideLoading() {
+            document.querySelectorAll('.loading').forEach(el => el.remove());
+        }
+
+        function showError(message) {
+            console.error(message);
+            // Implementar notificação de erro
+        }
+
+        function showInfo(message) {
+            console.log(message);
+            // Implementar notificação de informação
+        }
+
+        /**
+         * Signs out the current user and redirects to the login page.
+         */
+        async function signOut() {
+            // Usar modal padrão de confirmação
+            const confirmLogout = await showCustomConfirmation('Deseja realmente sair?', 'Sair');
+            if (confirmLogout) {
+                try {
+                    // 1. PRIMEIRO: Fazer logout do Supabase
+                    if (window.supabase) {
+                        await window.supabase.auth.signOut();
+                        console.log('✅ Logout do Supabase realizado');
+                    }
+                    
+                    // 2. Limpar dados locais
+                    if (window.SECURE_INSTANCE_MANAGER) {
+                        window.SECURE_INSTANCE_MANAGER.logout();
+                    } else {
+                        // Fallback manual
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    }
+                } catch (error) {
+                    console.error('Erro durante logout:', error);
+                }
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Modal de confirmação padrão para todo o sistema
+        function showCustomConfirmation(message, title = 'Confirmação') {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                        <div class="modal" id="customConfirmationDialog" style="z-index: 16000; display:flex;">
+                            <div class="modal-content" style="max-width: 400px;">
+                                <div class="modal-header"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+                                <div class="modal-body" style="text-align: center; padding: 2rem;"><p>${message}</p></div>
+                                <div style="padding: 1.5rem; border-top: 1px solid #e9ecef; display: flex; justify-content: center; gap: 1rem;">
+                                    <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                                    <button class="btn btn-primary" id="confirmConfirmBtn">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const dialog = document.getElementById('customConfirmationDialog');
+                const close = () => { dialog.remove(); resolve(false); };
+                const confirm = () => { dialog.remove(); resolve(true); };
+                dialog.querySelector('.modal-close').onclick = close;
+                dialog.querySelector('#cancelConfirmBtn').onclick = close;
+                dialog.querySelector('#confirmConfirmBtn').onclick = confirm;
+            });
+        }
+
+        // Adicionar event listener específico para o botão de logout
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🚪 Botão sair clicado - iniciando signOut()');
+                    signOut();
+                });
+            }
+        });
+
+        // Funções para menu mobile
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        // Fechar menu ao clicar em um link (em mobile)
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    if (sidebar.classList.contains('show')) {
+                        sidebar.classList.remove('show');
+                        overlay.classList.remove('show');
+                    }
+                });
+            });
+        });
+
+        // Funções para gráficos adicionais
+        async function createAnnualChart() {
+            const ctx = document.getElementById('annualChart');
+            if (!ctx) return;
+
+            if (charts.annual) {
+                charts.annual.destroy();
+            }
+
+            try {
+                // Buscar dados dos últimos 12 meses
+                const monthlyData = await getMonthlySales(12);
+                
+                if (monthlyData.length === 0) {
+                    ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar"></i><p>Nenhum dado mensal encontrado</p></div>';
+                    return;
+                }
+
+                const labels = monthlyData.map(item => item.month_name);
+                const data = monthlyData.map(item => item.total_sales);
+
+                charts.annual = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Faturamento (R$)',
+                            data: data,
+                            backgroundColor: '#28a745',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + value.toLocaleString('pt-BR');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar dados mensais:', error);
+                ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar dados mensais</p></div>';
+            }
+        }
+
+        async function createClientsChart() {
+            const ctx = document.getElementById('clientsChart');
+            if (!ctx) return;
+
+            if (charts.clients) {
+                charts.clients.destroy();
+            }
+
+            try {
+                // Buscar dados reais da tabela customers
+                const topCustomers = await getTopCustomers();
+                
+                if (topCustomers.length === 0) {
+                    // Mostrar estado vazio
+                    ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Nenhum cliente encontrado</p></div>';
+                    return;
+                }
+
+                charts.clients = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: topCustomers.map(customer => customer.name),
+                        datasets: [{
+                            label: 'Valor Total (R$)',
+                            data: topCustomers.map(customer => customer.totalSpent),
+                            backgroundColor: '#17a2b8',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + value.toLocaleString('pt-BR');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar dados dos clientes:', error);
+                ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar dados dos clientes</p></div>';
+            }
+        }
+
+        async function createCategoryChart() {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
+
+            if (charts.category) {
+                charts.category.destroy();
+            }
+
+            try {
+                // Buscar dados reais de vendas por categoria
+                const categoryData = await getCategorySales();
+                
+                if (categoryData.length === 0) {
+                    ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-chart-pie"></i><p>Nenhuma categoria encontrada</p></div>';
+                    return;
+                }
+
+                const colors = ['#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6c757d', '#e83e8c', '#20c997', '#fd7e14'];
+
+                charts.category = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categoryData.map(item => item.category_name),
+                        datasets: [{
+                            data: categoryData.map(item => item.percentage),
+                            backgroundColor: colors.slice(0, categoryData.length)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    generateLabels: function(chart) {
+                                        const data = chart.data;
+                                        if (data.labels.length && data.datasets.length) {
+                                            return data.labels.map((label, i) => {
+                                                const dataset = data.datasets[0];
+                                                return {
+                                                    text: label + ': ' + dataset.data[i].toFixed(1) + '%',
+                                                    fillStyle: dataset.backgroundColor[i],
+                                                    index: i
+                                                };
+                                            });
+                                        }
+                                        return [];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar dados das categorias:', error);
+                ctx.parentElement.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar dados das categorias</p></div>';
+            }
+        }
+
+        // Função para buscar vendas diárias
+        async function getDailySales(days = 7) {
+            try {
+                if (!currentRestaurant) {
+                    console.warn('Restaurant not loaded yet');
+                    return [];
+                }
+
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setDate(endDate.getDate() - days + 1);
+
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select('total, created_at')
+                    .eq('restaurant_id', currentRestaurant.id)
+                    .eq('status', 'entregue')
+                    .gte('created_at', startDate.toISOString())
+                    .lte('created_at', endDate.toISOString());
+
+                if (error) {
+                    console.error('Erro ao buscar vendas diárias:', error);
+                    return [];
+                }
+
+                // Agrupar por dia
+                const dailyData = {};
+                const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+                // Inicializar todos os dias com 0
+                for (let i = 0; i < days; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const dayName = dayNames[date.getDay()];
+                    dailyData[dateStr] = { day_name: dayName, total_sales: 0 };
+                }
+
+                // Somar vendas por dia
+                (orders || []).forEach(order => {
+                    const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+                    if (dailyData[orderDate]) {
+                        dailyData[orderDate].total_sales += parseFloat(order.total) || 0;
+                    }
+                });
+
+                return Object.values(dailyData);
+
+            } catch (error) {
+                console.error('Erro ao calcular vendas diárias:', error);
+                return [];
+            }
+        }
+
+        // Função para buscar vendas mensais
+        async function getMonthlySales(months = 12) {
+            try {
+                if (!currentRestaurant) {
+                    console.warn('Restaurant not loaded yet');
+                    return [];
+                }
+
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setMonth(endDate.getMonth() - months + 1, 1);
+
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select('total, created_at')
+                    .eq('restaurant_id', currentRestaurant.id)
+                    .eq('status', 'entregue')
+                    .gte('created_at', startDate.toISOString())
+                    .lte('created_at', endDate.toISOString());
+
+                if (error) {
+                    console.error('Erro ao buscar vendas mensais:', error);
+                    return [];
+                }
+
+                // Agrupar por mês
+                const monthlyData = {};
+                const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+                                   'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+                // Inicializar todos os meses com 0
+                for (let i = 0; i < months; i++) {
+                    const date = new Date(startDate);
+                    date.setMonth(startDate.getMonth() + i);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthName = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+                    monthlyData[monthKey] = { month_name: monthName, total_sales: 0 };
+                }
+
+                // Somar vendas por mês
+                (orders || []).forEach(order => {
+                    const orderDate = new Date(order.created_at);
+                    const monthKey = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}`;
+                    if (monthlyData[monthKey]) {
+                        monthlyData[monthKey].total_sales += parseFloat(order.total) || 0;
+                    }
+                });
+
+                return Object.values(monthlyData);
+
+            } catch (error) {
+                console.error('Erro ao calcular vendas mensais:', error);
+                return [];
+            }
+        }
+
+        // Função para buscar vendas por categoria usando tabelas products e product_categories
+        async function getCategorySales() {
+            try {
+                console.log('🔍 Debug - getCategorySales chamada, currentRestaurant:', currentRestaurant);
+                
+                if (!currentRestaurant) {
+                    console.warn('❌ Restaurant not loaded yet');
+                    return [];
+                }
+
+                console.log('🔍 Debug - Buscando categorias para restaurant_id:', currentRestaurant.id);
+
+                // Primeiro buscar todas as categorias de produtos do restaurante
+                const { data: categories, error: categoriesError } = await supabase
+                    .from('product_categories')
+                    .select('id, name')
+                    .eq('restaurant_id', currentRestaurant.id)
+                    .eq('active', true)
+                    .order('name');
+
+                console.log('🔍 Debug - Resposta categories:', { count: categories?.length || 0, error: categoriesError });
+
+                if (categoriesError) {
+                    console.error('Erro ao buscar categorias:', categoriesError);
+                    return [];
+                }
+
+                if (!categories || categories.length === 0) {
+                    return [];
+                }
+
+                // Buscar produtos por categoria
+                const { data: products, error: productsError } = await supabase
+                    .from('products')
+                    .select('id, name, category_id')
+                    .eq('restaurant_id', currentRestaurant.id)
+                    .eq('active', true);
+
+                console.log('🔍 Debug - Resposta products:', { count: products?.length || 0, products, error: productsError });
+
+                if (productsError) {
+                    console.error('Erro ao buscar produtos:', productsError);
+                    return [];
+                }
+
+                // Buscar pedidos entregues
+                const { data: orders, error: ordersError } = await supabase
+                    .from('orders')
+                    .select('id')
+                    .eq('restaurant_id', currentRestaurant.id)
+                    .eq('status', 'entregue');
+
+                if (ordersError || !orders || orders.length === 0) {
+                    console.error('Erro ao buscar pedidos ou nenhum pedido encontrado:', ordersError);
+                    return [];
+                }
+
+                const orderIds = orders.map(order => order.id);
+
+                // Buscar itens dos pedidos entregues
+                const { data: orderItems, error: itemsError } = await supabase
+                    .from('order_items')
+                    .select('product_id, product_name, quantity, price')
+                    .in('order_id', orderIds);
+
+                console.log('🔍 Debug - Resposta order_items:', { count: orderItems?.length || 0, orderItems, error: itemsError });
+
+                if (itemsError) {
+                    console.error('Erro ao buscar itens dos pedidos:', itemsError);
+                    return [];
+                }
+
+                // Criar mapeamento de produto para categoria
+                const productCategoryMap = {};
+                products.forEach(product => {
+                    productCategoryMap[product.id] = product.category_id;
+                });
+
+                console.log('🔍 Debug - Mapeamento produto->categoria:', productCategoryMap);
+
+                // Calcular vendas por categoria
+                const categoryStats = {};
+                let totalSales = 0;
+                let totalRevenue = 0;
+
+                // Inicializar todas as categorias com zero
+                categories.forEach(category => {
+                    categoryStats[category.id] = {
+                        name: category.name,
+                        quantity: 0,
+                        revenue: 0
+                    };
+                });
+
+                // Contar vendas por categoria
+                (orderItems || []).forEach(item => {
+                    const categoryId = productCategoryMap[item.product_id];
+                    const quantity = item.quantity || 1;
+                    const revenue = (item.price || 0) * quantity;
+
+                    console.log(`🔍 Debug - Item: ${item.product_name} (product_id: ${item.product_id}) -> categoryId: ${categoryId}`);
+
+                    if (categoryId && categoryStats[categoryId]) {
+                        console.log(`✅ Categoria encontrada para ${item.product_name}: ${categoryStats[categoryId].name}`);
+                        categoryStats[categoryId].quantity += quantity;
+                        categoryStats[categoryId].revenue += revenue;
+                        totalSales += quantity;
+                        totalRevenue += revenue;
+                    } else {
+                        console.log(`❌ Produto ${item.product_name} sem categoria válida (categoryId: ${categoryId})`);
+                        // Produtos sem categoria ou categoria não encontrada
+                        if (!categoryStats['sem_categoria']) {
+                            categoryStats['sem_categoria'] = {
+                                name: 'Sem Categoria',
+                                quantity: 0,
+                                revenue: 0
+                            };
+                        }
+                        categoryStats['sem_categoria'].quantity += quantity;
+                        categoryStats['sem_categoria'].revenue += revenue;
+                        totalSales += quantity;
+                        totalRevenue += revenue;
+                    }
+                });
+
+                // Converter para array com percentuais (baseado na quantidade vendida)
+                return Object.values(categoryStats)
+                    .filter(cat => cat.quantity > 0) // Apenas categorias com vendas
+                    .map(cat => ({
+                        category_name: cat.name,
+                        count: cat.quantity,
+                        revenue: cat.revenue,
+                        percentage: totalSales > 0 ? (cat.quantity / totalSales) * 100 : 0
+                    }))
+                    .sort((a, b) => b.count - a.count) // Ordenar por quantidade vendida
+                    .slice(0, 8); // Limitar a 8 categorias
+
+            } catch (error) {
+                console.error('Erro ao calcular vendas por categoria:', error);
+                return [];
+            }
+        }
+
+        // Atualizar função initializeCharts para incluir os novos gráficos
+        async function initializeCharts() {
+            await createSalesChart();
+            await createAnnualChart();
+            await createClientsChart();
+            await createCategoryChart();
+            await createHourlyChart();
+        }
+
+        // --- Initialize Application ---
+        window.onload = checkAuthenticationAndLoadConfig;
+    </script>
+</body>
+</html>

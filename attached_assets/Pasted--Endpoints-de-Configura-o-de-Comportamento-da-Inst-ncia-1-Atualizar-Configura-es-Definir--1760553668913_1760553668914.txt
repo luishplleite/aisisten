@@ -1,0 +1,101 @@
+# Endpoints de Configuração de Comportamento da Instância
+
+## 1. Atualizar Configurações (Definir Settings)
+
+### **POST** `/settings/set`
+
+Define ou atualiza as opções de comportamento da instância existente.[1][2]
+
+**cURL:**
+```bash
+curl --request POST \
+  --url https://seu-servidor.com/settings/set \
+  --header 'apikey: sua-chave-api-aqui' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "instanceName": "nome-da-instancia",
+    "rejectCalls": true,
+    "rejectCallsMessage": "Chamada rejeitada automaticamente.",
+    "ignoreGroups": true,
+    "alwaysOnline": true,
+    "readMessages": true,
+    "syncFullHistory": true,
+    "readStatus": true
+  }'
+```
+
+**Body (JSON):**  
+- **instanceName** (string, obrigatório) – Nome da instância  
+- **rejectCalls** (boolean) – Rejeita todas as chamadas recebidas  
+- **rejectCallsMessage** (string, opcional) – Mensagem enviada ao rejeitar chamadas  
+- **ignoreGroups** (boolean) – Ignora todas as mensagens de grupos  
+- **alwaysOnline** (boolean) – Mantém o WhatsApp sempre online  
+- **readMessages** (boolean) – Marca todas as mensagens como lidas  
+- **syncFullHistory** (boolean) – Sincroniza todo o histórico de chat ao escanear o QR code  
+- **readStatus** (boolean) – Marca todos os status como lidos  
+
+**Resposta de sucesso:**  
+```json
+{
+  "message": "Settings atualizadas com sucesso."
+}
+```
+
+***
+
+## 2. Obter Configurações Atuais (Buscar Settings)
+
+### **GET** `/settings/get/{instance}`
+
+Retorna o estado atual de todas as configurações da instância.[3][4]
+
+**cURL:**
+```bash
+curl --request GET \
+  --url https://seu-servidor.com/settings/get/nome-da-instancia \
+  --header 'apikey: sua-chave-api-aqui'
+```
+
+**Path Parameter:**  
+- **{instance}** (string, obrigatório) – Nome da instância  
+
+**Resposta de sucesso:**  
+```json
+{
+  "rejectCalls": true,
+  "ignoreGroups": true,
+  "alwaysOnline": true,
+  "readMessages": true,
+  "syncFullHistory": true,
+  "readStatus": true
+}
+```
+
+**Descrição dos campos na resposta:**  
+- **rejectCalls** – Indica se chamadas são rejeitadas automaticamente  
+- **ignoreGroups** – Indica se mensagens de grupos são ignoradas  
+- **alwaysOnline** – Indica se o WhatsApp permanece sempre online  
+- **readMessages** – Indica se mensagens são marcadas como lidas automaticamente  
+- **syncFullHistory** – Indica se o histórico completo é sincronizado  
+- **readStatus** – Indica se os status são marcados como lidos automaticamente
+
+[1](https://doc.evolution-api.com/v1/api-reference/settings/set)
+[2](https://doc.evolution-api.com/v2/api-reference/settings/set)
+[3](https://doc.evolution-api.com/v2/api-reference/settings/get)
+[4](https://doc.evolution-api.com/v1/api-reference/settings/get)
+[5](https://github.com/EvolutionAPI/evolution-api/issues/324)
+[6](https://doc.evolution-api.com/v1/en/get-started/introduction)
+[7](https://github.com/EvolutionAPI/evolution-api/issues/1825)
+[8](https://www.postman.com/agenciadgcode/evolution-api/request/c89uww7/set-default-settings)
+[9](https://docs.evoapicloud.com/instances/evolution/settings)
+[10](https://www.youtube.com/watch?v=i-YHYDkCFFg)
+[11](https://github.com/EvolutionAPI/evolution-api/issues/1136)
+[12](https://github.com/EvolutionAPI/evolution-api/issues/328)
+[13](https://www.reddit.com/r/brdev/comments/1k5ade6/vendeu_chatbot_com_evolution_e_se_o_whatsapp_mudar/)
+[14](https://doc.evolution-api.com/v2/en/env)
+[15](https://www.postman.com/agenciadgcode/evolution-api/collection/jn0bbzv/evolution-api-v2-2-2)
+[16](https://github.com/EvolutionAPI/evolution-api)
+[17](https://doc.evolution-api.com/v1/api-reference/instance-controller/create-instance-basic)
+[18](https://www.youtube.com/watch?v=aoiQ_T5RWTg)
+[19](https://www.postman.com/agenciadgcode/evolution-api/collection/gqr041s/evolution-api-v2-0)
+[20](https://doc.evolution-api.com/v2/pt/get-started/introduction)

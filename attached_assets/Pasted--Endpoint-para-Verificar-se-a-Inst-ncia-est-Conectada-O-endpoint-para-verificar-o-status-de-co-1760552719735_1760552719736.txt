@@ -1,0 +1,67 @@
+## Endpoint para Verificar se a Instância está Conectada
+
+O endpoint para verificar o status de conexão de uma instância na Evolution API é:
+
+### **GET** `/instance/connectionState/{instance}`
+
+**Comando cURL:**
+
+```bash
+curl --request GET \
+  --url https://seu-servidor.com/instance/connectionState/nome-da-instancia \
+  --header 'apikey: sua-chave-api-aqui'
+```
+
+**Parâmetros:**[1][2]
+
+- **Path Parameter (obrigatório):** `{instance}` - Nome da instância (não o ID)
+
+**Resposta de sucesso (instância conectada):**
+
+```json
+{
+  "instance": {
+    "instanceName": "teste-docs",
+    "state": "open"
+  }
+}
+```
+
+**Resposta quando desconectada:**
+
+```json
+{
+  "instance": {
+    "instanceName": "teste-docs",
+    "state": "close"
+  }
+}
+```
+
+**Possíveis valores do campo `state`:**[2][1]
+
+- **`open`** - Instância conectada ao WhatsApp
+- **`close`** - Instância desconectada
+- **`connecting`** - Instância em processo de conexão
+
+**Observação importante:** Use sempre o **instanceName** (nome da instância), não o instanceId, ao fazer chamadas à API.[3]
+
+[1](https://doc.evolution-api.com/v2/api-reference/instance-controller/connection-state)
+[2](https://doc.evolution-api.com/v1/api-reference/instance-controller/connection-state)
+[3](https://github.com/EvolutionAPI/evolution-api/issues/1462)
+[4](https://docs.evoapicloud.com/api-reference/instance-controller/instance-connect)
+[5](https://github.com/EvolutionAPI/evolution-api/issues/805)
+[6](https://www.postman.com/agenciadgcode/evolution-api/request/gf8rt98/instance-connect)
+[7](https://doc.evolution-api.com)
+[8](https://www.postman.com/agenciadgcode/evolution-api/request/w6arhoy/connection-status)
+[9](https://doc.evolution-api.com/v1/api-reference/get-information)
+[10](https://github.com/EvolutionAPI/evolution-api/issues/1533)
+[11](https://doc.evolution-api.com/v2/api-reference/get-information)
+[12](https://www.postman.com/agenciadgcode/evolution-api/documentation/jn0bbzv/evolution-api-v2-2-2)
+[13](https://www.postman.com/agenciadgcode/evolution-api/request/ojrascc/connection-status)
+[14](https://www.youtube.com/watch?v=Wi-gfTQJ6D0)
+[15](https://doc.evolution-api.com/v1/api-reference/instance-controller/instance-connect)
+[16](https://community.n8n.io/t/evolution-api-n8n-coolify-webhook-works-with-test-url-but-fails-to-receive-data-with-production-url/145846)
+[17](https://doc.evolution-api.com/v1/api-reference/instance-controller/fetch-instances)
+[18](https://doc.evolution-api.com/v2/api-reference/instance-controller/instance-connect)
+[19](https://github.com/EvolutionAPI/evolution-api/issues/1324)

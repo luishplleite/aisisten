@@ -1,0 +1,92 @@
+TimePulse AI - Sistema de Configuração Segura carregado
+injected.js:27 🚀 Inicializando sistema de configuração segura...
+injected.js:27 🔧 Inicializando configuração segura...
+injected.js:27 📋 Buscando configuração via URL relativa: /api/config
+injected.js:27 🔍 Verificação de autenticação: Object
+injected.js:27 ✅ Dados de instância encontrados: Restaruante_teste
+beacon.js:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENTUnderstand this error
+/public/js/beacon.js:1  Failed to load resource: net::ERR_BLOCKED_BY_CLIENTUnderstand this error
+injected.js:27 ✅ Dados de instância encontrados: Restaruante_teste
+injected.js:27 ✅ Configuração Evolution carregada: Object
+injected.js:27 🔍 Verificando se instância "restaruante_teste" existe...
+injected.js:27 📋 Configuração básica carregada
+injected.js:27 🍪 Aplicando configuração de cookies para ambiente Replit
+injected.js:27 ✅ Configuração segura inicializada
+injected.js:27 ✅ Sistema seguro inicializado com sucesso
+b6bb3f0f-4ad6-4523-953d-bff7315624c8-00-29n9urxd61jq7.spock.replit.dev/api/evolution/check-instance/restaruante_teste:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+b6bb3f0f-4ad6-4523-953d-bff7315624c8-00-29n9urxd61jq7.spock.replit.dev/api/evolution/check-instance/restaruante_teste:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+injected.js:27 ⚠️ Instância não existe
+_app-c9ca3a552390b735.js:28  POST https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820 net::ERR_BLOCKED_BY_CLIENT
+(anonymous) @ _app-c9ca3a552390b735.js:28
+(anonymous) @ _app-c9ca3a552390b735.js:28
+(anonymous) @ _app-c9ca3a552390b735.js:1
+o @ _app-c9ca3a552390b735.js:1
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+t @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+e @ _app-c9ca3a552390b735.js:30
+n @ _app-c9ca3a552390b735.js:28
+setTimeout
+(anonymous) @ _app-c9ca3a552390b735.js:28
+e @ _app-c9ca3a552390b735.js:30
+n @ _app-c9ca3a552390b735.js:28
+setTimeout
+(anonymous) @ _app-c9ca3a552390b735.js:28
+e @ _app-c9ca3a552390b735.js:30
+n @ _app-c9ca3a552390b735.js:28Understand this error
+_app-c9ca3a552390b735.js:28  POST https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820 net::ERR_BLOCKED_BY_CLIENT
+(anonymous) @ _app-c9ca3a552390b735.js:28
+(anonymous) @ _app-c9ca3a552390b735.js:28
+(anonymous) @ _app-c9ca3a552390b735.js:1
+o @ _app-c9ca3a552390b735.js:1
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+t @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+Promise.catch
+t @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+(anonymous) @ _app-c9ca3a552390b735.js:30
+e @ _app-c9ca3a552390b735.js:30
+n @ _app-c9ca3a552390b735.js:28
+setTimeout
+(anonymous) @ _app-c9ca3a552390b735.js:28
+e @ _app-c9ca3a552390b735.js:30
+n @ _app-c9ca3a552390b735.js:28
+setTimeout
+(anonymous) @ _app-c9ca3a552390b735.js:28
+e @ _app-c9ca3a552390b735.js:30
+n @ _app-c9ca3a552390b735.js:28Understand this error
+injected.js:27 🔒 TimePulse AI - Sistema de Configuração Segura carregado
+injected.js:27 🚀 Inicializando sistema de configuração segura...
+injected.js:27 🔧 Inicializando configuração segura...
+injected.js:27 📋 Buscando configuração via URL relativa: /api/config
+injected.js:27 🔍 Verificação de autenticação: {cookie: true, localStorage: true, sessionStorage: true, isDevelopment: true, authenticated: true}
+injected.js:27 ✅ Dados de instância encontrados: Restaruante_teste
+workspace_iframe.html?initialPath=%2Fevo_teste.html&id=%3Arab%3A:142  GET https://replit.com/public/js/beacon.js net::ERR_BLOCKED_BY_CLIENT
+onIframeLoad @ workspace_iframe.html?initialPath=%2Fevo_teste.html&id=%3Arab%3A:142Understand this error
+injected.js:27 📋 Configuração básica carregada
+injected.js:27 🍪 Aplicando configuração de cookies para ambiente Replit
+injected.js:27 ✅ Configuração segura inicializada
+injected.js:27 ✅ Sistema seguro inicializado com sucesso
+injected.js:27 ✅ Dados de instância encontrados: Restaruante_teste
+injected.js:27 ✅ Configuração Evolution carregada: {status: 'ok', configured: true, environment: 'production', baseUrl: 'https://evolution.timepulseai.com.br', serverUrl: 'https://evolution.timepulseai.com.br', …}
+injected.js:27 🔍 Verificando se instância "restaruante_teste" existe...
+cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760545314322%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10  POST https://ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/ net::ERR_BLOCKED_BY_CLIENT
+ne @ cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760545314322%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10
+ee @ cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760545314322%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10
+(anonymous) @ cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760545314322%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10
+n @ _app-c9ca3a552390b735.js:28Understand this error
+injected.js:204  GET https://b6bb3f0f-4ad6-4523-953d-bff7315624c8-00-29n9urxd61jq7.spock.replit.dev/api/evolution/check-instance/restaruante_teste 404 (Not Found)
+apply @ injected.js:204
+checkInstanceExists @ evo_teste.html:370
+loadEvolutionConfig @ evo_teste.html:348
+await in loadEvolutionConfig
+checkAuth @ evo_teste.html:302Understand this error
+injected.js:27 ⚠️ Instância não existe

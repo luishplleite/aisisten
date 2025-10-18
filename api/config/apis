@@ -1,0 +1,36 @@
+{
+  "status": "secure_config",
+  "note": "API keys are now managed via environment variables for security",
+  "required_env_vars": ["MAPBOX_ACCESS_TOKEN", "OPENAI_API_KEY", "EVOLUTION_SERVER_URL", "EVOLUTION_API_KEY"],
+  "mapbox": {
+    "enabled": false,
+    "note": "Check environment variables",
+    "version": "v2.15.0",
+    "features": {
+      "navigation": true,
+      "geocoding": true,
+      "directions": true
+    }
+  },
+  "openai": {
+    "enabled": false,
+    "note": "Check environment variables",
+    "baseUrl": "https://api.openai.com/v1",
+    "version": "4",
+    "features": {
+      "chat": true,
+      "completion": true,
+      "embeddings": false
+    }
+  },
+  "evolution": {
+    "enabled": false,
+    "note": "Check environment variables",
+    "version": "1.7.4",
+    "features": {
+      "whatsapp": true,
+      "telegram": false,
+      "instagram": false
+    }
+  },
+}

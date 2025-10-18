@@ -1,0 +1,18 @@
+{
+    "status": "endpoint_not_implemented",
+    "message": "Endpoint de login requer backend ativo",
+    "required_fields": ["email", "password"],
+    "response_format": {
+        "success": {
+            "status": "success",
+            "user": {},
+            "token": "jwt_token",
+            "expires_in": 3600
+        },
+        "error": {
+            "status": "error",
+            "message": "Invalid credentials"
+        }
+    },
+    "supabase_integration": true
+}

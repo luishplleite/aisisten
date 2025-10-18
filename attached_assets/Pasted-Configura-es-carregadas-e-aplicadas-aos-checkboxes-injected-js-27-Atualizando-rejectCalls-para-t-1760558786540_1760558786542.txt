@@ -1,0 +1,61 @@
+Configurações carregadas e aplicadas aos checkboxes
+injected.js:27 🔄 Atualizando rejectCalls para true...
+c5075889-7c9b-4e2b-8e84-cf22aa1179e4-00-1f94bpvm505xh.riker.replit.dev/api/evolution/update-settings/frutidelis:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 🔄 Atualizando ignoreGroups para true...
+injected.js:204  POST https://c5075889-7c9b-4e2b-8e84-cf22aa1179e4-00-1f94bpvm505xh.riker.replit.dev/api/evolution/update-settings/frutidelis 400 (Bad Request)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:774Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:774Understand this error
+injected.js:27 🔄 Atualizando alwaysOnline para true...
+injected.js:204  POST https://c5075889-7c9b-4e2b-8e84-cf22aa1179e4-00-1f94bpvm505xh.riker.replit.dev/api/evolution/update-settings/frutidelis 400 (Bad Request)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:792Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:792Understand this error
+injected.js:27 🔄 Atualizando readMessages para true...
+injected.js:204  POST https://c5075889-7c9b-4e2b-8e84-cf22aa1179e4-00-1f94bpvm505xh.riker.replit.dev/api/evolution/update-settings/frutidelis 400 (Bad Request)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:810Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:810Understand this error
+injected.js:27 🔄 Atualizando syncFullHistory para true...
+injected.js:204  POST https://c5075889-7c9b-4e2b-8e84-cf22aa1179e4-00-1f94bpvm505xh.riker.replit.dev/api/evolution/update-settings/frutidelis 400 (Bad Request)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:828Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:828Understand this error
+injected.js:27 🔄 Atualizando readStatus para true...
+injected.js:204  POST https://c5075889-7c9b-4e2b-8e84-cf22aa1179e4-00-1f94bpvm505xh.riker.replit.dev/api/evolution/update-settings/frutidelis 400 (Bad Request)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:846Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:846Understand this error
