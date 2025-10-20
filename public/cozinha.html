@@ -1,0 +1,2693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozinha - TimePulse AI</title>
+    
+    <!-- Sistema de ocultação de logs para produção -->
+    <script>
+        if (typeof console !== 'undefined') {
+            console.log = function() {};
+            console.warn = function() {};
+            console.error = function() {};
+            console.info = function() {};
+            console.debug = function() {};
+        }
+    </script>
+    <meta name="description" content="Gerencie pedidos da cozinha em tempo real">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107; /* Laranja */
+            --danger-color: #dc3545; /* Vermelho */
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+
+            /* New timer colors */
+            --timer-green: #28a745; /* Verde */
+            --timer-orange: #ffc107; /* Laranja (mesmo que warning-color) */
+            --timer-red: #dc3545; /* Vermelho (mesmo que danger-color) */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        /* Cozinha Specific Styles */
+        .kitchen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .kitchen-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .kitchen-status-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kitchen-status-badge .pulse {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-info {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .kitchen-orders-columns {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto; /* Allow horizontal scrolling for many columns */
+            padding-bottom: 1rem; /* Space for scrollbar */
+        }
+
+        .kitchen-column {
+            flex: 1;
+            min-width: 320px; /* Minimum width for each column */
+            background: #e9ecef;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+
+        .column-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .column-header .order-count {
+            background: white;
+            color: #6c757d;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .orders-list { /* This is the container for order cards */
+            display: flex;
+            flex-wrap: wrap; /* Allow items to wrap to the next line */
+            gap: 1rem; /* Space between order cards */
+            align-items: flex-start; /* Align items to the top */
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 0; /* Removed margin-bottom here, using gap in orders-list instead */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex: 1 1 calc(33.333% - 1rem); /* For 3 columns, adjust for gap */
+            min-width: 300px; /* Minimum width for cards before wrapping */
+            max-width: calc(33.333% - 1rem); /* Max width for 3 columns */
+        }
+
+        /* Adjust for 2 columns on medium screens and 1 on small */
+        @media (max-width: 1200px) { /* Example breakpoint for 2 columns */
+            .order-card {
+                flex: 1 1 calc(50% - 0.75rem); /* For 2 columns, adjust for gap */
+                max-width: calc(50% - 0.75rem);
+            }
+        }
+
+        @media (max-width: 768px) { /* Example breakpoint for 1 column */
+            .order-card {
+                flex: 1 1 100%; /* For 1 column */
+                max-width: 100%;
+            }
+        }
+
+
+        /* Updated: Use 'preparo' class for styling */
+        .order-card.preparo {
+            border-left-color: var(--warning-color); /* Yellow for 'preparo' */
+        }
+        /* Added: Styling for 'Aberta' status */
+        .order-card.Aberta {
+            border-left-color: var(--info-color); /* Blue for 'Aberta' */
+        }
+
+
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-card-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .order-card-info .icon {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        .order-card-info .details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .order-card-info .order-number {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .order-card-info .customer-name {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .order-card-timer {
+            background: var(--warning-color); /* Default to orange */
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: background-color 0.3s ease; /* Smooth transition for color changes */
+        }
+
+        /* Timer color classes */
+        .order-card-timer.green {
+            background: var(--timer-green);
+        }
+        .order-card-timer.orange {
+            background: var(--timer-orange);
+        }
+        .order-card-timer.red {
+            background: var(--timer-red);
+        }
+        .order-card-timer.blinking {
+            animation: blink-red 1s infinite;
+        }
+
+        @keyframes blink-red {
+            0%, 100% { background-color: var(--timer-red); }
+            50% { background-color: rgba(220, 53, 69, 0.5); } /* Lighter red for blink effect */
+        }
+
+
+        .order-card-timer i {
+            font-size: 0.8rem;
+        }
+
+        .order-card-notes {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #ddd;
+        }
+        .order-card-notes strong {
+            color: #333;
+        }
+
+        .order-items-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1; /* Allow list to take available space */
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed #eee;
+            position: relative; /* For the "Finalizar Item" button */
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-details {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .item-qty {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1rem;
+            min-width: 25px;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+
+        .item-notes {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+
+        .item-printer-icon {
+            font-size: 1.1rem;
+            color: #6c757d;
+            opacity: 0.7;
+        }
+        
+        .item-actions {
+            margin-left: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-item-finish {
+            background: var(--success-color);
+            color: white;
+            padding: 0.4rem 0.7rem;
+            border-radius: var(--border-radius);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-item-finish:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Hide the item if its status is "pronto" */
+        .order-item.pronto {
+            display: none;
+        }
+
+        .order-card-actions {
+            display: flex;
+            justify-content: flex-end; /* Align to end after removing "Voltar etapa" */
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        /* The .btn-action will now be displayed by default, as it's the general style. */
+        /* We only hide .btn-finish-all if it's not a mesa order. */
+        .order-card-actions .btn-finish-all {
+            display: flex; /* This is the default for this button */
+            background: var(--success-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        .order-card-actions .btn-finish-all:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        /* Ensure .btn-action is visible when used for non-mesa orders */
+        .btn-action {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex; /* Ensure it's displayed */
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-finish {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-finish:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-back { /* Keep style for consistency, though button is removed */
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-back:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+        }
+
+        /* Fullscreen Mode */
+        body.fullscreen-mode {
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        body.fullscreen-mode .sidebar {
+            display: none;
+        }
+
+        body.fullscreen-mode .main-content {
+            margin-left: 0;
+            padding: 1rem; /* Adjust padding for fullscreen */
+            width: 100vw;
+            height: 100vh;
+        }
+
+        body.fullscreen-mode .kitchen-header {
+            border-radius: 0;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1rem 1.5rem;
+        }
+
+        body.fullscreen-mode .kitchen-title {
+            font-size: 1.8rem;
+        }
+
+        body.fullscreen-mode .kitchen-orders-columns {
+            height: calc(100vh - 120px); /* Adjust height based on header height */
+            flex-wrap: nowrap; /* Ensure columns stay in a row */
+        }
+
+        body.fullscreen-mode .kitchen-column {
+            min-width: 300px; /* Adjust min-width for fullscreen */
+            max-height: 100%;
+            overflow-y: auto; /* Enable scrolling within columns */
+            box-shadow: none;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .kitchen-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+
+            .kitchen-title {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .kitchen-orders-columns {
+                flex-direction: column;
+                gap: 1rem;
+                overflow-x: hidden; /* Disable horizontal scroll on small screens */
+            }
+
+            .kitchen-column {
+                min-width: unset;
+                width: 100%;
+                padding: 0.75rem;
+            }
+
+            .order-card {
+                padding: 1rem;
+            }
+
+            .order-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .order-card-timer {
+                align-self: flex-end;
+            }
+
+            .order-card-actions {
+                flex-direction: column;
+            }
+
+            body.fullscreen-mode .kitchen-orders-columns {
+                height: calc(100vh - 100px); /* Adjust for smaller header in mobile fullscreen */
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 10001; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 500px;
+            animation: fadeInScale 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .modal-close {
+            color: #aaa;
+            font-size: 2rem;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover,
+        .modal-close:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        .modal-actions .btn {
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* New CSS for fixed action buttons */
+        .fixed-action-buttons {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column; /* Stack vertically */
+            gap: 1rem;
+            z-index: 1000;
+            align-items: flex-end; /* Align items to the right */
+        }
+
+        .btn-floating {
+            padding: 1rem 1.5rem;
+            border-radius: 50px; /* Pill shape */
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: none; /* Ensure no default button border */
+            cursor: pointer;
+        }
+
+        .btn-floating:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-pending-items {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-activate-sound {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        /* Button styles for modal confirmation */
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+
+            /* Responsive adjustments for fixed buttons */
+            .fixed-action-buttons {
+                bottom: 1rem;
+                right: 1rem;
+                gap: 0.75rem;
+            }
+            .btn-floating {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout" id="dashboardLayout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link active">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" id="logoutButton">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="kitchen-header">
+                <h1 class="kitchen-title">
+                    <i class="fas fa-utensils"></i> Cozinha
+                    <span class="kitchen-status-badge" id="connectionStatus">
+                        <span class="pulse"></span> Conectado
+                    </span>
+                </h1>
+                <button class="btn btn-info" id="fullscreenToggle">
+                    <i class="fas fa-expand"></i> Tela Cheia
+                </button>
+            </div>
+
+            <div class="kitchen-orders-columns" id="kitchenOrdersColumns">
+                <div class="kitchen-column" id="column-em-preparo">
+                    <div class="column-header">
+                        <h3>1. Em Preparo / Abertos</h3>
+                        <span class="order-count" id="count-em-preparo">0</span>
+                    </div>
+                    <div class="orders-list" id="orders-em-preparo">
+                        <div class="loading" id="loading-em-preparo">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Carregando pedidos...</p>
+                        </div>
+                        <div class="empty-state" id="empty-em-preparo" style="display: none;">
+                            <i class="fas fa-box-open"></i>
+                            <p>Nenhum pedido em preparo ou aberto.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="notificationContainer"></div>
+
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Finalização</h3>
+                <button class="modal-close" onclick="hideConfirmationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="modalBodyText">Tem certeza que deseja finalizar este item do pedido?</p>
+                <p id="modalBodyHint">O item será marcado como "Pronto".</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideConfirmationModal()">Cancelar</button>
+                <button class="btn btn-primary" id="confirmFinalizeBtn">Ok</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-action-buttons">
+        <button class="btn-floating btn-pending-items" id="pendingItemsButton" style="display: none;">
+            <i class="fas fa-list-alt"></i> <span id="pendingItemsCount">0</span> itens
+        </button>
+        <button class="btn-floating btn-activate-sound" id="activateSoundButton" onclick="activateSound()">
+            <i class="fas fa-volume-up"></i> Ativar Som
+        </button>
+    </div>
+
+    <script>
+// Global Supabase client instance
+let supabase = null;
+let MAPBOX_ACCESS_TOKEN = ''; // Mapbox token will be loaded from backend
+let restaurantId = null;
+let productsCache = {}; // Cache for products, especially those for 'cozinha'
+let currentOrderItemToFinalize = null; // Stores the ID of the order item being finalized (for mesa orders)
+let currentOrderToFinalize = null; // Stores the ID of the entire order being finalized (for non-mesa orders)
+
+// Audio context for new order notifications
+let audioContext = null;
+let audioContextResumed = false;
+
+// --- Utility Functions ---
+
+/**
+ * Displays a temporary notification message.
+ * @param {string} message - The message to display.
+ * @param {'success'|'error'|'warning'} type - The type of notification.
+ */
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    container.appendChild(notification);
+
+    // Trigger reflow to enable transition
+    notification.offsetWidth;
+    notification.classList.add('show');
+
+    setTimeout(() => {
+        notification.classList.remove('show');
+        notification.addEventListener('transitionend', () => {
+            notification.remove();
+        }, { once: true });
+    }, 3000);
+}
+
+/**
+ * Formats a number as currency (BRL).
+ * @param {number} value - The number to format.
+ * @returns {string} The formatted currency string.
+ */
+function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+    }).format(value);
+}
+
+/**
+ * Formats a timestamp into a readable time string.
+ * @param {string} timestamp - The ISO timestamp string.
+ * @returns {string} Formatted time (HH:MM).
+ */
+function formatTime(timestamp) {
+    if (!timestamp) return 'N/A';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+/**
+ * Calculates the elapsed time from a given timestamp.
+ * @param {string} timestamp - The ISO timestamp string.
+ * @returns {number} The elapsed time in seconds.
+ */
+function calculateElapsedTimeInSeconds(timestamp) {
+    if (!timestamp) return 0;
+    const startTime = new Date(timestamp).getTime();
+    const now = Date.now();
+    return Math.floor((now - startTime) / 1000);
+}
+
+/**
+ * Formats seconds into a readable time string (MM:SS).
+ * @param {number} totalSeconds - The total seconds to format.
+ * @returns {string} Formatted elapsed time (MM:SS).
+ */
+function formatSecondsToMMSS(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+
+/**
+ * Determines the display type of an order based on its properties.
+ * @param {Object} order - The order object.
+ * @returns {'mesa'|'balcao'|'delivery'|'unknown'} The determined order type.
+ */
+function getOrderDisplayType(order) {
+    // Priority 1: Mesa (from order_mesa JSON)
+    if (order.order_mesa && typeof order.order_mesa === 'string' && order.order_mesa.trim() !== '') {
+        try {
+            const mesaData = JSON.parse(order.order_mesa);
+            if (mesaData && mesaData.mesa_number) {
+                return 'mesa';
+            }
+        } catch (e) { /* ignore parse error */ }
+    }
+    // Priority 2: Balcão (from order_balcao JSON or delivery_address = 'Balcão')
+    if (order.order_balcao && typeof order.order_balcao === 'string' && order.order_balcao.trim() !== '') {
+        try {
+            const balcaoData = JSON.parse(order.order_balcao);
+            if (balcaoData) {
+                return 'balcao';
+            }
+        } catch (e) { /* ignore parse error */ }
+    }
+    if (order.delivery_address && typeof order.delivery_address === 'string' && order.delivery_address.toLowerCase() === 'balcão') {
+        return 'balcao';
+    }
+    // Priority 3: Delivery (from delivery_address not 'Balcão')
+    if (order.delivery_address && typeof order.delivery_address === 'string' && order.delivery_address.trim() !== '' && order.delivery_address.toLowerCase() !== 'balcão') {
+        return 'delivery';
+    }
+    // Priority 4: Fallback to order_type field
+    if (order.order_type) {
+        return order.order_type; // Could be 'mesa', 'balcao', 'delivery', etc.
+    }
+    return 'unknown';
+}
+
+// --- Supabase and Authentication ---
+
+/**
+ * Sistema de configuração segura - usando URLs relativas como gestao_pedidos.html, dashboard.html e login.html
+ */
+async function fetchPublicConfig() {
+    try {
+        const timestamp = Date.now();
+        
+        // Buscar configuração básica do servidor (URL relativa)
+        const configUrl = `/api/config?t=${timestamp}`;
+        
+        const response = await fetch(configUrl, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+        }
+        
+        const basicConfig = await response.json();
+        
+        // Buscar configuração do Supabase (URL relativa)
+        const supabaseResponse = await fetch(`/api/config/supabase?t=${timestamp}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
+        });
+        
+        if (!supabaseResponse.ok) {
+            throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+        }
+        
+        const supabaseConfig = await supabaseResponse.json();
+        
+        // Buscar configuração do Mapbox (como gestao_pedidos.html)
+        let mapboxConfig = {};
+        try {
+            const mapboxResponse = await fetch(`/api/config/mapbox?t=${timestamp}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
+            if (mapboxResponse.ok) {
+                mapboxConfig = await mapboxResponse.json();
+            }
+        } catch (mapboxError) {
+            // Mapbox é opcional
+        }
+        
+        // Montar configuração final seguindo o padrão dos outros arquivos
+        const finalConfig = {
+            ...basicConfig,
+            supabase: {
+                url: supabaseConfig.supabaseUrl || supabaseConfig.url,
+                anon_key: supabaseConfig.supabaseAnonKey || supabaseConfig.anon_key,
+                configured: true
+            },
+            mapbox: {
+                accessToken: mapboxConfig.accessToken,
+                configured: !!mapboxConfig.accessToken
+            }
+        };
+        
+        return finalConfig;
+        
+    } catch (error) {
+        throw new Error('Erro ao carregar configurações do servidor. Verifique sua conexão e recarregue a página.');
+    }
+}
+
+/**
+ * Carrega as configurações usando sistema seguro.
+ */
+async function loadConfig() {
+    try {
+        console.log('🔧 Iniciando configuração segura...');
+        
+        // Buscar configuração usando o sistema seguro
+        const config = await fetchPublicConfig();
+        
+        if (!config) {
+            throw new Error('Não foi possível carregar a configuração');
+        }
+        
+        console.log('✅ Configuração carregada com sucesso');
+        
+        // Inicializar cliente Supabase (usando nova estrutura de configuração)
+        if (config.supabase?.url && config.supabase?.anon_key && window.supabase) {
+            supabase = window.supabase.createClient(config.supabase.url, config.supabase.anon_key);
+            console.log('✅ Configurações do Supabase carregadas com sucesso.');
+        } else {
+            throw new Error('As configurações do Supabase são inválidas ou biblioteca não encontrada.');
+        }
+
+        // Armazena o token do Mapbox se estiver disponível
+        if (config.mapbox?.accessToken) {
+            MAPBOX_ACCESS_TOKEN = config.mapbox.accessToken;
+            console.log('✅ Chave do Mapbox carregada com sucesso.');
+        } else {
+            console.warn('⚠️ Chave do Mapbox não encontrada na configuração.');
+        }
+
+        return config;
+    } catch (error) {
+        console.error('❌ ERRO COMPLETO DE CONFIGURAÇÃO:', error);
+        console.error('❌ ERRO MESSAGE:', error.message);
+        console.error('❌ ERRO STACK:', error.stack);
+        
+        // TEMPORÁRIO: Mostrar erro no console e aguardar 3 segundos antes de redirecionar
+      // console.log('🔍 ANÁLISE DE ERRO - Aguardando 3 segundos para análise...');
+        
+       // setTimeout(() => {
+         //   console.log('⏰ Tempo de análise concluído. Redirecionando para login...');
+          //  window.location.href = 'login.html';
+       // }, 3000);
+        
+        // NÃO mostrar modal, apenas log no console
+       // return;
+    }
+}
+
+/**
+ * Obtém os dados da instância dos cookies, localStorage ou sessionStorage
+ */
+function getInstanceData() {
+    try {
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+        
+        if (cookie) {
+            try {
+                const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                const tokenData = JSON.parse(cookieValue);
+                return tokenData;
+            } catch (e) {
+                console.error('Error parsing cookie:', e);
+            }
+        }
+        
+        const localStorageData = localStorage.getItem('timepulse_instance_token');
+        if (localStorageData) {
+            try {
+                const tokenData = JSON.parse(decodeURIComponent(localStorageData));
+                return tokenData;
+            } catch (e) {
+                console.error('Error parsing localStorage:', e);
+            }
+        }
+        
+        const sessionStorageData = sessionStorage.getItem('timepulse_instance_token');
+        if (sessionStorageData) {
+            try {
+                const tokenData = JSON.parse(decodeURIComponent(sessionStorageData));
+                return tokenData;
+            } catch (e) {
+                console.error('Error parsing sessionStorage:', e);
+            }
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('getInstanceData error:', error);
+        return null;
+    }
+}
+
+/**
+ * Verifica se o usuário está autenticado
+ */
+function isAuthenticated() {
+    const instanceData = getInstanceData();
+    return instanceData && instanceData.instanceId && instanceData.restaurantId;
+}
+
+function requireAuth() {
+    if (!isAuthenticated()) {
+        window.location.href = 'login.html';
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Verifica se há uma sessão de login ativa nos cookies.
+ * Se não houver, redireciona para a página de login.
+ */
+async function checkAuthenticationAndLoadConfig() {
+    // Primeira verificação: se não há autenticação, redireciona imediatamente
+    if (!isAuthenticated()) {
+        console.log('Instância não autenticada. Redirecionando para a página de login...');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    const currentInstance = getInstanceData();
+    
+    // Segunda verificação: se os dados da instância são inválidos, redireciona
+    if (!currentInstance || !currentInstance.restaurantId || !currentInstance.instanceId) {
+        console.log('Dados da instância inválidos. Redirecionando para a página de login...');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    restaurantId = currentInstance.restaurantId;
+
+    try {
+        await loadConfig();
+        console.log('🎉 Configurações carregadas e autenticação verificada.');
+        
+        // Fetch restaurant name
+        await fetchRestaurantName(restaurantId);
+        // Pre-load products for kitchen display
+        await preloadKitchenProducts();
+        // Start listening for orders AND order_items
+        listenForKitchenOrders();
+        // Start the timer update interval
+        setInterval(updateOrderTimers, 1000);
+
+        // Initialize audio context for new order items notifications
+        if (window.AudioContext || window.webkitAudioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioContext.state === 'suspended') {
+                console.log('AudioContext is suspended. Will attempt to resume on first interaction.');
+                // Add a global listener for user interaction to resume audio context
+                const resumeAudioContext = () => {
+                    if (audioContext && audioContext.state === 'suspended') {
+                        audioContext.resume().then(() => {
+                            console.log('AudioContext resumed via user interaction.');
+                            audioContextResumed = true;
+                            // Hide the activate sound button once audio is resumed
+                            const activateSoundButton = document.getElementById('activateSoundButton');
+                            if (activateSoundButton) {
+                                activateSoundButton.style.display = 'none';
+                            }
+                        }).catch(e => console.error('Error resuming AudioContext on user interaction:', e));
+                    }
+                    // Remove listeners after first interaction attempt
+                    document.body.removeEventListener('click', resumeAudioContext);
+                    document.body.removeEventListener('keydown', resumeAudioContext);
+                };
+                document.body.addEventListener('click', resumeAudioContext, { once: true });
+                document.body.addEventListener('keydown', resumeAudioContext, { once: true });
+            } else {
+                audioContextResumed = true;
+            }
+        } else {
+            console.warn('Web Audio API not supported in this browser.');
+        }
+
+        // Add fullscreen toggle listener
+        document.getElementById('fullscreenToggle').addEventListener('click', toggleFullscreen);
+        
+        // Polling for updates every 3 seconds as a fallback, as requested
+        console.log('🔄 Iniciando verificação de pedidos a cada 3 segundos como fallback.');
+        setInterval(fetchAndSyncKitchenOrders, 3000); // Changed to a new function for silent polling
+
+
+        console.log('✅ Aplicação Cozinha iniciada!');
+
+    } catch (error) {
+        console.error('❌ ERRO NA INICIALIZAÇÃO DA APLICAÇÃO:', error);
+        console.error('❌ ERRO MESSAGE:', error.message);
+        console.error('❌ ERRO STACK:', error.stack);
+        
+        // TEMPORÁRIO: Log detalhado e redirecionamento após delay
+        console.log('🔍 ERRO NA INICIALIZAÇÃO - Aguardando 3 segundos para análise...');
+        
+        setTimeout(() => {
+            console.log('⏰ Tempo de análise concluído. Redirecionando para login...');
+            window.location.href = 'login.html';
+        }, 3000);
+    }
+}
+
+/**
+ * Signs out the current user and redirects to the login page.
+ */
+async function signOut() {
+    // Usar modal padrão de confirmação
+    const confirmLogout = await showCustomConfirmation('Deseja realmente sair?', 'Sair');
+    if (confirmLogout) {
+        try {
+            // 1. PRIMEIRO: Fazer logout do Supabase
+            if (window.supabase) {
+                await window.supabase.auth.signOut();
+                console.log('✅ Logout do Supabase realizado');
+            }
+            
+            // 2. Limpar dados locais
+            if (window.SECURE_INSTANCE_MANAGER) {
+                window.SECURE_INSTANCE_MANAGER.logout();
+            } else {
+                // Fallback manual
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                localStorage.clear();
+                sessionStorage.clear();
+            }
+        } catch (error) {
+            console.error('Erro durante logout:', error);
+        }
+        window.location.href = 'login.html';
+    }
+}
+
+// Modal de confirmação padrão para todo o sistema
+function showCustomConfirmation(message, title = 'Confirmação') {
+    return new Promise((resolve) => {
+        const modalHtml = `
+                <div class="modal" id="customConfirmationDialog" style="z-index: 16000; display:flex;">
+                    <div class="modal-content" style="max-width: 400px;">
+                        <div class="modal-header"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+                        <div class="modal-body" style="text-align: center; padding: 2rem;"><p>${message}</p></div>
+                        <div style="padding: 1.5rem; border-top: 1px solid #e9ecef; display: flex; justify-content: center; gap: 1rem;">
+                            <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                            <button class="btn btn-primary" id="confirmConfirmBtn">Confirmar</button>
+                        </div>
+                    </div>
+                </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const dialog = document.getElementById('customConfirmationDialog');
+        const close = () => { dialog.remove(); resolve(false); };
+        const confirm = () => { dialog.remove(); resolve(true); };
+        dialog.querySelector('.modal-close').onclick = close;
+        dialog.querySelector('#cancelConfirmBtn').onclick = close;
+        dialog.querySelector('#confirmConfirmBtn').onclick = confirm;
+    });
+}
+
+// Adicionar event listener específico para o botão de logout
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🚪 Botão sair clicado - iniciando signOut()');
+            signOut();
+        });
+    }
+});
+
+/**
+ * Fetches the restaurant name and updates the sidebar.
+ * @param {string} id - The restaurant ID.
+ */
+async function fetchRestaurantName(id) {
+    try {
+        const { data, error } = await supabase
+            .from('restaurants')
+            .select('name')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        if (data) {
+            document.getElementById('restaurantName').textContent = data.name;
+        } else {
+            document.getElementById('restaurantName').textContent = 'Restaurante Desconhecido';
+        }
+    }
+    catch (error) {
+        console.error('Erro ao carregar nome do restaurante:', error.message);
+        document.getElementById('restaurantName').textContent = 'Erro ao Carregar';
+    }
+}
+
+/**
+ * Preloads products that are marked for 'cozinha' impression.
+ * This helps in quickly checking if an order item needs to be displayed.
+ */
+async function preloadKitchenProducts() {
+    try {
+        // Fetch all products for the restaurant to build a comprehensive cache
+        const { data, error } = await supabase
+            .from('products')
+            .select('id, name, impressao')
+            .eq('restaurant_id', restaurantId); 
+
+        if (error) throw error;
+
+        if (data) {
+            productsCache = data.reduce((acc, product) => {
+                acc[product.id] = product;
+                return acc;
+            }, {});
+            console.log('✅ Produtos pré-carregados (incluindo tipo de impressão):', Object.keys(productsCache).length);
+        }
+    }
+    catch (error) {
+        console.error('Erro ao pré-carregar produtos da cozinha:', error.message);
+        showNotification('Erro ao carregar produtos da cozinha.', 'error');
+    }
+}
+
+// --- Order Management ---
+
+/**
+ * Renders a single order card into the specified column, or updates it if it already exists.
+ * This function now expects a full order object with its order_items already loaded.
+ * It will render/update the card only if there are relevant kitchen items that are not 'pronto'.
+ * @param {Object} order - The order data (with order_items pre-fetched).
+ * @param {string} columnId - The ID of the column to render the order into.
+ */
+function renderOrderCard(order, columnId) {
+    const column = document.getElementById(columnId);
+    if (!column) {
+        console.error(`Column with ID ${columnId} not found.`);
+        return;
+    }
+
+    const ordersList = column.querySelector('.orders-list');
+    if (!ordersList) {
+        console.error(`Orders list not found in column ${columnId}.`);
+        return;
+    }
+
+    let orderCard = document.getElementById(`order-card-${order.id}`);
+    let isNewCard = false;
+
+    const orderDisplayType = getOrderDisplayType(order);
+    const actualIsMesaOrder = (orderDisplayType === 'mesa');
+    const actualIsNonMesaOrder = (orderDisplayType === 'balcao' || orderDisplayType === 'delivery');
+
+    let orderNumber = '';
+    let customerName = order.customer_name || 'Cliente';
+    let notesContent = order.notes ? `<strong>Observação:</strong> ${order.notes}` : '';
+
+    // Determine order number and customer name based on the determined type
+    if (orderDisplayType === 'mesa') {
+        try {
+            const mesaData = JSON.parse(order.order_mesa);
+            orderNumber = `Mesa ${mesaData.mesa_number || 'N/A'}`; 
+            customerName = mesaData.customer_name || customerName; 
+        } catch (e) {
+            console.error('Error parsing order_mesa for display:', e);
+            orderNumber = `Mesa N/A`;
+        }
+    } else if (orderDisplayType === 'balcao') {
+        try {
+            const balcaoData = order.order_balcao && typeof order.order_balcao === 'string' ? JSON.parse(order.order_balcao) : {};
+            orderNumber = `Balcão ${balcaoData.orderNumber || balcaoData.order_number || order.id.substring(0, 4).toUpperCase()}`;
+            customerName = balcaoData.customer_name || balcaoData.customerName || order.customer_name || 'Cliente de Balcão';
+        } catch (e) {
+            console.error('Error parsing order_balcao for display:', e);
+            orderNumber = `Balcão #${order.id.substring(0, 4).toUpperCase()}`;
+        }
+    } else if (orderDisplayType === 'delivery') {
+        orderNumber = `Delivery #${order.id.substring(0, 4).toUpperCase()}`;
+        customerName = order.customer_name || 'Cliente Delivery';
+    } else { // Fallback for unknown types
+        orderNumber = `#${order.id.substring(0, 4).toUpperCase()}`;
+        customerName = order.customer_name || 'Cliente';
+    }
+
+    const allOrderItems = order.order_items; 
+
+    if (!Array.isArray(allOrderItems) || allOrderItems.length === 0) {
+        if (orderCard) {
+            orderCard.remove();
+            updateOrderCount(columnId);
+            updatePendingItemsCountDisplay(); // Update pending items count
+        }
+        return;
+    }
+
+    // UNIVERSAL FILTERING: Only display items marked for 'cozinha' impression
+    let relevantOrderItems = allOrderItems.filter(item => {
+        const product = productsCache[item.product_id];
+        return product && product.impressao === 'cozinha';
+    });
+    console.log(`[LOG - RENDER] Order ${order.id.substring(0,4).toUpperCase()}: ${relevantOrderItems.length} itens de cozinha relevantes (universal filter).`);
+
+
+    // Determine if the card should be rendered at all based on order_type and status
+    let shouldRenderCard = false;
+    if (relevantOrderItems.length > 0) { // Only render a card if there are kitchen items to display
+        if (actualIsMesaOrder) {
+            const hasPendingKitchenItems = relevantOrderItems.some(item => {
+                return (item.status === null || item.status === '');
+            });
+            shouldRenderCard = hasPendingKitchenItems;
+            console.log(`[LOG - RENDER] Order ${order.id.substring(0,4).toUpperCase()}: Mesa order - hasPendingKitchenItems: ${hasPendingKitchenItems}, shouldRenderCard: ${shouldRenderCard}`);
+        } else if (actualIsNonMesaOrder) {
+            // For non-mesa orders, show if the order itself is in 'preparo' or 'Aberta'
+            shouldRenderCard = (order.status === 'preparo' || order.status === 'Aberta');
+            console.log(`[LOG - RENDER] Order ${order.id.substring(0,4).toUpperCase()}: Non-mesa order - status: '${order.status}', shouldRenderCard: ${shouldRenderCard}`);
+        } else {
+            shouldRenderCard = false; // Unknown type, don't display
+            console.log(`[LOG - RENDER] Order ${order.id.substring(0,4).toUpperCase()}: Unknown type - shouldRenderCard: ${shouldRenderCard}`);
+        }
+    } else {
+        console.log(`[LOG - RENDER] Order ${order.id.substring(0,4).toUpperCase()}: No relevant kitchen items, shouldRenderCard: false`);
+    }
+
+    if (!shouldRenderCard) {
+        if (orderCard) {
+            console.log(`[LOG - REMOVE] Removing order card ${order.id.substring(0,4).toUpperCase()} (no longer relevant to kitchen).`);
+            orderCard.remove();
+            updateOrderCount(columnId);
+            updatePendingItemsCountDisplay(); // Update pending items count
+        }
+        return; 
+    }
+
+    if (!orderCard) {
+        orderCard = document.createElement('div');
+        orderCard.id = `order-card-${order.id}`;
+        orderCard.dataset.orderId = order.id;
+        orderCard.dataset.createdAt = order.created_at; 
+        isNewCard = true;
+        console.log(`[LOG - CREATE] Creating new order card for ${order.id.substring(0,4).toUpperCase()}.`);
+    } else {
+        console.log(`[LOG - UPDATE] Updating existing order card for ${order.id.substring(0,4).toUpperCase()}.`);
+    }
+
+    // Set class based on order status or default to 'preparo' if mesa
+    orderCard.className = `order-card ${actualIsMesaOrder ? 'preparo' : order.status}`;
+
+    let orderItemsHtml = '<ul class="order-items-list">';
+    relevantOrderItems.forEach(item => { // Iterate over relevantOrderItems which are already filtered by 'cozinha'
+        const productName = productsCache[item.product_id]?.name || 'Produto Desconhecido';
+        const itemNotes = item.notes ? `<div class="item-notes">${item.notes}</div>` : '';
+        const itemIsPronto = (item.status === 'pronto');
+        // Add a class to hide the item if it's pronto AND it's a mesa order
+        // This class will only apply if the item is part of `relevantOrderItems` (i.e., it's a kitchen item for mesa)
+        const itemDisplayClass = (itemIsPronto && actualIsMesaOrder) ? 'pronto' : ''; 
+        
+        // Determine if the "Pronto" button should be shown for this item
+        // It should be a kitchen item (already filtered by relevantOrderItems), NOT pronto, and part of a mesa order
+        const itemShouldHaveActionButton = (!itemIsPronto && actualIsMesaOrder); 
+
+        orderItemsHtml += `
+            <li class="order-item ${itemDisplayClass}" data-item-id="${item.id}">
+                <div class="item-details">
+                    <span class="item-qty">${item.quantity}x</span>
+                    <div>
+                        <div class="item-name">${productName}</div>
+                        ${itemNotes}
+                    </div>
+                </div>
+                <div class="item-actions">
+                    ${itemShouldHaveActionButton ? `<button class="btn-item-finish" data-order-item-id="${item.id}" data-order-id="${order.id}">
+                        <i class="fas fa-check-circle"></i> Pronto
+                    </button>` : ''}
+                    ${itemIsPronto && actualIsMesaOrder ? `<span class="text-green-600 font-semibold text-sm ml-2"><i class="fas fa-check"></i> Pronto</span>` : ''}
+                </div>
+            </li>
+        `;
+    });
+    orderItemsHtml += '</ul>';
+
+    // Conditional actions section for the entire card
+    let actionsHtml = '';
+    if (actualIsMesaOrder) {
+        actionsHtml = `
+            <button class="btn-finish-all" data-order-id="${order.id}">
+                <i class="fas fa-check-double"></i> Finalizar Tudo
+            </button>
+        `;
+    } else if (actualIsNonMesaOrder) {
+        actionsHtml = `
+            <button class="btn-action btn-finish" data-order-id="${order.id}" data-action="finish">
+                Finalizar <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+    } else { // No actions if type is unknown or not relevant for kitchen finalization
+        actionsHtml = '';
+    }
+
+
+    if (isNewCard) {
+        orderCard.innerHTML = `
+            <div class="order-card-header">
+                <div class="order-card-info">
+                    <span class="icon"><i class="fas fa-utensils"></i></span>
+                    <div class="details">
+                        <div class="order-number">${orderNumber}</div>
+                        <div class="customer-name">${customerName}</div>
+                    </div>
+                </div>
+                <div class="order-card-timer" data-order-id="${order.id}">
+                    <i class="far fa-clock"></i> <span class="timer-value">00:00</span>
+                </div>
+            </div>
+            <div class="order-card-content">
+                ${notesContent ? `<div class="order-card-notes">${notesContent}</div>` : ''}
+                ${orderItemsHtml}
+            </div>
+            <div class="order-card-actions">
+                ${actionsHtml}
+            </div>
+        `;
+        ordersList.appendChild(orderCard);
+        // OBRIGATÓRIO: Sempre tentar tocar alerta sonoro para novo pedido
+        console.log('🆕 NOVO PEDIDO ADICIONADO À COZINHA - Tocando alerta obrigatório');
+        playSoundNotification(); // Always try to play sound (function handles activation)
+    } else {
+        // Update existing elements selectively
+        orderCard.querySelector('.order-card-info .order-number').textContent = orderNumber;
+        orderCard.querySelector('.order-card-info .customer-name').textContent = customerName;
+
+        let orderCardContent = orderCard.querySelector('.order-card-content');
+        if (!orderCardContent) { 
+            orderCardContent = document.createElement('div');
+            orderCardContent.className = 'order-card-content';
+            orderCard.insertBefore(orderCardContent, orderCard.querySelector('.order-card-actions'));
+        }
+
+        const currentNotesDiv = orderCardContent.querySelector('.order-card-notes');
+        if (notesContent) {
+            if (!currentNotesDiv) {
+                const newNotesDiv = document.createElement('div');
+                newNotesDiv.className = 'order-card-notes';
+                newNotesDiv.innerHTML = notesContent;
+                orderCardContent.prepend(newNotesDiv);
+            } else if (currentNotesDiv.innerHTML !== notesContent) {
+                currentNotesDiv.innerHTML = notesContent;
+            }
+        } else if (currentNotesDiv) {
+            currentNotesDiv.remove();
+        }
+
+        // Update individual order items within the list
+        const currentItemsList = orderCardContent.querySelector('.order-items-list');
+        if (currentItemsList) {
+            // Remove items from DOM that are no longer in the relevantOrderItems array
+            Array.from(currentItemsList.children).forEach(existingItemElement => {
+                const existingItemId = existingItemElement.dataset.itemId;
+                const itemStillRelevant = relevantOrderItems.some(item => item.id === existingItemId);
+                if (!itemStillRelevant) {
+                    console.log(`[LOG - ITEM REMOVE] Removing item ${existingItemId.substring(0,4).toUpperCase()} from order ${order.id.substring(0,4).toUpperCase()} (no longer relevant).`);
+                    existingItemElement.remove();
+                }
+            });
+
+            relevantOrderItems.forEach(item => { // Iterate over relevantOrderItems
+                let itemElement = currentItemsList.querySelector(`.order-item[data-item-id="${item.id}"]`);
+                const productName = productsCache[item.product_id]?.name || 'Produto Desconhecido';
+                const itemNotes = item.notes ? `<div class="item-notes">${item.notes}</div>` : '';
+                const itemIsPronto = (item.status === 'pronto');
+                const itemDisplayClass = (itemIsPronto && actualIsMesaOrder) ? 'pronto' : ''; // This class is for hiding
+                const itemShouldHaveActionButton = (!itemIsPronto && actualIsMesaOrder); // Simplified
+
+                if (itemElement) {
+                    itemElement.querySelector('.item-qty').textContent = `${item.quantity}x`;
+                    itemElement.querySelector('.item-name').textContent = productName;
+                    let currentItemNotesDiv = itemElement.querySelector('.item-notes');
+                    if (itemNotes) {
+                        if (!currentItemNotesDiv) {
+                            currentItemNotesDiv = document.createElement('div');
+                            currentItemNotesDiv.className = 'item-notes';
+                            currentItemNotesDiv.innerHTML = itemNotes;
+                            itemElement.querySelector('.item-details > div').appendChild(currentItemNotesDiv);
+                        }
+                        if (currentItemNotesDiv.innerHTML !== itemNotes) {
+                            currentItemNotesDiv.innerHTML = itemNotes;
+                        }
+                    } else if (currentItemNotesDiv) {
+                        currentItemNotesDiv.remove();
+                    }
+                    
+                    itemElement.classList.toggle('pronto', itemIsPronto && actualIsMesaOrder);
+
+                    let itemActionsDiv = itemElement.querySelector('.item-actions');
+                    let btnItemFinish = itemActionsDiv.querySelector('.btn-item-finish');
+                    let readyTextSpan = itemActionsDiv.querySelector('.text-green-600'); // Select the "Pronto" text span
+
+                    if (itemShouldHaveActionButton) {
+                        if (!btnItemFinish) {
+                            btnItemFinish = document.createElement('button');
+                            btnItemFinish.className = 'btn-item-finish';
+                            btnItemFinish.innerHTML = '<i class="fas fa-check-circle"></i> Pronto';
+                            btnItemFinish.dataset.orderItemId = item.id;
+                            btnItemFinish.dataset.orderId = order.id;
+                            itemActionsDiv.prepend(btnItemFinish); // Prepend to show before "Pronto" text if it exists
+                        }
+                        if (readyTextSpan) readyTextSpan.remove(); // Remove "Pronto" text if button is shown
+                    } else if (btnItemFinish) {
+                        btnItemFinish.remove(); // Remove button if item is pronto or not kitchen
+                    }
+
+                    // Add "Pronto" text if item is pronto and it's a mesa order, and button is not shown
+                    if (itemIsPronto && actualIsMesaOrder && !readyTextSpan && !itemShouldHaveActionButton) {
+                        const newReadyTextSpan = document.createElement('span');
+                        newReadyTextSpan.className = 'text-green-600 font-semibold text-sm ml-2';
+                        newReadyTextSpan.innerHTML = '<i class="fas fa-check"></i> Pronto';
+                        itemActionsDiv.appendChild(newReadyTextSpan);
+                    }
+
+
+                } else {
+                    // Add new item if it doesn't exist and is relevant (already filtered by relevantOrderItems)
+                    const newItemElement = document.createElement('li');
+                    newItemElement.className = `order-item ${itemDisplayClass}`;
+                    newItemElement.dataset.itemId = item.id;
+                    newItemElement.innerHTML = `
+                        <div class="item-details">
+                            <span class="item-qty">${item.quantity}x</span>
+                            <div>
+                                <div class="item-name">${productName}</div>
+                                ${itemNotes}
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            ${itemShouldHaveActionButton ? `<button class="btn-item-finish" data-order-item-id="${item.id}" data-order-id="${order.id}">
+                                <i class="fas fa-check-circle"></i> Pronto
+                            </button>` : ''}
+                            ${itemIsPronto && actualIsMesaOrder ? `<span class="text-green-600 font-semibold text-sm ml-2"><i class="fas fa-check"></i> Pronto</span>` : ''}
+                        </div>
+                    `;
+                    currentItemsList.appendChild(newItemElement);
+                }
+            });
+        }
+
+        // Update the actions section
+        const currentActionsDiv = orderCard.querySelector('.order-card-actions');
+        if (currentActionsDiv.innerHTML.trim() !== actionsHtml.trim()) {
+            currentActionsDiv.innerHTML = actionsHtml;
+        }
+    }
+
+    // Re-attach event listeners for buttons based on order type
+    if (actualIsMesaOrder) {
+        orderCard.querySelectorAll('.btn-item-finish').forEach(button => {
+            button.onclick = (e) => {
+                const orderItemId = e.currentTarget.dataset.orderItemId;
+                showConfirmationModal(orderItemId, 'item');
+            };
+        });
+        const finishAllBtn = orderCard.querySelector('.btn-finish-all');
+        if (finishAllBtn) {
+            finishAllBtn.onclick = (e) => {
+                const orderIdToFinalizeAll = e.currentTarget.dataset.orderId;
+                // For "Finalizar Tudo" on mesa, directly call the function, no modal needed here as per original
+                finalizeAllKitchenItems(orderIdToFinalizeAll);
+            };
+        }
+    } else if (actualIsNonMesaOrder) { // For non-mesa orders
+        const finishBtn = orderCard.querySelector('.btn-action.btn-finish');
+        if (finishBtn) {
+            finishBtn.onclick = (e) => {
+                const orderId = e.currentTarget.dataset.orderId;
+                showConfirmationModal(orderId, 'order'); // Show confirmation for non-mesa orders
+            };
+        }
+    }
+
+    updateOrderCount(columnId);
+    updatePendingItemsCountDisplay(); // Update pending items count after card rendering
+}
+
+
+/**
+ * Updates the order count for a specific column.
+ * @param {string} columnId - The ID of the column.
+ */
+function updateOrderCount(columnId) {
+    const column = document.getElementById(columnId);
+    if (column) {
+        const ordersList = column.querySelector('.orders-list');
+        const orderCountSpan = column.querySelector('.order-count');
+        const emptyState = column.querySelector('.empty-state');
+        const loadingState = column.querySelector('.loading');
+
+        // Adicionado verificação de existência para loadingState e emptyState
+        if (loadingState) {
+            loadingState.style.display = 'none'; // Hide loading once data is processed
+        }
+        if (emptyState) {
+            emptyState.style.display = 'none'; // Hide empty state initially
+        }
+
+        const count = ordersList.querySelectorAll('.order-card').length; // Count actual visible order cards
+        if (orderCountSpan) {
+            orderCountSpan.textContent = count;
+        }
+
+        if (emptyState) {
+            emptyState.style.display = count === 0 ? 'block' : 'none';
+        }
+    }
+}
+
+/**
+ * Shows the confirmation modal for finalizing an order item or an entire order.
+ * @param {string} id - The ID of the order item or the order.
+ * @param {'item'|'order'} type - Specifies if it's an item or an entire order.
+ */
+function showConfirmationModal(id, type) {
+    const modal = document.getElementById('confirmationModal');
+    const modalBodyText = document.getElementById('modalBodyText');
+    const modalBodyHint = document.getElementById('modalBodyHint');
+    const confirmButton = document.getElementById('confirmFinalizeBtn'); 
+
+    if (type === 'item') {
+        currentOrderItemToFinalize = id;
+        currentOrderToFinalize = null;
+        modalBodyText.textContent = 'Tem certeza que deseja finalizar este item do pedido?';
+        modalBodyHint.textContent = 'O item será marcado como "Pronto" na mesa.';
+        confirmButton.onclick = confirmFinalizeOrderItem;
+    } else if (type === 'order') {
+        currentOrderToFinalize = id;
+        currentOrderItemToFinalize = null;
+        modalBodyText.textContent = 'Tem certeza que deseja finalizar este pedido?';
+        modalBodyHint.textContent = 'O pedido será movido para o status "Pronto" e removido da tela.';
+        confirmButton.onclick = confirmFinalizeOrder;
+    } else {
+        console.error('Tipo de finalização inválido:', type);
+        return;
+    }
+    modal.classList.add('show');
+}
+
+/**
+ * Hides the confirmation modal.
+ */
+function hideConfirmationModal() {
+    currentOrderItemToFinalize = null;
+    currentOrderToFinalize = null;
+    document.getElementById('confirmationModal').classList.remove('show');
+}
+
+/**
+ * Handles the actual status update for an order item after confirmation.
+ */
+async function confirmFinalizeOrderItem() {
+    if (!currentOrderItemToFinalize) {
+        console.error('Nenhum item de pedido selecionado para finalizar.');
+        hideConfirmationModal();
+        return;
+    }
+
+    const orderItemId = currentOrderItemToFinalize;
+    const confirmButton = document.getElementById('confirmFinalizeBtn');
+
+    confirmButton.disabled = true;
+    confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ok';
+
+    try {
+        console.log(`[LOG - INÍCIO] confirmFinalizeOrderItem: Tentando atualizar o status do item de pedido na tabela 'order_items'.`);
+        console.log(`[LOG - DETALHES] Item ID: ${orderItemId.substring(0,4).toUpperCase()}, Novo Status: "pronto"`);
+
+        const { data, error } = await supabase
+            .from('order_items')
+            .update({ status: 'pronto' })
+            .eq('id', orderItemId)
+            .select();
+
+        if (error) {
+            console.error(`[LOG - ERRO] Supabase erro ao finalizar item do pedido (tabela 'order_items'):`, error);
+            throw error;
+        }
+
+        if (data && data.length > 0) {
+            console.log(`[LOG - SUCESSO] ✅ Item de pedido ${orderItemId.substring(0, 4).toUpperCase()} atualizado para "pronto" na tabela 'order_items'.`);
+            showNotification(`Item do pedido ${orderItemId.substring(0, 4).toUpperCase()} finalizado.`, 'success');
+            
+            // The real-time listener for 'order_items' will handle the UI update,
+            // which includes hiding the item and potentially removing the card if all items are done.
+            // No direct DOM manipulation here, let the listener handle it for consistency.
+        } else {
+            console.warn(`[LOG - ALERTA] ⚠️ Falha ao encontrar ou atualizar o item de pedido ${orderItemId.substring(0,4).toUpperCase()} na tabela 'order_items'.`);
+            showNotification('Nenhum item de pedido encontrado para finalizar.', 'warning');
+        }
+    } catch (error) {
+        console.error(`[LOG - ERRO CRÍTICO] ❌ Erro crítico ao finalizar item do pedido (tabela 'order_items'):`, error.message);
+        showNotification(`Erro ao finalizar item: ${error.message}`, 'error');
+    } finally {
+        confirmButton.disabled = false;
+        confirmButton.innerHTML = 'Ok';
+        hideConfirmationModal();
+        console.log(`[LOG - FIM] confirmFinalizeOrderItem: Processo de finalização de item concluído.`);
+    }
+}
+
+/**
+ * Handles the actual status update for an entire order after confirmation (for non-mesa orders).
+ */
+async function confirmFinalizeOrder() {
+    if (!currentOrderToFinalize) {
+        console.error('Nenhum pedido selecionado para finalizar.');
+        hideConfirmationModal();
+        return;
+    }
+
+    const orderId = currentOrderToFinalize;
+    const confirmButton = document.getElementById('confirmFinalizeBtn');
+
+    confirmButton.disabled = true;
+    confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ok';
+
+    try {
+        console.log(`[LOG - INÍCIO] confirmFinalizeOrder: Tentando atualizar o status do pedido na tabela 'orders'.`);
+        console.log(`[LOG - DETALHES] Pedido ID: ${orderId.substring(0,4).toUpperCase()}, Novo Status: "pronto"`);
+
+        // Esta função é chamada APENAS para pedidos que NÃO SÃO DE MESA.
+        // Ela atualiza o status na tabela 'orders'.
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ status: 'pronto', prepared_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq('id', orderId)
+            .select();
+
+        if (error) {
+            console.error(`[LOG - ERRO] Supabase erro ao finalizar pedido (tabela 'orders'):`, error);
+            throw error;
+        }
+
+        if (data && data.length > 0) {
+            console.log(`[LOG - SUCESSO] ✅ Pedido ${orderId.substring(0, 4).toUpperCase()} atualizado para "pronto" na tabela 'orders'.`);
+            showNotification(`Pedido ${orderId.substring(0, 4).toUpperCase()} finalizado.`, 'success');
+            
+            // The real-time listener for 'orders' will handle removing the card
+            const cardToRemove = document.getElementById(`order-card-${orderId}`);
+            if (cardToRemove) {
+                console.log(`[LOG - UI] Removendo cartão do pedido ${orderId.substring(0,4).toUpperCase()} da UI.`);
+                cardToRemove.remove();
+                updateOrderCount('column-em-preparo');
+                updatePendingItemsCountDisplay(); // Update pending items count
+            }
+        } else {
+            console.warn(`[LOG - ALERTA] ⚠️ Falha ao encontrar ou atualizar o pedido ${orderId.substring(0,4).toUpperCase()} na tabela 'orders'.`);
+            showNotification('Nenhum pedido encontrado para finalizar.', 'warning');
+        }
+    } catch (error) {
+        console.error(`[LOG - ERRO CRÍTICO] ❌ Erro crítico ao finalizar pedido (tabela 'orders'):`, error.message);
+        showNotification(`Erro ao finalizar pedido: ${error.message}`, 'error');
+    } finally {
+        confirmButton.disabled = false;
+        confirmButton.innerHTML = 'Ok';
+        hideConfirmationModal();
+        console.log(`[LOG - FIM] confirmFinalizeOrder: Processo de finalização de pedido concluído.`);
+    }
+}
+
+
+/**
+ * Finalizes all kitchen items for a given order.
+ * @param {string} orderId - The ID of the parent order.
+ */
+async function finalizeAllKitchenItems(orderId) {
+    const confirmAllButton = document.querySelector(`.btn-finish-all[data-order-id="${orderId}"]`);
+    if (!confirmAllButton) return;
+
+    confirmAllButton.disabled = true;
+    confirmAllButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...';
+
+    try {
+        console.log(`[LOG - INÍCIO] finalizeAllKitchenItems: Tentando atualizar TODOS os itens de cozinha do pedido na tabela 'order_items'.`);
+        console.log(`[LOG - DETALHES] Pedido ID: ${orderId.substring(0,4).toUpperCase()}, Novo Status para itens: "pronto"`);
+
+        // Fetch all items for this order that are relevant to the kitchen and not yet 'pronto'
+        const { data: itemsToUpdate, error: fetchError } = await supabase
+            .from('order_items')
+            .select('id, product_id')
+            .eq('order_id', orderId)
+            .or('status.is.null,status.eq.'); // Items with null or empty status are pending
+
+        if (fetchError) {
+            console.error('[LOG - ERRO] Erro ao buscar itens para finalizar todos (tabela \'order_items\'):', fetchError);
+            throw fetchError;
+        }
+
+        const kitchenItemIdsToUpdate = itemsToUpdate
+            .filter(item => productsCache[item.product_id]?.impressao === 'cozinha')
+            .map(item => item.id);
+
+        if (kitchenItemIdsToUpdate.length === 0) {
+            showNotification(`Nenhum item de cozinha pendente para finalizar no pedido ${orderId.substring(0,4).toUpperCase()}.`, 'info');
+            console.log(`[LOG - ALERTA] Nenhum item de cozinha pendente encontrado para finalizar no pedido ${orderId.substring(0,4).toUpperCase()} na tabela 'order_items'.`);
+            return;
+        }
+
+        console.log(`[LOG - AÇÃO] Finalizando ${kitchenItemIdsToUpdate.length} itens do pedido ${orderId.substring(0,4).toUpperCase()} na tabela 'order_items'...`);
+
+        // Update all identified items to 'pronto'
+        const { error: updateError } = await supabase
+            .from('order_items')
+            .update({ status: 'pronto' })
+            .in('id', kitchenItemIdsToUpdate);
+
+        if (updateError) {
+            console.error('[LOG - ERRO] Supabase erro ao finalizar múltiplos itens (tabela \'order_items\'):', updateError);
+            throw updateError;
+        }
+
+        console.log(`[LOG - SUCESSO] ✅ Todos os itens de cozinha do pedido ${orderId.substring(0,4).toUpperCase()} finalizados na tabela 'order_items'.`);
+        showNotification(`Todos os itens de cozinha do pedido ${orderId.substring(0,4).toUpperCase()} finalizados.`, 'success');
+        
+        // The real-time listener for 'order_items' will handle removing the card if all items are done.
+        // No direct card removal here, let the listener handle it for consistency.
+
+    } catch (error) {
+        console.error(`[LOG - ERRO CRÍTICO] ❌ Erro ao finalizar todos os itens do pedido (tabela 'order_items'):`, error.message);
+        showNotification(`Erro ao finalizar todos os itens: ${error.message}`, 'error');
+    } finally {
+        confirmAllButton.disabled = false;
+        confirmAllButton.innerHTML = '<i class="fas fa-check-double"></i> Finalizar Tudo';
+        console.log(`[LOG - FIM] finalizeAllKitchenItems: Processo de finalização de todos os itens concluído.`);
+        updatePendingItemsCountDisplay(); // Update pending items count
+    }
+}
+
+/**
+ * Fetches order items for a given order ID.
+ * @param {string} orderId - The ID of the order.
+ * @returns {Array} An array of order items.
+ */
+async function fetchOrderItems(orderId) {
+    try {
+        const { data, error } = await supabase
+            .from('order_items')
+            .select('*')
+            .eq('order_id', orderId)
+            .order('created_at', { ascending: true }); // Order items by creation for consistent display
+
+        if (error) throw error;
+        return data || [];
+    } catch (error) {
+        console.error(`Erro ao buscar itens do pedido ${orderId.substring(0,4).toUpperCase()}:`, error.message);
+        return [];
+    }
+}
+
+
+/**
+ * Sets up a real-time listener for orders and order_items relevant to the kitchen.
+ */
+function listenForKitchenOrders() {
+    console.log('Iniciando escuta de pedidos e itens de pedido para a cozinha...');
+
+    // Listener for `orders` table: primarily for new orders or changes in order_type/customer_name
+    supabase
+        .channel('kitchen_orders_parent')
+        .on('postgres_changes', {
+            event: '*', 
+            schema: 'public',
+            table: 'orders',
+            filter: `restaurant_id=eq.${restaurantId}`
+        }, async (payload) => {
+            console.log('Change in ORDERS table:', payload);
+            let order = payload.new || payload.old;
+
+            if (payload.eventType === 'DELETE') {
+                const cardToRemove = document.getElementById(`order-card-${order.id}`);
+                if (cardToRemove) {
+                    cardToRemove.remove();
+                    updateOrderCount('column-em-preparo');
+                    updatePendingItemsCountDisplay(); // Update pending items count
+                }
+            } else {
+                // For INSERT/UPDATE, fetch its items and re-render.
+                order.order_items = await fetchOrderItems(order.id);
+                // The renderOrderCard function will now handle filtering by 'cozinha' and display logic
+                renderOrderCard(order, 'column-em-preparo');
+            }
+        })
+        .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log('Subscrito com sucesso para a tabela "orders" (cozinha).');
+            } else {
+                console.error('Erro na subscrição do canal "kitchen_orders_parent":', status);
+            }
+        });
+
+    // Listener for `order_items` table: more granular updates for kitchen items
+    supabase
+        .channel('kitchen_order_items')
+        .on('postgres_changes', {
+            event: '*', 
+            schema: 'public',
+            table: 'order_items',
+            // We can't directly filter by product.impressao here, so we fetch and filter in client
+        }, async (payload) => {
+            console.log('Change in ORDER_ITEMS table:', payload);
+            const changedOrderItem = payload.new || payload.old;
+            const orderId = changedOrderItem.order_id;
+            
+            // Get the parent order to ensure it belongs to this restaurant and is relevant
+            const { data: parentOrder, error: orderError } = await supabase
+                .from('orders')
+                .select('id, order_type, restaurant_id, order_mesa, order_balcao, delivery_address, status, created_at, notes, customer_name') // Select necessary fields for inference and status
+                .eq('id', orderId)
+                .eq('restaurant_id', restaurantId)
+                .single();
+
+            if (orderError || !parentOrder) {
+                console.log(`Skipping order_item change for order ${orderId.substring(0,4).toUpperCase()} (parent order not found or not for this restaurant).`);
+                 // If the parent order is no longer relevant, ensure its card is removed if it exists
+                const cardToRemove = document.getElementById(`order-card-${orderId}`);
+                if (cardToRemove) {
+                    cardToRemove.remove();
+                    updateOrderCount('column-em-preparo');
+                    updatePendingItemsCountDisplay(); // Update pending items count
+                }
+                return; 
+            }
+
+            // Fetch all items for the parent order to re-evaluate the card's state
+            parentOrder.order_items = await fetchOrderItems(orderId);
+
+            // Re-render the parent order card with the updated item list.
+            // renderOrderCard will now handle the filtering by 'cozinha' and the display logic.
+            renderOrderCard(parentOrder, 'column-em-preparo');
+
+            // Play sound for new items that are kitchen items and not yet pronto
+            if (payload.eventType === 'INSERT') {
+                const product = productsCache[changedOrderItem.product_id];
+                const orderDisplayTypeForListener = getOrderDisplayType(parentOrder);
+                const actualIsMesaOrderForListener = (orderDisplayTypeForListener === 'mesa');
+
+                // OBRIGATÓRIO: Play sound for new kitchen items
+                if (actualIsMesaOrderForListener && product && product.impressao === 'cozinha' && (changedOrderItem.status === null || changedOrderItem.status === '')) {
+                    console.log('🆕 NOVO ITEM DE COZINHA ADICIONADO - Tocando alerta obrigatório');
+                    playSoundNotification(); // Always try to play sound (function handles activation)
+                }
+            }
+        })
+        .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+                console.log('Subscrito com sucesso para a tabela "order_items" (cozinha).');
+                // Initial fetch for both after all subscriptions are ready
+                await fetchAndSyncKitchenOrders();
+            } else {
+                console.error('Erro na subscrição do canal "kitchen_order_items":', status);
+            }
+        });
+}
+
+/**
+ * Fetches current kitchen orders and synchronizes the UI without full reload.
+ * This is used for initial load and for the periodic background polling.
+ */
+async function fetchAndSyncKitchenOrders() {
+    const ordersListElement = document.getElementById('orders-em-preparo');
+    const loadingState = document.getElementById('loading-em-preparo');
+    const emptyState = document.getElementById('empty-em-preparo');
+
+    // Adicionado verificação de existência para loadingState e emptyState
+    if (loadingState) {
+        loadingState.style.display = 'none';
+    }
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+
+    try {
+        // Fetch all orders for the restaurant
+        const { data: fetchedOrders, error: ordersError } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('restaurant_id', restaurantId)
+            .order('created_at', { ascending: true });
+
+        if (ordersError) throw ordersError;
+
+        console.log('🔄 Pedidos buscados para sincronização:', fetchedOrders);
+
+        const ordersToRender = [];
+        for (const order of fetchedOrders) {
+            order.order_items = await fetchOrderItems(order.id);
+            
+            let shouldDisplayOrder = false;
+            const orderDisplayType = getOrderDisplayType(order);
+            const orderIsMesa = (orderDisplayType === 'mesa');
+            const orderIsNonMesa = (orderDisplayType === 'balcao' || orderDisplayType === 'delivery');
+
+            // UNIVERSAL FILTERING: Only consider kitchen items for display logic
+            const kitchenItemsForOrder = order.order_items.filter(item => {
+                const product = productsCache[item.product_id];
+                return product && product.impressao === 'cozinha';
+            });
+
+            if (kitchenItemsForOrder.length > 0) { // Only proceed if there are kitchen items in this order
+                if (orderIsMesa) {
+                    const hasPendingKitchenItems = kitchenItemsForOrder.some(item => {
+                        const isPending = (item.status === null || item.status === '');
+                        console.log(`[LOG - SYNC - MESA ITEM CHECK] Order ${order.id.substring(0,4).toUpperCase()} Item ${item.id.substring(0,4).toUpperCase()}: isPending: ${isPending}, product:`, productsCache[item.product_id], 'item:', item);
+                        return isPending;
+                    });
+                    shouldDisplayOrder = hasPendingKitchenItems;
+                    console.log(`[LOG - SYNC - MESA ORDER] Order ${order.id.substring(0,4).toUpperCase()}: orderIsMesa: ${orderIsMesa}, hasPendingKitchenItems: ${hasPendingKitchenItems}, shouldDisplayOrder: ${shouldDisplayOrder}`);
+                } else if (orderIsNonMesa) {
+                    shouldDisplayOrder = (order.status === 'preparo' || order.status === 'Aberta' || order.status === 'Em Preparo' || order.status === 'Abertos');
+                    console.log(`[LOG - SYNC - NON-MESA ORDER] Order ${order.id.substring(0,4).toUpperCase()}: orderIsNonMesa: ${orderIsNonMesa}, order.status: '${order.status}', shouldDisplayOrder: ${shouldDisplayOrder}`);
+                } else {
+                    shouldDisplayOrder = false; // Unknown type, don't display
+                    console.log(`[LOG - SYNC - UNKNOWN TYPE] Order ${order.id.substring(0,4).toUpperCase()}: Type could not be determined, shouldDisplayOrder: ${shouldDisplayOrder}`);
+                }
+            } else {
+                console.log(`[LOG - SYNC - NO KITCHEN ITEMS] Order ${order.id.substring(0,4).toUpperCase()}: No kitchen items found, shouldDisplayOrder: false`);
+            }
+
+            if (shouldDisplayOrder) {
+                // Attach only the kitchen items to the order object for rendering
+                // This ensures renderOrderCard only processes kitchen items
+                order.order_items = kitchenItemsForOrder; // IMPORTANT: Overwrite with filtered items
+                ordersToRender.push(order);
+                console.log(`[LOG - SYNC - ADDED] Order ${order.id.substring(0,4).toUpperCase()} added to ordersToRender.`);
+            } else {
+                console.log(`[LOG - SYNC - SKIPPED] Order ${order.id.substring(0,4).toUpperCase()} skipped for rendering.`);
+            }
+        }
+
+        const currentOrderCards = ordersListElement.querySelectorAll('.order-card');
+        const currentOrderIds = new Set(Array.from(currentOrderCards).map(card => card.dataset.orderId));
+        const fetchedOrderIds = new Set(ordersToRender.map(order => order.id));
+
+        // 1. Remove orders that are no longer in the fetched list or no longer have pending kitchen items/status
+        for (const currentId of currentOrderIds) {
+            if (!fetchedOrderIds.has(currentId)) {
+                console.log(`🔄 Removendo pedido ${currentId.substring(0,4).toUpperCase()} (não tem mais itens de cozinha pendentes ou status relevante).`);
+                document.getElementById(`order-card-${currentId}`).remove();
+            }
+        }
+
+        // 2. Add or update orders from the fetched list
+        for (const order of ordersToRender) {
+            renderOrderCard(order, 'column-em-preparo');
+        }
+
+        updateOrderCount('column-em-preparo');
+        updatePendingItemsCountDisplay(); // Update pending items count after full sync
+
+    } catch (error) {
+        console.error('❌ Erro na sincronização de pedidos em segundo plano:', error.message);
+    } finally {
+        if (ordersListElement.querySelectorAll('.order-card').length === 0) {
+            if (emptyState) { // Adicionado verificação de existência
+                emptyState.style.display = 'block';
+            }
+        } else {
+            if (emptyState) { // Adicionado verificação de existência
+                emptyState.style.display = 'none';
+            }
+        }
+    }
+}
+
+
+/**
+ * Updates the timers on all displayed order cards and applies color coding.
+ */
+function updateOrderTimers() {
+    // Iterate over all order cards currently in the DOM
+    document.querySelectorAll('.order-card-timer').forEach(timerElement => {
+        const orderId = timerElement.dataset.orderId;
+        const orderCard = document.getElementById(`order-card-${orderId}`);
+        if (orderCard) {
+            const createdAt = orderCard.dataset.createdAt;
+            if (createdAt) {
+                const elapsedSeconds = calculateElapsedTimeInSeconds(createdAt);
+                timerElement.querySelector('.timer-value').textContent = formatSecondsToMMSS(elapsedSeconds);
+
+                // Remove previous color classes
+                timerElement.classList.remove('green', 'orange', 'red', 'blinking');
+
+                // Apply new color classes based on elapsed time
+                if (elapsedSeconds <= 300) { // 0 to 5 minutes (5 * 60 = 300)
+                    timerElement.classList.add('green');
+                } else if (elapsedSeconds > 300 && elapsedSeconds <= 900) { // 5 to 15 minutes (15 * 60 = 900)
+                    timerElement.classList.add('orange');
+                } else if (elapsedSeconds > 900 && elapsedSeconds <= 1200) { // 15 to 20 minutes (20 * 60 = 1200)
+                    timerElement.classList.add('red', 'blinking');
+                } else { // Over 20 minutes
+                    timerElement.classList.add('red', 'blinking'); // Keep blinking red
+                }
+            }
+        }
+    });
+}
+
+// --- Fullscreen Toggle ---
+
+let isFullscreenMode = false;
+
+/**
+ * Toggles fullscreen mode for the kitchen dashboard.
+ */
+function toggleFullscreen() {
+    const body = document.body;
+    const sidebar = document.getElementById('sidebar');
+    const fullscreenBtn = document.getElementById('fullscreenToggle');
+
+    if (!isFullscreenMode) {
+        body.classList.add('fullscreen-mode');
+        sidebar.style.display = 'none'; // Ensure sidebar is hidden immediately
+        fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Sair Tela Cheia';
+        if (body.requestFullscreen) {
+            body.requestFullscreen();
+        } else if (body.webkitRequestFullscreen) { /* Safari */
+            body.webkitRequestFullscreen();
+        } else if (body.msRequestFullscreen) { /* IE11 */
+            body.msRequestFullscreen();
+        }
+    } else {
+        body.classList.remove('fullscreen-mode');
+        sidebar.style.display = 'block'; // Show sidebar again
+        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Tela Cheia';
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+    isFullscreenMode = !isFullscreenMode;
+}
+
+// Listen for fullscreen change event to keep state in sync
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        // If fullscreen was exited by user (e.g., Esc key), update our state
+        if (isFullscreenMode) {
+            isFullscreenMode = false;
+            document.body.classList.remove('fullscreen-mode');
+            document.getElementById('sidebar').style.display = 'block';
+            document.getElementById('fullscreenToggle').innerHTML = '<i class="fas fa-expand"></i> Tela Cheia';
+        }
+    }
+});
+
+
+// --- Audio Notification ---
+
+/**
+ * Plays a mandatory sound notification for new orders, repeating 4 times.
+ * This function tries to auto-activate audio if needed for mandatory alerts.
+ */
+function playSoundNotification() {
+    // Try to auto-activate audio context if suspended
+    if (!audioContextResumed && audioContext && audioContext.state === 'suspended') {
+        console.log('🔊 Tentando ativar áudio automaticamente para alerta obrigatório...');
+        audioContext.resume().then(() => {
+            audioContextResumed = true;
+            console.log('✅ ÁudioContext ativado automaticamente para alerta obrigatório.');
+            playMandatorySound();
+        }).catch(e => {
+            console.warn('❌ Erro ao ativar áudio automaticamente:', e);
+            showNotification('⚠️ Clique em "Ativar Som" para ouvir alertas de novos pedidos', 'warning');
+        });
+        return;
+    }
+
+    if (!audioContextResumed) {
+        console.warn('⚠️ ÁudioContext ainda não foi resumido. Mostrando alerta visual.');
+        showNotification('🔔 NOVO PEDIDO NA COZINHA! Ative o som para alertas sonoros.', 'warning');
+        return;
+    }
+
+    if (!audioContext) {
+        console.warn('AudioContext not available for sound notification.');
+        showNotification('🔔 NOVO PEDIDO NA COZINHA!', 'info');
+        return;
+    }
+
+    playMandatorySound();
+}
+
+/**
+ * Plays the actual sound 4 times as required.
+ */
+function playMandatorySound() {
+    const createAndPlayOscillator = () => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination); 
+
+        oscillator.type = 'sine'; // Sine wave for a soft tone
+        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5 note (higher pitch for alerts)
+        gainNode.gain.setValueAtTime(0.7, audioContext.currentTime); // Higher volume for mandatory alerts
+
+        oscillator.start(audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4); // Shorter fade
+        oscillator.stop(audioContext.currentTime + 0.4); // Stop after 0.4 seconds
+    };
+
+    // OBRIGATÓRIO: Play 4 times with a delay as requested
+    console.log('🔊 Tocando alerta obrigatório - 4 repetições para novo pedido na cozinha');
+    for (let i = 0; i < 4; i++) {
+        setTimeout(createAndPlayOscillator, i * 500); // 500ms delay between each sound
+    }
+}
+
+/**
+ * Updates the display of the pending items count button.
+ */
+function updatePendingItemsCountDisplay() {
+    let currentPendingCount = 0;
+    // Iterate over all order cards currently displayed
+    document.querySelectorAll('.order-card').forEach(orderCard => {
+        // Count only the order items that are *not* marked as 'pronto' and are visible
+        orderCard.querySelectorAll('.order-item:not(.pronto)').forEach(itemElement => {
+            // Since renderOrderCard already filters for 'cozinha' impression,
+            // any non-pronto item element in the DOM is a pending kitchen item.
+            currentPendingCount++;
+        });
+    });
+
+    const pendingItemsButton = document.getElementById('pendingItemsButton');
+    const pendingItemsCountSpan = document.getElementById('pendingItemsCount');
+
+    if (pendingItemsButton && pendingItemsCountSpan) {
+        pendingItemsCountSpan.textContent = currentPendingCount;
+        if (currentPendingCount > 0) {
+            pendingItemsButton.style.display = 'flex'; // Show button
+        } else {
+            pendingItemsButton.style.display = 'none'; // Hide button
+        }
+    }
+}
+
+/**
+ * Activates the AudioContext if it's suspended and hides the activate sound button.
+ */
+function activateSound() {
+    const activateSoundButton = document.getElementById('activateSoundButton');
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('AudioContext resumed manually.');
+            audioContextResumed = true;
+            if (activateSoundButton) {
+                activateSoundButton.style.display = 'none'; // Hide button once activated
+            }
+            showNotification('Som ativado!', 'success');
+        }).catch(e => {
+            console.error('Error resuming AudioContext manually:', e);
+            showNotification('Erro ao ativar o som. Por favor, tente novamente.', 'error');
+        });
+    } else if (audioContextResumed) {
+        // If already resumed, just hide the button
+        if (activateSoundButton) {
+            activateSoundButton.style.display = 'none';
+        }
+        showNotification('O som já está ativo.', 'info');
+    } else {
+        console.log('AudioContext is not suspended or not initialized.');
+        showNotification('O som não pode ser ativado neste momento.', 'warning');
+        if (activateSoundButton) {
+            activateSoundButton.style.display = 'none'; // Hide if it's not needed
+        }
+    }
+}
+
+// Initial state for activate sound button on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const activateSoundButton = document.getElementById('activateSoundButton');
+    if (activateSoundButton) {
+        // Check initial state of audioContext
+        if (audioContext && audioContext.state !== 'suspended') {
+            activateSoundButton.style.display = 'none'; // Hide if already active
+            audioContextResumed = true; // Ensure flag is true
+        } else {
+            activateSoundButton.style.display = 'flex'; // Show if it needs activation
+        }
+    }
+});
+
+
+// --- Initialize Application ---
+window.onload = checkAuthenticationAndLoadConfig;
+    </script>
+
+    <script>
+    // Função para controlar o menu mobile
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
+
+    // Fechar menu ao clicar em um link (em mobile)
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

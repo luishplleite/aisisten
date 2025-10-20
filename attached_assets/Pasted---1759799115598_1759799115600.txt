@@ -1,0 +1,723 @@
+================================================================================
+                    DOCUMENTAÇÃO COMPLETA - PAINEL ADMINISTRATIVO
+                              TimePulse AI - admin.html
+================================================================================
+
+VISÃO GERAL
+-----------
+O painel administrativo (admin.html) é a interface central de gestão da plataforma 
+TimePulse AI. Permite ao administrador geral gerenciar restaurantes, controlar 
+períodos de teste, assinaturas, pagamentos e análises detalhadas.
+
+AUTENTICAÇÃO
+------------
+- Email do Administrador: luishplleite@gmail.com
+- Sistema de autenticação: JWT (JSON Web Token)
+- Token armazenado: localStorage (chave: 'admin_token')
+- Banco de Dados: Supabase (tabela: auth.users)
+- Verificação periódica: A cada 3 minutos
+
+================================================================================
+                              MENU DE NAVEGAÇÃO
+================================================================================
+
+O painel possui 7 seções principais acessíveis via menu lateral:
+
+1. 📊 DASHBOARD
+2. 🍽️ RESTAURANTES
+3. ⏱️ TESTES GRATUITOS
+4. 💳 ASSINATURAS
+5. 💰 PAGAMENTOS
+6. 📈 ANÁLISES E RELATÓRIOS
+7. 🤖 ASSISTENTE VIRTUAL ANA
+
+================================================================================
+                            1. DASHBOARD (PRINCIPAL)
+================================================================================
+
+FUNÇÃO:
+- Visão geral de todas as métricas importantes da plataforma
+- Apresenta estatísticas consolidadas em tempo real
+
+ESTATÍSTICAS EXIBIDAS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ • Receita Total Mensal                                              │
+│   - Soma de todas as assinaturas ativas                             │
+│   - Valores: Básico (R$ 99,90), Premium (R$ 199,90), Enterprise    │
+│     (R$ 399,90)                                                     │
+│                                                                     │
+│ • Total de Restaurantes                                            │
+│   - Contador de todos os restaurantes cadastrados                  │
+│                                                                     │
+│ • Testes Ativos                                                     │
+│   - Restaurantes em período de teste gratuito                      │
+│                                                                     │
+│ • Assinaturas Ativas                                               │
+│   - Restaurantes com assinatura paga ativa                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela: public.restaurants                                          │
+│ Campos consultados:                                                 │
+│ - subscription_status (trial, active, expired, cancelled)           │
+│ - plan (basic, premium, enterprise)                                 │
+│ - trial_enabled (boolean)                                           │
+│ - created_at (timestamp)                                            │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÃO JAVASCRIPT:
+- loadDashboardStats() - Carrega e exibe as estatísticas
+
+ATUALIZAÇÃO:
+- Automática a cada 2 minutos
+- Manual ao navegar para a seção
+
+================================================================================
+                          2. RESTAURANTES (GESTÃO)
+================================================================================
+
+FUNÇÃO:
+- Gerenciar todos os restaurantes cadastrados na plataforma
+- Visualizar, editar e controlar status dos restaurantes
+
+FUNCIONALIDADES:
+┌─────────────────────────────────────────────────────────────────────┐
+│ FILTROS:                                                            │
+│ • Status (Ativo, Inativo, Suspenso)                                 │
+│ • Plano (Básico, Premium, Empresarial)                              │
+│ • Período (data inicial e final)                                    │
+│                                                                     │
+│ AÇÕES POR RESTAURANTE:                                              │
+│ • 👁️ Visualizar - Mostra detalhes completos                         │
+│ • ✏️ Editar - Permite modificar dados                                │
+│ • 🔄 Alterar Status - Ativo/Inativo/Suspenso/Cancelado              │
+│                                                                     │
+│ EXPORTAÇÃO:                                                         │
+│ • Exportar dados em formato CSV/Excel                               │
+└─────────────────────────────────────────────────────────────────────┘
+
+TABELA DE DADOS EXIBIDA:
+- Nome do Restaurante
+- Responsável (nome + telefone)
+- Cidade/Estado
+- Plano atual
+- Status
+- Data de Cadastro
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela Principal: public.restaurants                                │
+│                                                                     │
+│ CAMPOS LEITURA/ESCRITA:                                             │
+│ - id (uuid)                                                         │
+│ - name (varchar) - Nome do restaurante                              │
+│ - owner_name (varchar) - Nome do responsável                        │
+│ - owner_email (varchar) - Email do responsável                      │
+│ - owner_phone (varchar) - Telefone do responsável                   │
+│ - cnpj (varchar) - CNPJ do estabelecimento                          │
+│ - address (text) - Endereço completo                                │
+│ - city (varchar) - Cidade                                           │
+│ - state (varchar) - Estado                                          │
+│ - plan (varchar) - Plano (basic, premium, enterprise)               │
+│ - status (varchar) - Status (active, inactive, suspended)           │
+│ - created_at (timestamp) - Data de cadastro                         │
+│ - updated_at (timestamp) - Última atualização                       │
+│                                                                     │
+│ OPERAÇÕES:                                                          │
+│ - SELECT * - Listagem de restaurantes                               │
+│ - UPDATE - Edição de dados e status                                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÕES JAVASCRIPT:
+- loadRestaurantsData() - Carrega lista de restaurantes
+- viewRestaurantDetails(id) - Abre modal de visualização
+- editRestaurant(id) - Abre modal de edição
+- saveRestaurantChanges() - Salva alterações no banco
+- applyRestaurantFilters() - Aplica filtros na listagem
+
+MODALS:
+1. Modal de Visualização (viewRestaurantModal)
+   - Exibe informações completas do restaurante
+   - Dados de contato, endereço, plano e configurações
+
+2. Modal de Edição (editRestaurantModal)
+   - Formulário completo para editar dados
+   - Configuração de período de teste
+   - Configuração de assinatura
+   - Alteração de status
+
+================================================================================
+                        3. TESTES GRATUITOS (CONTROLE)
+================================================================================
+
+FUNÇÃO:
+- Gerenciar períodos de teste gratuito de cada restaurante
+- Controlar expiração e extensão de trials
+
+INFORMAÇÕES EXIBIDAS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ • Nome do Restaurante                                               │
+│ • Email do Responsável                                              │
+│ • Data de Início do Teste                                           │
+│ • Data de Fim do Teste                                              │
+│ • Dias Restantes                                                    │
+│ • Status (Ativo, Expirado)                                          │
+└─────────────────────────────────────────────────────────────────────┘
+
+AÇÕES DISPONÍVEIS:
+1. Estender Trial
+   - Botões rápidos: +7, +15, +30, +90 dias
+   - Campo customizado para dias específicos
+   
+2. Ativar Manualmente
+   - Ativa assinatura antes do fim do trial
+   
+3. Cancelar Trial
+   - Encerra o período de teste
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela: public.restaurants                                          │
+│                                                                     │
+│ CAMPOS ESPECÍFICOS DE TRIAL:                                        │
+│ - trial_enabled (boolean) - Se o trial está habilitado             │
+│ - trial_start_date (timestamp) - Data de início do teste            │
+│ - trial_end_date (timestamp) - Data de término do teste             │
+│ - trial_days_remaining (integer) - Dias restantes                   │
+│ - subscription_status (varchar) - Status (trial, active, expired)   │
+│ - trial_extension_reason (text) - Motivo da extensão                │
+│                                                                     │
+│ OPERAÇÕES:                                                          │
+│ - SELECT com filtro trial_enabled = true                            │
+│ - UPDATE trial_end_date para extensão                               │
+│ - UPDATE subscription_status para ativação/cancelamento             │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÕES JAVASCRIPT:
+- loadTrialsData() - Carrega dados dos trials
+- extendTrial(restaurantId, days) - Estende período de teste
+- activateManually(restaurantId) - Ativa assinatura manualmente
+- cancelTrial(restaurantId) - Cancela trial
+
+ATUALIZAÇÃO:
+- Automática a cada 2 minutos
+- Calcula dias restantes em tempo real
+
+================================================================================
+                          4. ASSINATURAS (GESTÃO)
+================================================================================
+
+FUNÇÃO:
+- Gerenciar assinaturas pagas dos restaurantes
+- Controlar renovações e cancelamentos
+
+INFORMAÇÕES EXIBIDAS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ • Nome do Restaurante                                               │
+│ • Plano (Básico, Premium, Empresarial)                              │
+│ • Data de Início da Assinatura                                      │
+│ • Próximo Pagamento                                                 │
+│ • Status (Ativa, Expirada, Cancelada)                               │
+│ • Valor Mensal                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+
+AÇÕES DISPONÍVEIS:
+1. Ver Detalhes
+   - Histórico completo da assinatura
+   
+2. Cancelar Assinatura
+   - Encerra assinatura ativa
+   
+3. Criar Assinatura Manual
+   - Cadastra nova assinatura manualmente
+
+VALORES DOS PLANOS:
+- Básico: R$ 99,90/mês
+- Premium: R$ 199,90/mês
+- Empresarial: R$ 399,90/mês
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela: public.restaurants                                          │
+│                                                                     │
+│ CAMPOS DE ASSINATURA:                                               │
+│ - subscription_status (varchar) - Status (active, expired, etc)     │
+│ - subscription_start_date (timestamp) - Início da assinatura        │
+│ - subscription_end_date (timestamp) - Fim da assinatura             │
+│ - subscription_days_remaining (integer) - Dias restantes            │
+│ - plan (varchar) - Plano contratado                                 │
+│ - manual_activation_reason (text) - Motivo ativação manual          │
+│                                                                     │
+│ OPERAÇÕES:                                                          │
+│ - SELECT com filtro subscription_status = 'active'                  │
+│ - UPDATE para cancelamento ou alteração                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÕES JAVASCRIPT:
+- loadSubscriptionsData() - Carrega assinaturas
+- viewSubscriptionDetails(id) - Mostra detalhes
+- cancelSubscription(id) - Cancela assinatura
+- createManualSubscription() - Cria assinatura manual
+
+================================================================================
+                          5. PAGAMENTOS (HISTÓRICO)
+================================================================================
+
+FUNÇÃO:
+- Visualizar histórico de pagamentos da plataforma
+- Configurar integração com gateway de pagamento Asaas
+
+INFORMAÇÕES EXIBIDAS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ • Data do Pagamento                                                 │
+│ • Nome do Restaurante                                               │
+│ • Descrição (tipo de pagamento)                                     │
+│ • Valor                                                             │
+│ • Status (Pago, Pendente, Cancelado)                                │
+│ • Método (PIX, Cartão, Boleto)                                      │
+│ • ID da Transação                                                   │
+└─────────────────────────────────────────────────────────────────────┘
+
+CONFIGURAÇÃO ASAAS API:
+┌─────────────────────────────────────────────────────────────────────┐
+│ BOTÃO: "Configurar Asaas API"                                       │
+│                                                                     │
+│ MODAL DE CONFIGURAÇÃO:                                              │
+│ • Campo: Chave API do Asaas                                         │
+│ • Email fixo: luishplleite@gmail.com                                │
+│ • Salva chave de forma segura no banco                              │
+└─────────────────────────────────────────────────────────────────────┘
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela 1: public.platform_admins                                    │
+│ CAMPOS:                                                             │
+│ - id (uuid) - ID único                                              │
+│ - email (varchar) - Email do admin (luishplleite@gmail.com)         │
+│ - name (varchar) - Nome do administrador                            │
+│ - asaas_api (text) - Chave API do Asaas                             │
+│ - created_at (timestamp) - Data de criação                          │
+│ - updated_at (timestamp) - Última atualização                       │
+│                                                                     │
+│ OPERAÇÕES:                                                          │
+│ - SELECT para carregar API key existente                            │
+│ - UPSERT para salvar/atualizar API key                              │
+│                                                                     │
+│ Tabela 2: Histórico de Pagamentos (a implementar)                   │
+│ - Futura integração com Asaas                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÕES JAVASCRIPT:
+- loadPaymentsData() - Carrega histórico (a implementar)
+- openAsaasConfigModal() - Abre modal de configuração Asaas
+- saveAsaasConfig() - Salva chave API do Asaas
+- exportPaymentsData() - Exporta dados (a implementar)
+
+================================================================================
+                        6. ANÁLISES E RELATÓRIOS (ANALYTICS)
+================================================================================
+
+FUNÇÃO:
+- Apresentar análises detalhadas e métricas da plataforma
+- Visualizar dados através de gráficos interativos
+
+GRÁFICOS DISPONÍVEIS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 1. CONVERSÃO DE TESTE PARA ASSINATURA (Gráfico de Rosquinha)       │
+│    - Mostra % de trials convertidos em assinaturas                  │
+│    - Cores: Verde (convertidos), Vermelho (não convertidos)         │
+│                                                                     │
+│ 2. CHURN RATE MENSAL (Gráfico de Linha)                            │
+│    - Taxa de cancelamento dos últimos 6 meses                       │
+│    - Identifica tendências de perda de clientes                     │
+│                                                                     │
+│ 3. DISTRIBUIÇÃO POR PLANO (Gráfico de Pizza)                       │
+│    - Quantos restaurantes por plano                                 │
+│    - Planos: Básico, Premium, Empresarial                           │
+│                                                                     │
+│ 4. RECEITA POR CATEGORIA (Gráfico de Barras)                       │
+│    - Receita estimada por plano                                     │
+│    - Valores em R$ formatados                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+CÁLCULOS REALIZADOS:
+1. Taxa de Conversão
+   - (Trials Convertidos / Total Trials) × 100
+
+2. Churn Rate Mensal
+   - (Cancelamentos do Mês / Ativos no Início do Mês) × 100
+
+3. Receita por Plano
+   - Quantidade × Valor do Plano
+   - Básico: R$ 99,90 | Premium: R$ 199,90 | Empresarial: R$ 399,90
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela: public.restaurants                                          │
+│                                                                     │
+│ CAMPOS ANALISADOS:                                                  │
+│ - trial_enabled (boolean) - Para cálculo de conversão               │
+│ - subscription_status (varchar) - Para métricas de ativo/cancelado  │
+│ - subscription_start_date (timestamp) - Análise temporal            │
+│ - plan (varchar) - Distribuição e receita                           │
+│ - updated_at (timestamp) - Para churn rate                          │
+│ - created_at (timestamp) - Para análise histórica                   │
+│                                                                     │
+│ CONSULTA:                                                           │
+│ - SELECT * FROM restaurants ORDER BY created_at DESC                │
+│ - Processamento em JavaScript para métricas                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÕES JAVASCRIPT:
+- updateAnalyticsCharts() - Carrega e atualiza todos os gráficos
+- calculateAnalyticsMetrics(restaurants) - Calcula métricas
+- updateConversionChart(data) - Atualiza gráfico de conversão
+- updateChurnChart(data) - Atualiza gráfico de churn
+- updatePlansChart(data) - Atualiza gráfico de planos
+- updateRevenueChart(data) - Atualiza gráfico de receita
+
+BIBLIOTECA:
+- Chart.js v4.4.0 - Para renderização dos gráficos
+
+================================================================================
+                      7. ASSISTENTE VIRTUAL ANA (AI)
+================================================================================
+
+FUNÇÃO:
+- Monitorar e configurar o assistente virtual com IA
+- Visualizar logs de mensagens do WhatsApp (Evolution API)
+
+COMPONENTES:
+┌─────────────────────────────────────────────────────────────────────┐
+│ STATUS DO ASSISTENTE:                                               │
+│ • Indicador de status (Online/Offline)                              │
+│ • Botão "Testar Conexão"                                            │
+│ • Botão "Abrir Assistente" (nova aba)                               │
+│                                                                     │
+│ LOG DO WEBHOOK EVOLUTION:                                           │
+│ • Últimas mensagens recebidas                                       │
+│ • Detalhes das requisições webhook                                  │
+│ • Botão "Atualizar Log"                                             │
+│ • Botão "Limpar Log"                                                │
+│                                                                     │
+│ CONFIGURAÇÃO DA IA:                                                 │
+│ • Provedor: OpenAI API                                              │
+│ • Modelo: GPT-5-mini (com raciocínio)                               │
+│ • Nível de raciocínio: Médio (configurável)                         │
+│ • Tokens máximos: 4.096                                             │
+│ • Streaming: Desabilitado                                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+BANCO DE DADOS:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Tabela: public.buffer_mensagem                                      │
+│ CAMPOS:                                                             │
+│ - id (bigint) - ID único                                            │
+│ - cell (text) - Número do celular                                   │
+│ - message (text) - Conteúdo da mensagem                             │
+│ - idMessage (text) - ID da mensagem                                 │
+│ - timestamp (text) - Data/hora da mensagem                          │
+│ - created_at (timestamp) - Data de criação                          │
+│                                                                     │
+│ OPERAÇÕES:                                                          │
+│ - SELECT para carregar últimas mensagens                            │
+│ - DELETE para limpar log                                            │
+└─────────────────────────────────────────────────────────────────────┘
+
+FUNÇÕES JAVASCRIPT:
+- testAIConnection() - Testa conexão com OpenAI
+- refreshEvolutionWebhookLog() - Atualiza log de mensagens
+- clearWebhookLog() - Limpa log do webhook
+- loadWebhookMessages() - Carrega mensagens do buffer
+
+INTEGRAÇÕES:
+- OpenAI API (variável: OPENAI_API_KEY)
+- Evolution API (variáveis: EVOLUTION_SERVER_URL, EVOLUTION_API_KEY)
+
+================================================================================
+                          SISTEMA DE CONFIGURAÇÃO
+================================================================================
+
+VARIÁVEIS DE AMBIENTE:
+┌─────────────────────────────────────────────────────────────────────┐
+│ SUPABASE:                                                           │
+│ - SUPABASE_URL - URL do projeto Supabase                            │
+│ - SUPABASE_ANON_KEY - Chave pública do Supabase                     │
+│ - SUPABASE_SERVICE_ROLE_KEY - Chave de serviço (admin)              │
+│                                                                     │
+│ MAPBOX:                                                             │
+│ - MAPBOX_ACCESS_TOKEN - Token de acesso do Mapbox                   │
+│                                                                     │
+│ EVOLUTION API (WhatsApp):                                           │
+│ - EVOLUTION_SERVER_URL - URL do servidor Evolution                  │
+│ - EVOLUTION_API_KEY - Chave de API do Evolution                     │
+│                                                                     │
+│ OPENAI:                                                             │
+│ - OPENAI_API_KEY - Chave de API do OpenAI                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+ARQUIVOS DE CONFIGURAÇÃO:
+- /api/config - Endpoint de configuração geral
+- /api/config/supabase - Configuração Supabase
+- /api/config/mapbox - Configuração Mapbox
+- /api/config/evolution - Configuração Evolution API
+- /api/config/openai - Configuração OpenAI
+
+CLIENTE SUPABASE:
+- Inicializado via: window.secureSupabase.client
+- Gerenciado por: SecureSupabaseManager (secure-config.js)
+
+================================================================================
+                        TABELAS DO BANCO DE DADOS
+================================================================================
+
+RESUMO DAS TABELAS UTILIZADAS:
+
+1. public.restaurants
+   - Armazena todos os dados dos restaurantes
+   - Usado em: Dashboard, Restaurantes, Trials, Assinaturas, Analytics
+
+2. public.platform_admins
+   - Armazena dados do administrador da plataforma
+   - Usado em: Pagamentos (configuração Asaas API)
+
+3. public.buffer_mensagem
+   - Armazena mensagens do WhatsApp (webhook)
+   - Usado em: Assistente Virtual (log de mensagens)
+
+4. auth.users (Supabase Auth)
+   - Autenticação de usuários administrativos
+   - Usado em: Login/Autenticação
+
+CAMPOS PRINCIPAIS DE restaurants:
+┌─────────────────────────────────────────────────────────────────────┐
+│ IDENTIFICAÇÃO:                                                      │
+│ - id, name, cnpj                                                    │
+│                                                                     │
+│ CONTATO:                                                            │
+│ - owner_name, owner_email, owner_phone                              │
+│                                                                     │
+│ ENDEREÇO:                                                           │
+│ - address, city, state, zip_code, latitude, longitude               │
+│                                                                     │
+│ CONFIGURAÇÃO:                                                       │
+│ - plan, status, primary_color, logo_url                             │
+│                                                                     │
+│ TRIAL:                                                              │
+│ - trial_enabled, trial_start_date, trial_end_date,                  │
+│   trial_days_remaining, trial_extension_reason                      │
+│                                                                     │
+│ ASSINATURA:                                                         │
+│ - subscription_status, subscription_start_date,                     │
+│   subscription_end_date, subscription_days_remaining,               │
+│   manual_activation_reason                                          │
+│                                                                     │
+│ DELIVERY:                                                           │
+│ - minimum_delivery_fee, delivery_fee_per_km, delivery_radius,       │
+│   minimum_distance_km, preparation_time, minimum_order              │
+│                                                                     │
+│ INTEGRAÇÕES:                                                        │
+│ - whatsapp_config, smtp_config, asaas_config, payment_methods       │
+└─────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                          SEGURANÇA E AUTENTICAÇÃO
+================================================================================
+
+NÍVEIS DE ACESSO:
+1. Administrador da Plataforma (luishplleite@gmail.com)
+   - Acesso total ao painel admin.html
+   - Pode gerenciar todos os restaurantes
+   - Configura integrações globais
+
+2. Restaurantes
+   - Acesso limitado ao próprio painel
+   - Não têm acesso ao admin.html
+
+PROTEÇÕES:
+- JWT para autenticação
+- Verificação periódica de sessão
+- Redirecionamento automático se não autenticado
+- Headers de segurança (CSP)
+
+ENDPOINTS ADMINISTRATIVOS:
+- /api/admin/* - Endpoints protegidos por autenticação admin
+- Verificação JWT obrigatória
+
+================================================================================
+                          FUNCIONALIDADES TÉCNICAS
+================================================================================
+
+ATUALIZAÇÃO AUTOMÁTICA:
+- Intervalo: 2 minutos
+- Aplica-se a: Dashboard, Trials, Assinaturas
+- Pausa quando página não está visível
+- Retoma ao voltar à página
+
+SISTEMA DE MODAIS:
+- viewRestaurantModal - Visualização de restaurante
+- editRestaurantModal - Edição de restaurante
+- asaasConfigModal - Configuração Asaas API
+
+BIBLIOTECAS UTILIZADAS:
+- Supabase JS v2 - Cliente de banco de dados
+- Chart.js v4.4.0 - Gráficos e visualizações
+- Font Awesome v6.4.0 - Ícones
+- Inter Font - Tipografia
+
+SISTEMA DE CACHE:
+- Configurações armazenadas em cache (5 minutos)
+- Reduz chamadas à API
+- Gerenciado por SecureConfigManager
+
+================================================================================
+                          FLUXO DE DADOS PRINCIPAL
+================================================================================
+
+1. AUTENTICAÇÃO:
+   Login → Verificar JWT → Carregar dados do admin → Inicializar painel
+
+2. CARREGAMENTO INICIAL:
+   Inicializar Supabase → Carregar configurações → Carregar Dashboard
+
+3. NAVEGAÇÃO:
+   Clicar seção → Mostrar seção → Carregar dados específicos → Renderizar
+
+4. EDIÇÃO DE DADOS:
+   Abrir modal → Carregar dados atuais → Editar → Salvar no Supabase
+
+5. ANALYTICS:
+   Carregar restaurantes → Calcular métricas → Renderizar gráficos
+
+================================================================================
+                          ENDPOINTS DA API
+================================================================================
+
+CONFIGURAÇÃO:
+- GET /api/config - Configuração geral
+- GET /api/config/supabase - Config Supabase
+- GET /api/config/evolution - Config Evolution
+- GET /api/config/mapbox - Config Mapbox
+- GET /api/config/openai - Config OpenAI
+
+AUTENTICAÇÃO:
+- POST /api/auth/login - Login administrativo
+- GET /api/admin/verify - Verificar token admin
+
+STATUS:
+- GET /api/health - Health check
+- GET /api/status - Status do servidor
+
+================================================================================
+                          MANUTENÇÃO E LOGS
+================================================================================
+
+LOGS NO CONSOLE:
+- 🔐 Autenticação
+- 📊 Carregamento de dados
+- ✅ Sucesso em operações
+- ❌ Erros e problemas
+- 🔄 Atualizações automáticas
+- 📱 Status de visibilidade da página
+
+DEBUGGING:
+- Adicionar ?debug=1 na URL para habilitar logs completos
+- Todos os logs suprimidos em produção
+
+INDICADORES VISUAIS:
+- Status de conexão AI (Online/Offline)
+- Loading states em tabelas
+- Badges coloridos para status
+- Notificações de sucesso/erro
+
+================================================================================
+                          RESUMO DE RESPONSABILIDADES
+================================================================================
+
+DASHBOARD:
+- Leitura: restaurants (todas colunas de status e plano)
+
+RESTAURANTES:
+- Leitura: restaurants (*)
+- Escrita: restaurants (edição completa)
+
+TESTES GRATUITOS:
+- Leitura: restaurants (campos de trial)
+- Escrita: restaurants (trial_end_date, trial_extension_reason)
+
+ASSINATURAS:
+- Leitura: restaurants (campos de subscription)
+- Escrita: restaurants (subscription_status, datas)
+
+PAGAMENTOS:
+- Leitura: platform_admins (asaas_api)
+- Escrita: platform_admins (asaas_api)
+
+ANALYTICS:
+- Leitura: restaurants (*) - somente leitura, sem escrita
+
+ASSISTENTE:
+- Leitura: buffer_mensagem (*)
+- Escrita: buffer_mensagem (DELETE para limpar)
+
+================================================================================
+                          SCRIPTS SQL DISPONÍVEIS
+================================================================================
+
+1. atualizaradm.sql
+   - Cria/atualiza tabela platform_admins
+   - Insere administrador principal
+   - Verifica configurações
+
+2. bd.sql
+   - Schema completo do banco de dados
+   - Todas as tabelas e relacionamentos
+
+3. update_prompit_table.sql
+   - Atualizações específicas de prompts
+
+================================================================================
+                          ARQUIVO: admin.html
+================================================================================
+
+ESTRUTURA:
+├── <head> - Meta tags, CSS, bibliotecas
+├── <style> - Estilos do painel
+├── <body>
+│   ├── Sidebar (menu lateral)
+│   ├── Content (área principal)
+│   │   ├── Dashboard Section
+│   │   ├── Restaurants Section
+│   │   ├── Trials Section
+│   │   ├── Subscriptions Section
+│   │   ├── Payments Section
+│   │   ├── Analytics Section
+│   │   └── Assistant Section
+│   ├── Modals (viewRestaurant, editRestaurant, asaasConfig)
+│   └── <script> - Toda lógica JavaScript
+
+TAMANHO APROXIMADO:
+- 4.900+ linhas de código
+- HTML + CSS + JavaScript integrados
+
+================================================================================
+                          CONTATO E SUPORTE
+================================================================================
+
+ADMINISTRADOR DA PLATAFORMA:
+- Nome: Luis Henrique Leite
+- Email: luishplleite@gmail.com
+- Acesso: Painel Administrativo Completo
+
+SISTEMA:
+- Nome: TimePulse AI
+- Versão: 1.0.0
+- Tecnologia: Node.js + Express + Supabase
+
+================================================================================
+                          FIM DA DOCUMENTAÇÃO
+================================================================================
+
+Última Atualização: Outubro 2025
+Documento: doc_admin.txt

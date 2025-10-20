@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- Sistema de ocultação de logs - DEVE SER O PRIMEIRO SCRIPT -->
+    <script>
+        // LOGS COMPLETAMENTE DESABILITADOS - Silenciar todos os console logs
+        (function() {
+            // Substituir TODAS as funções do console por funções vazias
+            const noOp = function() {};
+            console.log = noOp;
+            console.warn = noOp;
+            console.error = noOp;
+            console.info = noOp;
+            console.debug = noOp;
+            console.trace = noOp;
+            console.table = noOp;
+            console.group = noOp;
+            console.groupEnd = noOp;
+            console.groupCollapsed = noOp;
+            console.assert = noOp;
+            console.count = noOp;
+            console.countReset = noOp;
+            console.time = noOp;
+            console.timeEnd = noOp;
+            console.timeLog = noOp;
+            console.clear = noOp;
+        })();
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assinaturas - TimePulse AI</title>
+    
+    <meta name="description" content="Planos e assinaturas TimePulse AI">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https: wss: *.supabase.co; font-src 'self' https:; object-src 'none'; media-src 'self'; frame-src 'none';">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Sistema de Loading - Pré-carregamento de Dados */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .page-loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e9ecef;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            color: #6c757d;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .loader-status {
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .loader-progress {
+            width: 200px;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 1rem auto 0;
+        }
+
+        .loader-progress-bar {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Ocultar conteúdo principal durante carregamento */
+        body.loading .dashboard-layout {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: #6c757d;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .subscription-status {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.trial {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .subscription-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .plan-card.recommended {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        }
+
+        .plan-card.recommended::before {
+            content: "RECOMENDADO";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .plan-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .plan-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .plan-price {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .currency {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .period {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .plan-description {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+
+        .plan-features {
+            margin-bottom: 2rem;
+        }
+
+        .plan-features ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .plan-features li i.fa-check {
+            color: var(--success-color);
+        }
+
+        .plan-features li i.fa-times {
+            color: #dc3545;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #d4d8dc;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .billing-history {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .billing-history h3 {
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .billing-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .billing-table th,
+        .billing-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .billing-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .payment-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .payment-status.paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .payment-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .payment-status.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+
+            .subscription-plans {
+                grid-template-columns: 1fr;
+            }
+
+            /* Assinaturas específico mobile */
+            .plan-card {
+                padding: 1.5rem;
+            }
+
+            .plan-features {
+                margin: 1rem 0;
+            }
+
+            .plan-features li {
+                font-size: 0.9rem;
+                padding: 0.4rem 0;
+            }
+
+            .plan-price {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+
+        /* Modal de Pagamento */
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .payment-modal.show {
+            display: flex;
+        }
+
+        .payment-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .payment-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .payment-modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .payment-modal-header h3 i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .payment-modal-body {
+            padding: 1.5rem;
+        }
+
+        .plan-summary {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-summary h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .plan-summary p {
+            margin: 0.25rem 0;
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        .plan-summary .price-highlight {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-method-option {
+            cursor: pointer;
+        }
+
+        .payment-method-option input[type="radio"] {
+            display: none;
+        }
+
+        .payment-method-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .payment-method-card i {
+            font-size: 2rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .payment-method-card span {
+            display: block;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .payment-method-option input[type="radio"]:checked + .payment-method-card {
+            border-color: var(--primary-color);
+            background: rgba(40, 167, 69, 0.05);
+        }
+
+        .payment-method-option input[type="radio"]:checked + .payment-method-card i {
+            color: var(--primary-color);
+        }
+
+        .payment-method-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-pay-now {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 480px) {
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-card {
+                padding: 1rem;
+            }
+
+            .plan-price {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Modal de Sucesso / Redirecionamento */
+        .success-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10002;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .success-modal.show {
+            display: flex;
+        }
+
+        .success-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: successSlideUp 0.4s ease;
+        }
+
+        @keyframes successSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), #218838);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: successPulse 0.6s ease;
+        }
+
+        @keyframes successPulse {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-icon i {
+            color: white;
+            font-size: 2.5rem;
+        }
+
+        .success-modal-content h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .success-modal-content p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .redirect-progress {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .redirect-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #218838);
+            border-radius: 2px;
+            animation: progressBar 2s ease-in-out;
+        }
+
+        @keyframes progressBar {
+            from {
+                width: 0%;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        .redirect-timer {
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal PIX */
+        .pix-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pix-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .pix-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .pix-modal-header {
+            background: linear-gradient(135deg, #00bfae, #00968a);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pix-modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .pix-modal-body {
+            padding: 2rem;
+        }
+
+        .pix-instructions {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .pix-instructions p {
+            margin: 0;
+            color: #1976d2;
+            font-size: 0.95rem;
+        }
+
+        .pix-qrcode-container {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .pix-qrcode {
+            max-width: 250px;
+            width: 100%;
+            height: auto;
+            border: 3px solid var(--primary-color);
+            border-radius: 8px;
+        }
+
+        .pix-expiration {
+            text-align: center;
+            color: #dc3545;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .pix-payload-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .pix-payload-container label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .pix-payload-box {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pix-payload-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            background: #f8f9fa;
+        }
+
+        .btn-copy-pix {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-copy-pix:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-copy-pix:active {
+            transform: translateY(0);
+        }
+
+        .pix-status-message {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            text-align: center;
+            color: #856404;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="loading">
+    <!-- Loader de Pré-carregamento -->
+    <div class="page-loader" id="pageLoader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Carregando dados...</div>
+            <div class="loader-status" id="loaderStatus">Iniciando sistema</div>
+            <div class="loader-progress">
+                <div class="loader-progress-bar" id="loaderProgressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-layout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo brand-name" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name restaurant-brand" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link active">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" id="logoutButton">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-credit-card"></i>
+                    Assinaturas
+                </h1>
+                <p class="page-subtitle">Gerencie seus planos e assinaturas TimePulse AI</p>
+            </div>
+
+            <!-- Status da Assinatura Atual -->
+            <div class="subscription-status" id="currentSubscription">
+                <div class="status-header">
+                    <div>
+                        <h3>Status da Assinatura</h3>
+                        <p class="status-description">Seu plano atual e informações de cobrança</p>
+                    </div>
+                    <div class="status-badge trial" id="subscriptionStatus">
+                        Teste Gratuito
+                    </div>
+                </div>
+                <div class="status-details" id="statusDetails">
+                    <p><strong>Plano:</strong> <span id="currentPlan">Teste Gratuito de 7 dias</span></p>
+                    <p><strong>Expira em:</strong> <span id="expirationDate">Carregando...</span></p>
+                    <p><strong>Próximo pagamento:</strong> <span id="nextPayment">N/A</span></p>
+                </div>
+            </div>
+
+            <!-- Planos Disponíveis -->
+            <div class="subscription-plans">
+                <!-- Plano Teste Gratuito -->
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3 class="plan-title">Teste Gratuito</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">0</span>
+                            <span class="period">/7 dias</span>
+                        </div>
+                        <p class="plan-description">Experimente todas as funcionalidades por 7 dias</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Gestão completa de pedidos</li>
+                            <li><i class="fas fa-check"></i> Cardápio digital interativo</li>
+                            <li><i class="fas fa-check"></i> Integração WhatsApp básica</li>
+                            <li><i class="fas fa-check"></i> Dashboard de análises</li>
+                            <li><i class="fas fa-times"></i> Relatórios avançados</li>
+                            <li><i class="fas fa-times"></i> Suporte prioritário</li>
+                            <li><i class="fas fa-times"></i> Múltiplos usuários</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-secondary" disabled>
+                        Plano Atual
+                    </button>
+                </div>
+
+                <!-- Plano Premium -->
+                <div class="plan-card recommended">
+                    <div class="plan-header">
+                        <h3 class="plan-title">Premium</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">49</span>
+                            <span class="period">/mês</span>
+                        </div>
+                        <p class="plan-description">Plano completo para restaurantes em crescimento</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Todas as funcionalidades do teste</li>
+                            <li><i class="fas fa-check"></i> Relatórios avançados e insights</li>
+                            <li><i class="fas fa-check"></i> WhatsApp ilimitado</li>
+                            <li><i class="fas fa-check"></i> Integração com pagamentos</li>
+                            <li><i class="fas fa-check"></i> Suporte prioritário</li>
+                            <li><i class="fas fa-check"></i> Backup automático</li>
+                            <li><i class="fas fa-check"></i> Até 5 usuários</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-primary" onclick="createSubscription('premium', this)">
+                        <i class="fas fa-crown"></i>
+                        Assinar Premium
+                    </button>
+                </div>
+
+                <!-- Plano Empresarial -->
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3 class="plan-title">Empresarial</h3>
+                        <div class="plan-price">
+                            <span class="currency">R$</span>
+                            <span class="amount">99</span>
+                            <span class="period">/mês</span>
+                        </div>
+                        <p class="plan-description">Para redes e restaurantes de grande porte</p>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Todas as funcionalidades Premium</li>
+                            <li><i class="fas fa-check"></i> Múltiplas unidades</li>
+                            <li><i class="fas fa-check"></i> API personalizada</li>
+                            <li><i class="fas fa-check"></i> Relatórios customizados</li>
+                            <li><i class="fas fa-check"></i> Suporte 24/7</li>
+                            <li><i class="fas fa-check"></i> Treinamento incluído</li>
+                            <li><i class="fas fa-check"></i> Usuários ilimitados</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-primary" onclick="createSubscription('enterprise', this)">
+                        <i class="fas fa-building"></i>
+                        Assinar Empresarial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Histórico de Cobrança -->
+            <div class="billing-history">
+                <h3><i class="fas fa-file-invoice"></i> Histórico de Cobrança</h3>
+                <table class="billing-table" id="billingTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Fatura</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #6c757d; padding: 2rem;">
+                                Nenhuma cobrança encontrada
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Pagamento -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="payment-modal-content">
+            <div class="payment-modal-header">
+                <h3><i class="fas fa-credit-card"></i> Escolha a forma de pagamento</h3>
+                <button class="close-modal" onclick="closePaymentModal()">&times;</button>
+            </div>
+            <div class="payment-modal-body">
+                <div class="plan-summary" id="planSummary"></div>
+                
+                <div class="payment-methods">
+                    <label class="payment-method-option">
+                        <input type="radio" name="paymentMethod" value="card" checked>
+                        <div class="payment-method-card">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Cartão de Crédito</span>
+                        </div>
+                    </label>
+                    
+                    <label class="payment-method-option">
+                        <input type="radio" name="paymentMethod" value="pix">
+                        <div class="payment-method-card">
+                            <i class="fas fa-qrcode"></i>
+                            <span>PIX</span>
+                        </div>
+                    </label>
+                </div>
+
+                <button class="btn btn-primary btn-pay-now" onclick="processPayment()">
+                    <i class="fas fa-check-circle"></i> Pagar agora
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Sucesso / Redirecionamento -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3>Pagamento Processado!</h3>
+            <p>Você será redirecionado para finalizar o pagamento.</p>
+            <div class="redirect-progress">
+                <div class="redirect-progress-bar"></div>
+            </div>
+            <div class="redirect-timer" id="redirectTimer">Redirecionando em 2 segundos...</div>
+        </div>
+    </div>
+
+    <!-- Modal PIX -->
+    <div id="pixModal" class="pix-modal">
+        <div class="pix-modal-content">
+            <div class="pix-modal-header">
+                <h3><i class="fas fa-qrcode"></i> Pagamento via PIX</h3>
+                <button class="close-modal" onclick="closePixModal()">&times;</button>
+            </div>
+            <div class="pix-modal-body">
+                <div class="pix-instructions">
+                    <p><i class="fas fa-info-circle"></i> Escaneie o QR Code ou copie o código PIX para pagar</p>
+                </div>
+                
+                <div class="pix-qrcode-container">
+                    <img id="pixQrCode" src="" alt="QR Code PIX" class="pix-qrcode">
+                </div>
+                
+                <div class="pix-expiration" id="pixExpiration">
+                    <i class="fas fa-clock"></i> Válido até: <span id="pixExpirationDate"></span>
+                </div>
+                
+                <div class="pix-payload-container">
+                    <label><i class="fas fa-copy"></i> Código PIX (Copia e Cola):</label>
+                    <div class="pix-payload-box">
+                        <input type="text" id="pixPayload" readonly class="pix-payload-input">
+                        <button onclick="copyPixPayload()" class="btn-copy-pix">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="pix-status-message">
+                    <i class="fas fa-hourglass-half"></i> Aguardando pagamento...
+                </div>
+                
+                <div class="pix-countdown-container" id="pixCountdown" style="text-align: center; margin-top: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+                    <div style="font-size: 14px; color: #856404; margin-bottom: 5px;">
+                        <i class="fas fa-clock"></i> Verificando pagamento em:
+                    </div>
+                    <div id="pixCountdownNumber" style="font-size: 32px; font-weight: bold; color: #28a745;">10</div>
+                    <div style="font-size: 12px; color: #856404;">segundos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSubscriptionData = null;
+        let availablePlans = [];
+
+        /**
+         * Obtém os dados da instância dos cookies/localStorage/sessionStorage
+         */
+        function getInstanceData() {
+            try {
+                // 1. Tentar cookie primeiro
+                const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                    const instanceData = JSON.parse(cookieValue);
+                    return instanceData;
+                }
+                
+                // 2. Fallback para localStorage
+                const localStorageData = window.localStorage.getItem('timepulse_instance_token');
+                if (localStorageData) {
+                    const instanceData = JSON.parse(decodeURIComponent(localStorageData));
+                    return instanceData;
+                }
+                
+                // 3. Fallback para sessionStorage
+                const sessionStorageData = window.sessionStorage.getItem('timepulse_instance_token');
+                if (sessionStorageData) {
+                    const instanceData = JSON.parse(decodeURIComponent(sessionStorageData));
+                    return instanceData;
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Erro ao ler dados da instância:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Verifica se o usuário está autenticado
+         */
+        function isAuthenticated() {
+            const instanceData = getInstanceData();
+            return instanceData && instanceData.instanceId && instanceData.restaurantId;
+        }
+
+        /**
+         * Requer autenticação ou redireciona para login
+         */
+        function requireAuth() {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Logout do usuário
+         */
+        function logout() {
+            document.cookie = 'timepulse_instance_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            window.localStorage.removeItem('timepulse_instance_token');
+            window.sessionStorage.removeItem('timepulse_instance_token');
+            window.location.href = 'login.html';
+        }
+
+        // Expor função globalmente para compatibilidade com código existente
+        window.getInstanceData = getInstanceData;
+
+        // Funções de controle do loader
+        function updateLoaderStatus(message, progress) {
+            const statusElement = document.getElementById('loaderStatus');
+            const progressBar = document.getElementById('loaderProgressBar');
+            
+            if (statusElement) statusElement.textContent = message;
+            if (progressBar) progressBar.style.width = `${progress}%`;
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('pageLoader');
+            const body = document.body;
+            
+            if (loader && body) {
+                // Pequeno delay para suavizar a transição
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                    body.classList.remove('loading');
+                    
+                    // Remover o loader do DOM após a transição
+                    setTimeout(() => {
+                        loader.remove();
+                    }, 500);
+                }, 300);
+            }
+        }
+
+        // Inicialização da página com sistema de loading
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('🚀 [LOADING] Iniciando carregamento completo da página...');
+                
+                // Passo 1: Verificar autenticação
+                updateLoaderStatus('Verificando autenticação...', 10);
+                if (!requireAuth()) {
+                    return;
+                }
+                console.log('✅ [LOADING] Autenticação verificada');
+
+                // Passo 2: Carregar planos de assinatura
+                updateLoaderStatus('Carregando planos de assinatura...', 30);
+                await loadSubscriptionPlans();
+                console.log('✅ [LOADING] Planos carregados');
+
+                // Passo 3: Carregar status da assinatura e histórico
+                updateLoaderStatus('Carregando status da assinatura...', 60);
+                await loadSubscriptionStatus();
+                console.log('✅ [LOADING] Status e histórico carregados');
+
+                // Passo 4: Configurar event listeners
+                updateLoaderStatus('Finalizando configurações...', 90);
+                setupEventListeners();
+                console.log('✅ [LOADING] Event listeners configurados');
+
+                // Passo 5: Finalizar e mostrar interface
+                updateLoaderStatus('Pronto!', 100);
+                console.log('✅ [LOADING] Carregamento completo finalizado');
+                
+                // Aguardar pequeno delay e remover loader
+                setTimeout(() => {
+                    hideLoader();
+                    console.log('🎉 [LOADING] Interface exibida ao usuário');
+                }, 200);
+
+            } catch (error) {
+                console.error('❌ [LOADING] Erro durante carregamento:', error);
+                updateLoaderStatus('Erro ao carregar dados', 0);
+                
+                // Ainda assim, tentar mostrar a interface após 2 segundos
+                setTimeout(() => {
+                    hideLoader();
+                }, 2000);
+            }
+        });
+
+        // Carregar planos disponíveis do banco de dados
+        async function loadSubscriptionPlans() {
+            try {
+                console.log('🔍 DEBUG MODE: Console logs habilitados');
+                console.log('🔄 Carregando planos de assinatura do banco de dados...');
+                
+                // Buscar planos da API (apenas planos ativos - active = true)
+                const response = await fetch('/api/subscription-plans');
+                
+                if (!response.ok) {
+                    console.error('❌ Erro ao carregar planos:', response.status);
+                    return;
+                }
+
+                const plans = await response.json();
+                console.log('📊 Planos carregados do banco:', plans);
+                console.log('📊 Total de planos ativos:', plans.length);
+                
+                // Filtrar apenas planos ativos (dupla verificação)
+                const activePlans = plans.filter(plan => plan.active === true);
+                console.log('✅ Planos ativos filtrados:', activePlans.length);
+                
+                availablePlans = activePlans || [];
+                renderSubscriptionPlans(activePlans);
+            } catch (error) {
+                console.error('❌ Erro ao carregar planos:', error);
+            }
+        }
+
+        // Carregar status da assinatura atual
+        async function loadSubscriptionStatus() {
+            try {
+                console.log('🔍 [HISTÓRICO] Iniciando carregamento do status da assinatura...');
+                
+                const instanceData = window.getInstanceData ? window.getInstanceData() : null;
+                console.log('🔍 [HISTÓRICO] Dados da instância:', instanceData);
+                
+                if (!instanceData?.restaurantId) {
+                    console.error('❌ [HISTÓRICO] Dados da instância não encontrados');
+                    return;
+                }
+
+                console.log('🔍 [HISTÓRICO] ID do restaurante da instância:', instanceData.restaurantId);
+                
+                const response = await fetch(`/api/trial-status/${instanceData.restaurantId}`);
+                const data = await response.json();
+                currentSubscriptionData = data;
+
+                console.log('🔍 [HISTÓRICO] Status da assinatura carregado:', data);
+                
+                updateSubscriptionDisplay(data);
+                
+                console.log('🔍 [HISTÓRICO] Chamando loadBillingHistory com restaurantId:', instanceData.restaurantId);
+                loadBillingHistory(instanceData.restaurantId);
+            } catch (error) {
+                console.error('❌ [HISTÓRICO] Erro ao carregar status da assinatura:', error);
+                document.getElementById('statusDetails').innerHTML = `
+                    <p style="color: #dc3545;">Erro ao carregar informações da assinatura</p>
+                `;
+            }
+        }
+
+        // Carregar histórico de cobranças via API
+        async function loadBillingHistory(restaurantId) {
+            try {
+                console.log('🔍 [HISTÓRICO] ===== INÍCIO CARREGAMENTO HISTÓRICO =====');
+                console.log('🔍 [HISTÓRICO] ID do restaurante recebido:', restaurantId);
+                
+                const tbody = document.querySelector('#billingTable tbody');
+                
+                // Buscar histórico via API do backend
+                const apiUrl = `/api/billing-history/${restaurantId}`;
+                console.log('🔍 [HISTÓRICO] URL da API:', apiUrl);
+                console.log('🔍 [HISTÓRICO] Fazendo requisição para API...');
+                
+                const response = await fetch(apiUrl);
+                console.log('🔍 [HISTÓRICO] Resposta recebida - Status:', response.status, response.statusText);
+                
+                const result = await response.json();
+                console.log('🔍 [HISTÓRICO] Dados retornados da API:', result);
+                console.log('🔍 [HISTÓRICO] Quantidade de registros:', result.data?.length || 0);
+
+                if (!response.ok) {
+                    console.error('❌ [HISTÓRICO] Erro na resposta da API:', result);
+                    // Mostrar erro detalhado na tela
+                    if (tbody) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #dc3545; padding: 2rem;">
+                                    ⚠️ Erro ao buscar histórico: ${result.details || result.error}<br>
+                                    <small>Código: ${result.code || 'N/A'}</small><br>
+                                    <small>Restaurante ID: ${restaurantId}</small>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    return;
+                }
+
+                if (!result.data || result.data.length === 0) {
+                    console.warn('⚠️ [HISTÓRICO] Nenhum dado encontrado no Supabase para este restaurante');
+                    console.warn('⚠️ [HISTÓRICO] Verifique se o dado foi inserido na tabela sessao_assinaturas');
+                    console.warn('⚠️ [HISTÓRICO] SQL para inserir:', `INSERT INTO sessao_assinaturas (plano, id_restaurante, invoiceNumber, price, ip_real, id_pagamento, data_pagamento, status) VALUES ('basic', '${restaurantId}', 'pay_teste', '49.99', '0.0.0.0', 'PIX123', '2025-10-15T08:00:00', 'Pago')`);
+                }
+
+                console.log('🔍 [HISTÓRICO] Chamando updateBillingTable com', result.data?.length || 0, 'registros');
+                updateBillingTable(result.data || []);
+                console.log('🔍 [HISTÓRICO] ===== FIM CARREGAMENTO HISTÓRICO =====');
+            } catch (error) {
+                console.error('❌ [HISTÓRICO] Exceção ao carregar histórico:', error);
+                // Mostrar erro de exceção na tela
+                const tbody = document.querySelector('#billingTable tbody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #dc3545; padding: 2rem;">
+                                ⚠️ Erro ao carregar histórico: ${error.message}<br>
+                                <small>Restaurante ID: ${restaurantId}</small>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        // Atualizar tabela de histórico
+        function updateBillingTable(sessions) {
+            console.log('🔍 [HISTÓRICO] updateBillingTable chamada com:', sessions);
+            console.log('🔍 [HISTÓRICO] Número de sessões:', sessions?.length || 0);
+            
+            const tbody = document.querySelector('#billingTable tbody');
+            if (!tbody) {
+                console.error('❌ [HISTÓRICO] tbody não encontrado!');
+                return;
+            }
+
+            if (!sessions || sessions.length === 0) {
+                console.warn('⚠️ [HISTÓRICO] Nenhuma sessão para exibir - mostrando mensagem "Nenhuma cobrança encontrada"');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #6c757d; padding: 2rem;">
+                            Nenhuma cobrança encontrada
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            console.log('✅ [HISTÓRICO] Processando', sessions.length, 'sessão(ões) para exibição');
+
+            tbody.innerHTML = sessions.map(session => {
+                const date = new Date(session.data_pagamento).toLocaleDateString('pt-BR');
+                
+                // Mapear nome do plano para exibição
+                const planDisplayNames = {
+                    'trial': 'Período Trial',
+                    'basic': 'Plano Básico',
+                    'premium': 'Plano Premium',
+                    'enterprise': 'Plano Empresarial'
+                };
+                const description = planDisplayNames[session.plano] || session.plano || 'Plano';
+                
+                const amount = `R$ ${parseFloat(session.price || 0).toFixed(2).replace('.', ',')}`;
+                const status = (session.status || 'pendente').toLowerCase();
+                const paymentId = session.id_pagamento;
+
+                // Definir classe de status
+                let statusClass = 'pending';
+                let statusText = 'Pendente';
+                if (status === 'pago' || status === 'paid' || status === 'active') {
+                    statusClass = 'paid';
+                    statusText = 'Pago';
+                } else if (status === 'expirado' || status === 'expired') {
+                    statusClass = 'failed';
+                    statusText = 'Expirado';
+                } else if (status === 'pendente' || status === 'pending') {
+                    statusClass = 'pending';
+                    statusText = 'Pendente';
+                }
+
+                // Criar botão apropriado baseado no tipo de pagamento e status
+                let actionButton = '';
+                if (status !== 'pago' && status !== 'paid' && status !== 'active') {
+                    if (paymentId) {
+                        // Verificar se é URL (link) ou código PIX
+                        const isUrl = paymentId.startsWith('http://') || paymentId.startsWith('https://');
+                        
+                        if (isUrl) {
+                            actionButton = `
+                                <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openPaymentLink('${paymentId}')">
+                                    <i class="fas fa-external-link-alt"></i> Abrir Pagamento
+                                </button>
+                            `;
+                        } else {
+                            // É código PIX - escapar aspas para evitar erro JS
+                            const escapedPixCode = paymentId.replace(/'/g, "\\'");
+                            actionButton = `
+                                <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="copyPixCode('${escapedPixCode}')">
+                                    <i class="fas fa-copy"></i> Copiar Código PIX
+                                </button>
+                            `;
+                        }
+                    } else {
+                        // Sem id_pagamento - botão para abrir modal de pagamento
+                        actionButton = `
+                            <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openPaymentModal('${session.id}', '${description}', ${session.price}, '${session.plano}')">
+                                <i class="fas fa-credit-card"></i> Pagar Agora
+                            </button>
+                        `;
+                    }
+                }
+
+                // Exibir fatura (invoiceNumber ou campo fatura)
+                const invoice = session.fatura || session.invoiceNumber || '-';
+                
+                return `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${description}</td>
+                        <td>${amount}</td>
+                        <td><span class="payment-status ${statusClass}">${statusText}</span></td>
+                        <td>${invoice}</td>
+                        <td>${actionButton}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Abrir link de pagamento em nova aba
+        function openPaymentLink(url) {
+            window.open(url, '_blank');
+        }
+
+        // Copiar código PIX
+        function copyPixCode(pixCode) {
+            navigator.clipboard.writeText(pixCode).then(() => {
+                alert('✅ Código PIX copiado para a área de transferência!');
+            }).catch(err => {
+                console.error('Erro ao copiar código PIX:', err);
+                alert('❌ Erro ao copiar código PIX. Tente novamente.');
+            });
+        }
+
+        // Abrir modal de pagamento para cobrança pendente
+        function openPaymentModal(sessionId, planName, planPrice, planType) {
+            // Criar dados do plano para o modal
+            pendingSubscriptionData = {
+                plan_name: planType,
+                plan_display_name: planName,
+                plan_price: planPrice,
+                session_id: sessionId
+            };
+
+            // Abrir modal de pagamento
+            const modal = document.getElementById('paymentModal');
+            const planSummary = document.getElementById('planSummary');
+            
+            planSummary.innerHTML = `
+                <h4>${planName}</h4>
+                <p>Valor: <span class="price-highlight">R$ ${planPrice.toFixed(2).replace('.', ',')}/mês</span></p>
+            `;
+            
+            modal.classList.add('show');
+        }
+
+        // Renderizar planos de assinatura dinamicamente
+        function renderSubscriptionPlans(plans) {
+            if (!plans || plans.length === 0) return;
+
+            const plansContainer = document.querySelector('.subscription-plans');
+            if (!plansContainer) return;
+
+            plansContainer.innerHTML = plans.map(plan => {
+                const features = plan.features || {};
+                const isTrial = plan.name === 'trial';
+                const isRecommended = plan.name === 'premium';
+                
+                return `
+                    <div class="plan-card ${isRecommended ? 'recommended' : ''}">
+                        <div class="plan-header">
+                            <h3 class="plan-title">${plan.display_name}</h3>
+                            <div class="plan-price">
+                                <span class="currency">R$</span>
+                                <span class="amount">${plan.price % 1 === 0 ? plan.price.toFixed(0) : plan.price.toFixed(2).replace('.', ',')}</span>
+                                <span class="period">/${isTrial ? plan.trial_days + ' dias' : 'mês'}</span>
+                            </div>
+                            <p class="plan-description">${plan.description || ''}</p>
+                        </div>
+                        <div class="plan-features">
+                            <ul>
+                                ${getPlanFeatures(plan.name)}
+                            </ul>
+                        </div>
+                        ${getPlanButton(plan)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Obter features de cada plano
+        function getPlanFeatures(planName) {
+            const featuresMap = {
+                trial: [
+                    { text: 'Gestão completa de pedidos', check: true },
+                    { text: 'Cardápio digital interativo', check: true },
+                    { text: 'Integração WhatsApp básica', check: true },
+                    { text: 'Dashboard de análises', check: true },
+                    { text: 'Relatórios avançados', check: false },
+                    { text: 'Suporte prioritário', check: false },
+                    { text: 'Múltiplos usuários', check: false }
+                ],
+                basic: [
+                    { text: 'Todas as funcionalidades básicas', check: true },
+                    { text: 'Gestão de pedidos ilimitada', check: true },
+                    { text: 'WhatsApp ilimitado', check: true },
+                    { text: 'Dashboard de análises', check: true },
+                    { text: 'Relatórios básicos', check: true },
+                    { text: 'Suporte por email', check: true },
+                    { text: 'Até 3 usuários', check: true }
+                ],
+                premium: [
+                    { text: 'Todas as funcionalidades básicas', check: true },
+                    { text: 'Relatórios avançados e insights', check: true },
+                    { text: 'WhatsApp ilimitado', check: true },
+                    { text: 'Integração com pagamentos', check: true },
+                    { text: 'Suporte prioritário', check: true },
+                    { text: 'Backup automático', check: true },
+                    { text: 'Até 5 usuários', check: true }
+                ],
+                enterprise: [
+                    { text: 'Todas as funcionalidades Premium', check: true },
+                    { text: 'Múltiplas unidades', check: true },
+                    { text: 'API personalizada', check: true },
+                    { text: 'Relatórios customizados', check: true },
+                    { text: 'Suporte 24/7', check: true },
+                    { text: 'Treinamento incluído', check: true },
+                    { text: 'Usuários ilimitados', check: true }
+                ]
+            };
+
+            const features = featuresMap[planName] || [];
+            return features.map(f => `
+                <li>
+                    <i class="fas fa-${f.check ? 'check' : 'times'}"></i> 
+                    ${f.text}
+                </li>
+            `).join('');
+        }
+
+        // Obter botão do plano
+        function getPlanButton(plan) {
+            const currentPlan = currentSubscriptionData?.plan || 'trial';
+            const isCurrentPlan = currentPlan === plan.name;
+
+            if (isCurrentPlan) {
+                return `
+                    <button class="btn btn-secondary" disabled>
+                        Plano Atual
+                    </button>
+                `;
+            }
+
+            if (plan.name === 'trial') {
+                return `
+                    <button class="btn btn-secondary" disabled>
+                        Teste Gratuito
+                    </button>
+                `;
+            }
+
+            return `
+                <button class="btn btn-primary" onclick="createSubscription('${plan.name}', this)">
+                    <i class="fas fa-${plan.name === 'premium' ? 'crown' : 'building'}"></i>
+                    Assinar ${plan.display_name}
+                </button>
+            `;
+        }
+
+        // Atualizar display do status da assinatura
+        function updateSubscriptionDisplay(data) {
+            const statusBadge = document.getElementById('subscriptionStatus');
+            const currentPlan = document.getElementById('currentPlan');
+            const expirationDate = document.getElementById('expirationDate');
+            const nextPayment = document.getElementById('nextPayment');
+
+            // Encontrar o plano atual
+            const planData = availablePlans.find(p => p.name === data.plan) || 
+                           availablePlans.find(p => p.name === 'trial');
+
+            // Atualizar status badge
+            statusBadge.className = `status-badge ${data.subscription_status}`;
+            
+            // Controlar visibilidade dos planos baseado no subscription_status
+            const subscriptionPlansSection = document.querySelector('.subscription-plans');
+            
+            switch (data.subscription_status) {
+                case 'trial':
+                    statusBadge.textContent = 'Teste Gratuito';
+                    currentPlan.textContent = planData ? planData.display_name : 'Teste Gratuito de 7 dias';
+                    if (subscriptionPlansSection) subscriptionPlansSection.style.display = 'grid';
+                    break;
+                case 'active':
+                    statusBadge.textContent = 'Ativo';
+                    currentPlan.textContent = planData ? planData.display_name : 'Plano Ativo';
+                    // OCULTAR os cards de planos quando subscription_status = 'active'
+                    if (subscriptionPlansSection) subscriptionPlansSection.style.display = 'none';
+                    break;
+                case 'expired':
+                    statusBadge.textContent = 'Expirado';
+                    currentPlan.textContent = 'Assinatura Expirada';
+                    if (subscriptionPlansSection) subscriptionPlansSection.style.display = 'grid';
+                    break;
+                case 'cancelled':
+                    statusBadge.textContent = 'Cancelado';
+                    currentPlan.textContent = 'Assinatura Cancelada';
+                    if (subscriptionPlansSection) subscriptionPlansSection.style.display = 'grid';
+                    break;
+                default:
+                    statusBadge.textContent = 'Indefinido';
+                    currentPlan.textContent = 'Status indefinido';
+                    if (subscriptionPlansSection) subscriptionPlansSection.style.display = 'grid';
+            }
+
+            // Atualizar datas
+            if (data.trial_end_date && data.subscription_status === 'trial') {
+                const endDate = new Date(data.trial_end_date);
+                expirationDate.textContent = endDate.toLocaleDateString('pt-BR');
+                
+                // Calcular dias restantes
+                const daysRemaining = data.trial_days_remaining || 0;
+                if (daysRemaining > 0) {
+                    expirationDate.textContent += ` (${daysRemaining} dias restantes)`;
+                }
+            } else if (data.subscription_end_date) {
+                const endDate = new Date(data.subscription_end_date);
+                expirationDate.textContent = endDate.toLocaleDateString('pt-BR');
+            } else {
+                expirationDate.textContent = 'N/A';
+            }
+
+            // Próximo pagamento
+            if (data.subscription_status === 'active' && data.subscription_end_date) {
+                const nextPaymentDate = new Date(data.subscription_end_date);
+                nextPayment.textContent = nextPaymentDate.toLocaleDateString('pt-BR');
+                
+                const planPrice = planData?.price || 0;
+                if (planPrice > 0) {
+                    nextPayment.textContent += ` - R$ ${planPrice.toFixed(2).replace('.', ',')}`;
+                }
+            } else {
+                nextPayment.textContent = 'N/A';
+            }
+        }
+
+        // Variáveis globais para o modal de pagamento
+        let pendingSubscriptionData = null;
+        let pixPollingInterval = null;
+        let currentPixInvoiceNumber = null; // Armazena o invoiceNumber do PIX para monitoramento
+        let pixCountdownValue = 10; // Contador regressivo de 10 a 0
+
+        // Abrir modal de pagamento
+        async function createSubscription(planType, buttonElement) {
+            try {
+                // Pegar instância conectada dos cookies
+                const instanceData = SECURE_INSTANCE_MANAGER.getInstance();
+                if (!instanceData?.instanceId) {
+                    alert('❌ Erro: Instância não conectada');
+                    return;
+                }
+
+                // Buscar o plano selecionado
+                const plan = availablePlans.find(p => p.name === planType);
+                if (!plan) {
+                    alert('❌ Plano não encontrado');
+                    return;
+                }
+
+                console.log('✅ Dados de instância encontrados:', instanceData.instanceName);
+                console.log('🔍 Restaurant ID da instância:', instanceData.restaurantId);
+
+                if (!instanceData.restaurantId) {
+                    throw new Error('ID do restaurante não encontrado na instância');
+                }
+
+                // Buscar dados do restaurante no Supabase pelo ID
+                const supabaseClient = await window.secureSupabase.getClient();
+                if (!supabaseClient) {
+                    throw new Error('Cliente Supabase não disponível');
+                }
+
+                const { data: restaurante, error } = await supabaseClient
+                    .from('restaurants')
+                    .select('*')
+                    .eq('id', instanceData.restaurantId)
+                    .single();
+
+                if (error) {
+                    console.error('❌ Erro ao buscar restaurante:', error);
+                    throw new Error('Restaurante não encontrado: ' + error.message);
+                }
+
+                if (!restaurante) {
+                    throw new Error('Restaurante não encontrado');
+                }
+
+                console.log('✅ Restaurante encontrado:', restaurante.name);
+
+                // Armazenar dados para envio posterior
+                pendingSubscriptionData = {
+                    plano: plan.name,
+                    plano_nome: plan.display_name,
+                    valor: plan.price,
+                    restaurante: restaurante,
+                    instancia: instanceData
+                };
+
+                // Atualizar resumo do plano no modal
+                const planSummary = document.getElementById('planSummary');
+                planSummary.innerHTML = `
+                    <h4>${plan.display_name}</h4>
+                    <p><strong>Valor:</strong> <span class="price-highlight">R$ ${plan.price.toFixed(2).replace('.', ',')}/mês</span></p>
+                    <p><strong>Restaurante:</strong> ${restaurante.name}</p>
+                `;
+
+                // Abrir modal
+                document.getElementById('paymentModal').classList.add('show');
+                
+            } catch (error) {
+                console.error('Erro ao preparar assinatura:', error);
+                alert('❌ Erro ao processar assinatura: ' + error.message);
+            }
+        }
+
+        // Fechar modal de pagamento
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('show');
+            pendingSubscriptionData = null;
+        }
+
+        // Processar pagamento e enviar para webhook
+        async function processPayment() {
+            if (!pendingSubscriptionData) {
+                alert('❌ Erro: Nenhuma assinatura pendente');
+                return;
+            }
+
+            const payButton = document.querySelector('.btn-pay-now');
+            const originalText = payButton.innerHTML;
+            
+            try {
+                // Pegar método de pagamento selecionado
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+                
+                // Desabilitar botão
+                payButton.disabled = true;
+                payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+
+                // Adicionar método de pagamento aos dados
+                // Converter "card" para "CREDIT_CARD" e "pix" para "PIX" conforme especificação
+                const metodoFormatado = paymentMethod === 'card' ? 'CREDIT_CARD' : 'PIX';
+                
+                const webhookData = {
+                    ...pendingSubscriptionData,
+                    metodo_pagamento: metodoFormatado
+                };
+
+                console.log('📤 Enviando dados para webhook:', webhookData);
+
+                // Enviar para webhook N8N
+                const webhookResponse = await fetch('https://n8n.timepulseai.com.br/webhook/assinaturas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(webhookData)
+                });
+
+                console.log('📥 Resposta do webhook - Status:', webhookResponse.status);
+
+                if (!webhookResponse.ok) {
+                    const errorText = await webhookResponse.text();
+                    console.error('❌ Erro do webhook:', errorText);
+                    throw new Error(`Erro ao processar pagamento (${webhookResponse.status}): ${errorText}`);
+                }
+
+                // Primeiro pegar a resposta como texto
+                const responseText = await webhookResponse.text();
+                console.log('📥 Resposta do webhook (texto):', responseText);
+                
+                let redirectUrl = null;
+                let pixData = null;
+                
+                // Tentar parsear como JSON primeiro
+                try {
+                    const result = JSON.parse(responseText);
+                    console.log('✅ Resposta parseada como JSON:', result);
+                    
+                    // Verificar se é resposta PIX (array com encodedImage)
+                    if (Array.isArray(result) && result.length > 0 && result[0].encodedImage) {
+                        pixData = result[0];
+                        console.log('💰 Resposta PIX detectada:', pixData);
+                    } 
+                    // Verificar se há URL de redirecionamento na resposta JSON (cartão)
+                    else if (result.url || result.payment_url || result.invoiceUrl) {
+                        redirectUrl = result.url || result.payment_url || result.invoiceUrl;
+                        console.log('💳 URL de cartão detectada:', redirectUrl);
+                    }
+                } catch (jsonError) {
+                    // Se não for JSON, verificar se é uma URL direta (cartão)
+                    console.log('ℹ️ Resposta não é JSON, verificando se é URL...');
+                    
+                    // Verificar se é uma URL válida (começa com http:// ou https://)
+                    if (responseText.trim().startsWith('http://') || responseText.trim().startsWith('https://')) {
+                        redirectUrl = responseText.trim();
+                        console.log('✅ URL detectada diretamente:', redirectUrl);
+                    } else {
+                        console.error('❌ Resposta não é JSON nem URL:', responseText);
+                    }
+                }
+                
+                // Fechar modal de pagamento
+                closePaymentModal();
+                
+                // Verificar se é PIX e mostrar modal PIX
+                if (pixData) {
+                    console.log('🔓 Abrindo modal PIX com QR Code');
+                    showPixModal(pixData);
+                } 
+                // Redirecionar se houver URL (cartão)
+                else if (redirectUrl) {
+                    console.log('🔗 Redirecionando para URL de pagamento:', redirectUrl);
+                    showSuccessModal(redirectUrl);
+                } 
+                // Caso não tenha nada, mostrar sucesso genérico
+                else {
+                    alert('✅ Pagamento processado com sucesso!');
+                    loadSubscriptionStatus();
+                }
+                
+            } catch (error) {
+                console.error('Erro ao processar pagamento:', error);
+                alert('❌ Erro ao processar pagamento: ' + error.message);
+                
+                // Reabilitar botão
+                payButton.disabled = false;
+                payButton.innerHTML = originalText;
+            }
+        }
+
+
+        // Mostrar modal de sucesso com contagem regressiva e redirecionamento
+        function showSuccessModal(redirectUrl) {
+            const modal = document.getElementById('successModal');
+            const timerElement = document.getElementById('redirectTimer');
+            
+            // Abrir modal
+            modal.classList.add('show');
+            
+            let countdown = 2;
+            
+            // Atualizar texto do timer
+            timerElement.textContent = `Redirecionando em ${countdown} segundos...`;
+            
+            // Iniciar contagem regressiva
+            const timer = setInterval(() => {
+                countdown--;
+                
+                if (countdown > 0) {
+                    timerElement.textContent = `Redirecionando em ${countdown} segundo${countdown > 1 ? 's' : ''}...`;
+                } else {
+                    timerElement.textContent = 'Redirecionando agora...';
+                    clearInterval(timer);
+                    
+                    // Redirecionar após 200ms
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 200);
+                }
+            }, 1000);
+        }
+
+        // Mostrar modal PIX com QR Code
+        async function showPixModal(pixData) {
+            const modal = document.getElementById('pixModal');
+            const qrCodeImg = document.getElementById('pixQrCode');
+            const payloadInput = document.getElementById('pixPayload');
+            const expirationDateSpan = document.getElementById('pixExpirationDate');
+            
+            // Configurar QR Code (Base64)
+            qrCodeImg.src = `data:image/png;base64,${pixData.encodedImage}`;
+            
+            // Configurar payload para copiar
+            payloadInput.value = pixData.payload;
+            
+            // Configurar data de expiração
+            if (pixData.expirationDate) {
+                const expDate = new Date(pixData.expirationDate);
+                expirationDateSpan.textContent = expDate.toLocaleString('pt-BR');
+            } else {
+                document.getElementById('pixExpiration').style.display = 'none';
+            }
+            
+            // Armazenar invoiceNumber para monitoramento
+            // Como o pixData não retorna invoiceNumber, vamos extrair do payload ou usar timestamp
+            currentPixInvoiceNumber = pixData.id || pixData.invoiceNumber || pixData.externalReference || pixData.invoiceId || pixData.paymentId || null;
+            
+            // Se não houver invoiceNumber, criar referência temporária com timestamp
+            if (!currentPixInvoiceNumber && pixData.payload) {
+                // Tentar extrair ID do payload PIX (geralmente está no final)
+                const payloadParts = pixData.payload.split('.');
+                if (payloadParts.length > 0) {
+                    currentPixInvoiceNumber = payloadParts[payloadParts.length - 1];
+                }
+            }
+            
+            console.log('📋 InvoiceNumber armazenado:', currentPixInvoiceNumber);
+            
+            // Salvar sessão de assinatura no banco de dados
+            try {
+                const instanceData = SECURE_INSTANCE_MANAGER.getInstance();
+                if (instanceData?.instanceId && pendingSubscriptionData) {
+                    const sessionPayload = {
+                        instance_id: instanceData.instanceId,
+                        restaurant_id: pendingSubscriptionData.restaurante?.id || null,
+                        plan_name: pendingSubscriptionData.plano,
+                        plan_display_name: pendingSubscriptionData.plano_nome,
+                        plan_price: pendingSubscriptionData.valor,
+                        pix_payload: pixData.payload,
+                        invoice_number: currentPixInvoiceNumber,
+                        session_data: {
+                            restaurante: pendingSubscriptionData.restaurante,
+                            instancia: instanceData,
+                            pixData: {
+                                expirationDate: pixData.expirationDate,
+                                description: pixData.description
+                            }
+                        }
+                    };
+                    
+                    const sessionResponse = await fetch('/api/subscription-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(sessionPayload)
+                    });
+                    
+                    if (sessionResponse.ok) {
+                        console.log('✅ Sessão de assinatura salva no banco de dados');
+                    } else {
+                        console.warn('⚠️ Erro ao salvar sessão:', await sessionResponse.text());
+                    }
+                }
+            } catch (sessionError) {
+                console.error('❌ Erro ao salvar sessão:', sessionError);
+            }
+            
+            // Abrir modal
+            modal.classList.add('show');
+            
+            console.log('✅ Modal PIX aberto com sucesso');
+            
+            // Iniciar polling para verificar status do pagamento
+            startPixPaymentPolling();
+        }
+
+        // Fechar modal PIX
+        function closePixModal() {
+            const modal = document.getElementById('pixModal');
+            modal.classList.remove('show');
+            
+            // Parar polling de verificação de pagamento
+            stopPixPaymentPolling();
+            
+            // Recarregar status da assinatura após fechar
+            loadSubscriptionStatus();
+        }
+
+        // Iniciar polling para verificar pagamento PIX
+        function startPixPaymentPolling() {
+            console.log('🔄 Iniciando contagem regressiva de 10 segundos para verificação de pagamento PIX...');
+            
+            // Parar polling anterior se existir
+            stopPixPaymentPolling();
+            
+            // Resetar contador para 10
+            pixCountdownValue = 10;
+            updateCountdownDisplay();
+            
+            // Atualizar contador a cada 1 segundo
+            pixPollingInterval = setInterval(() => {
+                pixCountdownValue--;
+                updateCountdownDisplay();
+                
+                // Quando chegar a 0, verificar pagamento
+                if (pixCountdownValue <= 0) {
+                    console.log('⏰ Contador zerou! Verificando pagamento...');
+                    checkPixPaymentStatus();
+                    
+                    // Resetar contador para próxima verificação
+                    pixCountdownValue = 10;
+                }
+            }, 1000);
+        }
+        
+        // Atualizar display da contagem regressiva
+        function updateCountdownDisplay() {
+            const countdownElement = document.getElementById('pixCountdownNumber');
+            if (countdownElement) {
+                countdownElement.textContent = pixCountdownValue;
+                
+                // Mudar cor conforme diminui
+                if (pixCountdownValue <= 3) {
+                    countdownElement.style.color = '#dc3545'; // Vermelho
+                } else if (pixCountdownValue <= 5) {
+                    countdownElement.style.color = '#ffc107'; // Amarelo
+                } else {
+                    countdownElement.style.color = '#28a745'; // Verde
+                }
+            }
+        }
+
+        // Parar polling de verificação de pagamento
+        function stopPixPaymentPolling() {
+            if (pixPollingInterval) {
+                clearInterval(pixPollingInterval);
+                pixPollingInterval = null;
+                console.log('⏹️ Polling de pagamento PIX parado');
+            }
+        }
+
+        // Verificar status do pagamento PIX
+        async function checkPixPaymentStatus() {
+            try {
+                // Pegar dados da instância
+                const instanceData = SECURE_INSTANCE_MANAGER.getInstance();
+                if (!instanceData?.instanceId) {
+                    console.error('❌ Dados da instância não encontrados');
+                    return;
+                }
+                
+                // Pegar código PIX (payload copia e cola) do campo
+                const pixPayloadField = document.getElementById('pixPayload');
+                const pixPayload = pixPayloadField ? pixPayloadField.value : null;
+                
+                console.log('🔍 Verificando pagamento PIX...');
+                console.log('📱 Instância:', instanceData.instanceId);
+                console.log('📋 InvoiceNumber:', currentPixInvoiceNumber || 'não disponível');
+                console.log('💰 PIX Payload:', pixPayload ? 'Disponível' : 'Não disponível');
+                
+                // Buscar dados da sessão de assinatura
+                let sessionData = null;
+                try {
+                    const sessionResponse = await fetch(`/api/subscription-session/${instanceData.instanceId}`);
+                    if (sessionResponse.ok) {
+                        sessionData = await sessionResponse.json();
+                        console.log('✅ Dados da sessão carregados:', sessionData);
+                    } else {
+                        console.warn('⚠️ Sessão não encontrada, continuando sem dados da sessão');
+                    }
+                } catch (sessionError) {
+                    console.warn('⚠️ Erro ao buscar sessão:', sessionError.message);
+                }
+                
+                // Fazer POST para o webhook de monitoramento de pagamento
+                const webhookUrl = 'https://n8n.timepulseai.com.br/webhook/minitora_pagamento';
+                
+                // Preparar payload completo
+                const payload = {
+                    instanceId: instanceData.instanceId,
+                    pixPayload: pixPayload,
+                    subscriptionSession: sessionData
+                };
+                
+                // Adicionar invoiceNumber apenas se estiver disponível
+                if (currentPixInvoiceNumber) {
+                    payload.invoiceNumber = currentPixInvoiceNumber;
+                }
+                
+                console.log('📤 Enviando dados completos ao webhook:', {
+                    instanceId: payload.instanceId,
+                    hasPixPayload: !!payload.pixPayload,
+                    hasSession: !!payload.subscriptionSession,
+                    invoiceNumber: payload.invoiceNumber || 'N/A'
+                });
+                
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    console.error('❌ Erro ao verificar status:', response.status);
+                    return;
+                }
+                
+                // Ler resposta como texto
+                const responseText = await response.text();
+                console.log('📥 Resposta do webhook:', responseText);
+                
+                // Verificar se recebeu "RECEIVED,Pix"
+                if (responseText.includes('RECEIVED,Pix') || responseText.includes('RECEIVED') && responseText.includes('Pix')) {
+                    console.log('✅ Pagamento PIX confirmado! Fechando modal e recarregando...');
+                    
+                    // Parar polling
+                    stopPixPaymentPolling();
+                    
+                    // Atualizar mensagem do modal
+                    const statusMessage = document.querySelector('.pix-status-message');
+                    if (statusMessage) {
+                        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> Pagamento confirmado! Recarregando...';
+                        statusMessage.style.background = '#d4edda';
+                        statusMessage.style.borderColor = '#28a745';
+                        statusMessage.style.color = '#155724';
+                    }
+                    
+                    // Fechar modal e recarregar após 1 segundo
+                    setTimeout(() => {
+                        closePixModal();
+                        window.location.reload();
+                    }, 1000);
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro ao verificar pagamento PIX:', error);
+            }
+        }
+
+        // Copiar código PIX
+        function copyPixPayload() {
+            const payloadInput = document.getElementById('pixPayload');
+            
+            // Copiar para clipboard
+            payloadInput.select();
+            payloadInput.setSelectionRange(0, 99999); // Para mobile
+            
+            navigator.clipboard.writeText(payloadInput.value).then(() => {
+                // Feedback visual
+                const button = event.target.closest('.btn-copy-pix');
+                const originalText = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                button.style.background = '#218838';
+                
+                // Voltar ao normal após 2 segundos
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+                
+                console.log('✅ Código PIX copiado para clipboard');
+            }).catch(err => {
+                console.error('❌ Erro ao copiar:', err);
+                alert('Erro ao copiar código PIX');
+            });
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Logout
+            document.getElementById('logoutButton').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (confirm('Tem certeza que deseja sair?')) {
+                    logout();
+                }
+            });
+
+            // Atualizar nome do restaurante
+            const instanceData = getInstanceData();
+            if (instanceData?.instanceName) {
+                document.getElementById('restaurantName').textContent = instanceData.instanceName;
+            }
+        }
+
+
+        // Função para controlar o menu mobile
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        }
+
+        // Fechar menu ao clicar em um link (em mobile)
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        toggleMobileMenu();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

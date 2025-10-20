@@ -1,0 +1,194 @@
+# Relatório de Endpoints Evolution API
+
+## 1. Criar Instância
+
+### **POST** `/instance/create`
+
+Endpoint para criar uma nova instância do WhatsApp na Evolution API.[1][2]
+
+**cURL:**
+```bash
+curl --request POST \
+  --url https://seu-servidor.com/instance/create \
+  --header 'apikey: sua-chave-api-aqui' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "instanceName": "nome-da-instancia",
+    "qrcode": true,
+    "integration": "WHATSAPP-BAILEYS"
+  }'
+```
+
+**Body (JSON):**
+```json
+{
+  "instanceName": "nome-da-instancia",
+  "qrcode": true,
+  "integration": "WHATSAPP-BAILEYS"
+}
+```
+
+**Parâmetros principais:**[2][1]
+- **instanceName** (obrigatório) - Nome único para identificar a instância
+- **qrcode** (opcional) - Se `true`, gera o QR code automaticamente após criação
+- **integration** (opcional) - Tipo de integração (padrão: "WHATSAPP-BAILEYS")
+
+**Resposta de sucesso:**
+```json
+{
+  "instance": {
+    "instanceName": "nome-da-instancia",
+    "instanceId": "421a4121-a3d9-40cc-a8db-c3a1df353126",
+    "status": "created"
+  },
+  "hash": {
+    "apikey": "B3844804-481D-47A4-B69C-F14B4206EB56"
+  },
+  "webhook": null,
+  "qrcode": {
+    "pairingCode": null,
+    "code": "iVBORw0KGgoAAAANSUhEUgAAAP...",
+    "base64": "data:image/png;base64,iVBORw0KGg..."
+  }
+}
+```
+
+***
+
+## 2. Listar Instâncias Criadas
+
+### **GET** `/instance/fetchInstances`
+
+Endpoint para listar todas as instâncias criadas no servidor Evolution API.[3][4]
+
+**cURL:**
+```bash
+curl --request GET \
+  --url https://seu-servidor.com/instance/fetchInstances \
+  --header 'apikey: sua-chave-api-aqui'
+```
+
+**Parâmetros opcionais (Query):**[4][3]
+- **instanceName** - Filtrar por nome de instância específica
+- **instanceId** - Filtrar por ID de instância específica
+
+**Exemplo com filtro:**
+```bash
+curl --request GET \
+  --url 'https://seu-servidor.com/instance/fetchInstances?instanceName=minha-instancia' \
+  --header 'apikey: sua-chave-api-aqui'
+```
+
+**Resposta de sucesso:**
+```json
+[
+  {
+    "instance": {
+      "instanceName": "example-name",
+      "instanceId": "421a4121-a3d9-40cc-a8db-c3a1df353126",
+      "owner": "553198296801@s.whatsapp.net",
+      "profileName": "Guilherme Gomes",
+      "profilePictureUrl": null,
+      "profileStatus": "This is the profile status.",
+      "status": "open",
+      "serverUrl": "https://example.evolution-api.com",
+      "apikey": "B3844804-481D-47A4-B69C-F14B4206EB56",
+      "integration": {
+        "integration": "WHATSAPP-BAILEYS",
+        "webhook_wa_business": "https://example.evolution-api.com/webhook/whatsapp/db5e11d3"
+      }
+    }
+  },
+  {
+    "instance": {
+      "instanceName": "teste-docs",
+      "instanceId": "af6c5b7c-ee27-4f94-9ea8-192393746ddd",
+      "status": "close",
+      "serverUrl": "https://example.evolution-api.com",
+      "apikey": "123456"
+    }
+  }
+]
+```
+
+**Campos importantes:**[3][4]
+- **instanceName** - Use este nome para chamadas à API
+- **status** - `open` (conectada) ou `close` (desconectada)
+- **owner** - Número do WhatsApp conectado
+- **profileName** - Nome do perfil WhatsApp
+
+***
+
+## 3. Gerar QR Code da Instância
+
+### **GET** `/instance/connect/{instance}`
+
+Endpoint para gerar o QR code de uma instância já criada.[5]
+
+**cURL:**
+```bash
+curl --request GET \
+  --url https://seu-servidor.com/instance/connect/nome-da-instancia \
+  --header 'apikey: sua-chave-api-aqui'
+```
+
+**Parâmetros:**[5]
+- **Path Parameter** - `{instance}` (obrigatório) - Nome da instância criada
+- **Query Parameter** - `number` (opcional) - Número com código do país para código de pareamento
+
+**Exemplo com código de pareamento:**
+```bash
+curl --request GET \
+  --url 'https://seu-servidor.com/instance/connect/minha-instancia?number=5511999999999' \
+  --header 'apikey: sua-chave-api-aqui'
+```
+
+**Resposta de sucesso:**
+```json
+{
+  "pairingCode": "WZYEH1YY",
+  "code": "iVBORw0KGgoAAAANSUhEUgAAAP4AAADcCAYAAABKXC...",
+  "count": 1
+}
+```
+
+**Campos da resposta:**[5]
+- **pairingCode** - Código de 8 dígitos para pareamento manual
+- **code** - QR code em formato base64 (pode ser usado para exibir a imagem)
+- **count** - Contador de tentativas de conexão
+
+***
+
+## Fluxo Completo de Uso
+
+**1. Criar a instância:**
+```bash
+curl --request POST \
+  --url https://seu-servidor.com/instance/create \
+  --header 'apikey: SUA-CHAVE' \
+  --header 'Content-Type: application/json' \
+  --data '{"instanceName": "minha-instancia", "qrcode": true}'
+```
+
+**2. Listar instâncias para verificar:**
+```bash
+curl --request GET \
+  --url https://seu-servidor.com/instance/fetchInstances \
+  --header 'apikey: SUA-CHAVE'
+```
+
+**3. Gerar novo QR code (se necessário):**
+```bash
+curl --request GET \
+  --url https://seu-servidor.com/instance/connect/minha-instancia \
+  --header 'apikey: SUA-CHAVE'
+```
+
+**Observação importante:** Sempre use o **instanceName** (não o instanceId) ao fazer chamadas aos endpoints da API Evolution.[6]
+
+[1](https://doc.evolution-api.com/v1/api-reference/instance-controller/create-instance-basic)
+[2](https://doc.evolution-api.com/v2/api-reference/instance-controller/create-instance-basic)
+[3](https://doc.evolution-api.com/v1/api-reference/instance-controller/fetch-instances)
+[4](https://doc.evolution-api.com/v2/api-reference/instance-controller/fetch-instances)
+[5](https://doc.evolution-api.com/v1/api-reference/instance-controller/instance-connect)
+[6](https://github.com/EvolutionAPI/evolution-api/issues/1462)

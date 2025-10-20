@@ -1,0 +1,1863 @@
+================================================================================
+          DOCUMENTAÇÃO COMPLETA - CARDAPIO.HTML
+                    TimePulse AI - Sistema de Gestão
+================================================================================
+
+📋 ÍNDICE
+1. Visão Geral
+2. Estrutura da Página
+3. Sistema de Autenticação
+4. Carregamento de Configurações
+5. Gestão de Categorias de Produtos
+6. Gestão de Produtos
+7. Gestão de Grupos de Adicionais
+8. Gestão de Itens Adicionais
+9. Sistema de Modais
+10. Campos Fiscais e IA
+11. Sistema de Notificações
+12. Cache e Performance
+13. Tabelas Supabase
+14. Fluxos Completos
+
+================================================================================
+1. VISÃO GERAL
+================================================================================
+
+ARQUIVO: public/cardapio.html
+TAMANHO: 2153 linhas
+PROPÓSITO: Gestão completa do cardápio do restaurante
+
+DESCRIÇÃO:
+Página web responsável por gerenciar todo o cardápio do restaurante, incluindo
+categorias de produtos, produtos, grupos de adicionais e itens adicionais.
+Permite CRUD completo com interface intuitiva em tabs.
+
+PRINCIPAIS FUNCIONALIDADES:
+✓ Gestão de categorias de produtos
+✓ Gestão de produtos com campos fiscais completos
+✓ Gestão de grupos de adicionais (single/multiple selection)
+✓ Gestão de itens adicionais vinculados a produtos
+✓ Autenticação via cookies (timepulse_instance_token)
+✓ Integração completa com Supabase
+✓ Sistema de notificações visuais
+✓ Cache local para economizar tokens de IA
+✓ Preenchimento automático de campos fiscais (padrão)
+✓ Suporte a impressão seletiva (balcão, salão, cozinha)
+
+DEPENDÊNCIAS:
+- Supabase JS Client (@supabase/supabase-js@2)
+- Font Awesome Icons (6.4.0)
+- Google Fonts (Inter)
+- secure-config.js (sistema de configuração segura)
+- trial-countdown.js (sistema de teste gratuito)
+
+================================================================================
+2. ESTRUTURA DA PÁGINA
+================================================================================
+
+2.1 LAYOUT PRINCIPAL
+---------------------
+
+HTML STRUCTURE:
+```html
+<body>
+    <div class="dashboard-layout">
+        <nav class="sidebar">...</nav>
+        <main class="main-content">
+            <div class="page-header">...</div>
+            <div class="main-tabs">...</div>
+            <div id="cardapioTab" class="tab-content active">...</div>
+            <div id="adicionaisTab" class="tab-content">...</div>
+        </main>
+    </div>
+    
+    <!-- Modais -->
+    <div id="categoryModal" class="modal">...</div>
+    <div id="productModal" class="modal">...</div>
+    <div id="addOnCategoryModal" class="modal">...</div>
+    <div id="addOnModal" class="modal">...</div>
+</body>
+```
+
+2.2 SIDEBAR NAVIGATION
+-----------------------
+
+MENU PRINCIPAL:
+- Dashboard (📊)
+- Pedidos (📦)
+- Cozinha (👨‍🍳)
+
+GESTÃO:
+- Cardápio (🍽️) - ATIVO
+- Entregadores (🏍️)
+- Clientes (👥)
+
+RELATÓRIOS:
+- Análises (📈)
+
+SISTEMA:
+- Configurações (⚙️)
+- Ajuda (❓)
+- Sair (🚪)
+
+2.3 SISTEMA DE TABS
+--------------------
+
+TAB 1 - CARDÁPIO:
+- Grid layout: 300px (categorias) + 1fr (produtos)
+- Lista de categorias à esquerda
+- Lista de produtos à direita
+- Filtro por categoria
+
+TAB 2 - ADICIONAIS:
+- Grid layout: 300px (grupos) + 1fr (itens)
+- Lista de grupos de adicionais à esquerda
+- Lista de itens adicionais à direita
+- Filtro por grupo
+
+================================================================================
+3. SISTEMA DE AUTENTICAÇÃO
+================================================================================
+
+3.1 COOKIE-BASED AUTHENTICATION
+---------------------------------
+
+COOKIE NAME: timepulse_instance_token
+
+ESTRUTURA DO COOKIE:
+```javascript
+{
+    instanceId: "uuid-da-instancia",
+    restaurantId: "uuid-do-restaurante",
+    instanceName: "Nome da Instância",
+    userEmail: "email@usuario.com"
+}
+```
+
+FUNÇÕES DE AUTENTICAÇÃO:
+
+1. getInstanceData() (Linha 1098-1123):
+```javascript
+function getInstanceData() {
+    try {
+        const cookie = document.cookie.split('; ')
+            .find(row => row.startsWith('timepulse_instance_token='));
+        
+        if (cookie) {
+            const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+            const instanceData = JSON.parse(cookieValue);
+            
+            console.log('✅ Dados da instância:', {
+                instanceId: instanceData.instanceId,
+                restaurantId: instanceData.restaurantId,
+                instanceName: instanceData.instanceName
+            });
+            
+            return instanceData;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Erro ao ler dados da instância:', error);
+        return null;
+    }
+}
+```
+
+2. isAuthenticated() (Linha 1125-1128):
+```javascript
+function isAuthenticated() {
+    const instanceData = getInstanceData();
+    return instanceData && instanceData.instanceId && instanceData.restaurantId;
+}
+```
+
+3. requireAuth() (Linha 1130-1136):
+```javascript
+function requireAuth() {
+    if (!isAuthenticated()) {
+        window.location.href = 'login.html';
+        return false;
+    }
+    return true;
+}
+```
+
+4. logout() (Linha 1138-1141):
+```javascript
+function logout() {
+    document.cookie = 'timepulse_instance_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    window.location.href = 'login.html';
+}
+```
+
+================================================================================
+4. CARREGAMENTO DE CONFIGURAÇÕES
+================================================================================
+
+4.1 FETCH PUBLIC CONFIG
+------------------------
+
+Função: fetchPublicConfig() (Linha 959-1095)
+
+ENDPOINTS CARREGADOS:
+1. /api/config - Configuração básica
+2. /api/config/supabase - Configuração Supabase
+3. /api/config/evolution - Configuração Evolution API (opcional)
+4. /api/config/mapbox - Configuração Mapbox (opcional)
+5. /api/config/openai - Configuração OpenAI (opcional)
+
+HEADERS:
+- Accept: application/json
+- Cache-Control: no-cache, no-store, must-revalidate
+- Pragma: no-cache
+- Credentials: include (cookies)
+
+ESTRUTURA DA CONFIGURAÇÃO FINAL:
+```javascript
+{
+    ...basicConfig,
+    supabaseUrl: "https://xxx.supabase.co",
+    supabaseAnonKey: "eyJxxx...",
+    evolution: { status: "ok", configured: true, ... },
+    mapbox: { status: "ok", configured: true, ... },
+    openai: { status: "ok", configured: true, ... }
+}
+```
+
+4.2 INITIALIZE CONFIGURATION
+------------------------------
+
+Função: initializeConfiguration() (Linha 1143-1156)
+
+PROCESSO:
+1. Buscar configuração pública do servidor
+2. Validar supabaseUrl e supabaseAnonKey
+3. Inicializar cliente Supabase
+4. Armazenar em variável global `supabase`
+
+Código:
+```javascript
+async function initializeConfiguration() {
+    const config = await fetchPublicConfig();
+    
+    if (!config || !config.supabaseUrl || !config.supabaseAnonKey) {
+        throw new Error('Não foi possível carregar as configurações seguras do servidor.');
+    }
+
+    if (window.supabase) {
+        supabase = window.supabase.createClient(
+            config.supabaseUrl, 
+            config.supabaseAnonKey
+        );
+        console.log('✅ Supabase inicializado com sucesso no cardápio');
+    } else {
+        throw new Error('Biblioteca Supabase não encontrada.');
+    }
+}
+```
+
+================================================================================
+5. GESTÃO DE CATEGORIAS DE PRODUTOS
+================================================================================
+
+5.1 ESTRUTURA DE DADOS
+-----------------------
+
+TABELA: product_categories
+
+CAMPOS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants)
+- name (text)
+- description (text, nullable)
+- display_order (integer, padrão 0)
+- active (boolean, padrão true)
+- created_at (timestamp)
+
+5.2 CARREGAMENTO
+-----------------
+
+Função: loadCategories() (Linha 1226-1235)
+
+QUERY SUPABASE:
+```javascript
+const { data, error } = await supabase
+    .from('product_categories')
+    .select('*')
+    .eq('restaurant_id', getInstanceData().restaurantId)
+    .order('display_order', { ascending: true })
+    .order('name', { ascending: true });
+```
+
+ARMAZENAMENTO:
+```javascript
+categories = data;  // Array global
+```
+
+5.3 RENDERIZAÇÃO
+-----------------
+
+Função: renderCategories() (Linha 1269-1284)
+
+HTML GERADO:
+```html
+<li class="category-item active" onclick="filterByCategory(null)">
+    <span>Todos os Produtos</span>
+</li>
+
+<li class="category-item" onclick="filterByCategory('uuid')">
+    <span>Nome da Categoria</span>
+    <div class="category-actions">
+        <button onclick="event.stopPropagation(); openCategoryModal('uuid')">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button onclick="event.stopPropagation(); deleteCategory('uuid')">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</li>
+```
+
+5.4 MODAL DE CATEGORIA
+-----------------------
+
+CAMPOS DO FORMULÁRIO:
+- categoryId (hidden) - ID da categoria (vazio se novo)
+- categoryName (text, required) - Nome da categoria
+- categoryDescription (textarea) - Descrição
+- categoryOrder (number) - Ordem de exibição
+- categoryActive (checkbox) - Categoria ativa
+
+ABRIR MODAL (Linha 1384-1401):
+```javascript
+function openCategoryModal(id = null) {
+    const form = document.getElementById('categoryForm');
+    form.reset();
+    document.getElementById('categoryId').value = '';
+    
+    if(id) {
+        const category = categories.find(c => c.id === id);
+        document.getElementById('categoryModalTitle').textContent = 'Editar Categoria';
+        document.getElementById('categoryId').value = category.id;
+        document.getElementById('categoryName').value = category.name;
+        document.getElementById('categoryDescription').value = category.description;
+        document.getElementById('categoryOrder').value = category.display_order;
+        document.getElementById('categoryActive').checked = category.active;
+    } else {
+        document.getElementById('categoryModalTitle').textContent = 'Nova Categoria';
+    }
+    
+    document.getElementById('categoryModal').classList.add('show');
+}
+```
+
+5.5 SALVAR CATEGORIA
+---------------------
+
+Função: handleCategorySubmit() (Linha 1407-1433)
+
+DADOS DO FORMULÁRIO:
+```javascript
+const categoryData = {
+    restaurant_id: getInstanceData().restaurantId,
+    name: document.getElementById('categoryName').value,
+    description: document.getElementById('categoryDescription').value,
+    display_order: parseInt(document.getElementById('categoryOrder').value) || 0,
+    active: document.getElementById('categoryActive').checked,
+};
+```
+
+INSERT (Nova):
+```javascript
+await supabase
+    .from('product_categories')
+    .insert([categoryData]);
+```
+
+UPDATE (Edição):
+```javascript
+await supabase
+    .from('product_categories')
+    .update(categoryData)
+    .eq('id', id);
+```
+
+PÓS-SALVAMENTO:
+1. Fechar modal
+2. Recarregar categorias (loadCategories)
+3. Re-renderizar (renderCategories)
+
+5.6 EXCLUIR CATEGORIA
+----------------------
+
+Função: deleteCategory() (Linha 1435-1450)
+
+VALIDAÇÃO:
+```javascript
+const productCount = products.filter(p => p.category_id === id).length;
+if (productCount > 0) {
+    alert(`Não é possível excluir esta categoria pois ela contém ${productCount} produto(s). 
+           Mova ou exclua os produtos primeiro.`);
+    return;
+}
+```
+
+DELETE:
+```javascript
+if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+
+const { error } = await supabase
+    .from('product_categories')
+    .delete()
+    .eq('id', id);
+```
+
+5.7 FILTRO POR CATEGORIA
+-------------------------
+
+Função: filterByCategory() (Linha 1353-1359)
+
+PROCESSO:
+1. Atualizar selectedCategoryId global
+2. Atualizar título da seção de produtos
+3. Re-renderizar categorias (marca ativa)
+4. Re-renderizar produtos (filtrados)
+
+```javascript
+function filterByCategory(categoryId) {
+    selectedCategoryId = categoryId;
+    const category = categories.find(c => c.id === categoryId);
+    
+    document.getElementById('productsTitle').textContent = 
+        category ? `Produtos em ${category.name}` : 'Todos os Produtos';
+    
+    renderCategories();
+    renderProducts();
+}
+```
+
+================================================================================
+6. GESTÃO DE PRODUTOS
+================================================================================
+
+6.1 ESTRUTURA DE DADOS
+-----------------------
+
+TABELA: products
+
+CAMPOS BÁSICOS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants)
+- category_id (uuid, FK → product_categories, nullable)
+- name (text)
+- description (text, nullable)
+- price (decimal)
+- display_order (integer)
+- preparation_time (integer)
+- active (boolean)
+- impressao (text) - "balcao,salao,cozinha"
+
+CAMPOS FISCAIS:
+- ncm (text) - Nomenclatura Comum do Mercosul
+- cfop (text) - Código Fiscal de Operações
+- icms_aliquota (decimal) - Alíquota ICMS
+- icms_cst (text) - Código Situação Tributária ICMS
+- pis_aliquota (decimal) - Alíquota PIS
+- pis_cst (text) - Código Situação Tributária PIS
+- cofins_aliquota (decimal) - Alíquota COFINS
+- cofins_cst (text) - Código Situação Tributária COFINS
+- origem_mercadoria (text) - Origem da mercadoria (0-8)
+- cest (text) - Código Especificador da Substituição Tributária
+- unidade_comercial (text) - Unidade comercial (UN, KG, L, etc)
+- codigo_interno (text) - Código interno do produto
+- observacoes_fiscais (text) - Observações fiscais
+- tributacao_especial (boolean) - Tributação especial
+- ai_preenchido (boolean) - Preenchido por IA
+
+6.2 CARREGAMENTO
+-----------------
+
+Função: loadProducts() (Linha 1237-1246)
+
+QUERY SUPABASE COM JOIN:
+```javascript
+const { data, error } = await supabase
+    .from('products')
+    .select('*, product_add_on_categories_link(add_on_category_id)')
+    .eq('restaurant_id', getInstanceData().restaurantId)
+    .order('display_order', { ascending: true })
+    .order('name', { ascending: true });
+```
+
+NOTA: Inclui vinculação com grupos de adicionais via tabela de junção
+product_add_on_categories_link
+
+6.3 RENDERIZAÇÃO
+-----------------
+
+Função: renderProducts() (Linha 1286-1310)
+
+FILTRO:
+```javascript
+const filteredProducts = selectedCategoryId 
+    ? products.filter(p => p.category_id === selectedCategoryId) 
+    : products;
+```
+
+HTML GERADO (CADA PRODUTO):
+```html
+<div class="product-list-item">
+    <div class="product-list-item-image">
+        <i class="fas fa-image"></i>
+    </div>
+    <div class="product-list-item-details">
+        <div class="product-list-item-name">Nome do Produto</div>
+        <div class="product-list-item-description">Descrição aqui</div>
+    </div>
+    <div class="product-list-item-price">R$ 25.00</div>
+    <div class="product-list-item-actions">
+        <button onclick="openProductModal('uuid')">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button onclick="deleteProduct('uuid')">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</div>
+```
+
+6.4 MODAL DE PRODUTO
+---------------------
+
+ESTRUTURA COMPLETA (Linha 713-951):
+
+SEÇÕES DO MODAL:
+1. Informações Básicas
+2. Configurações de Impressão
+3. Vinculação com Grupos de Adicionais
+4. Informações Fiscais (NCM, CFOP, etc)
+5. Informações Fiscais ICMS
+6. Informações Fiscais PIS/COFINS
+
+CAMPOS BÁSICOS:
+- productId (hidden)
+- productName (text, required)
+- productDescription (textarea)
+- productCategory (select) - Categorias carregadas dinamicamente
+- productPrice (number, required, step="0.01")
+- productActive (checkbox)
+
+CONFIGURAÇÕES DE IMPRESSÃO (Checkboxes):
+- impressaoBalcao - Impressão no balcão
+- impressaoSalao - Impressão no salão
+- impressaoCozinha - Impressão na cozinha
+
+VINCULAÇÃO COM ADICIONAIS (Radio Buttons):
+- Nenhum (padrão)
+- Grupos de adicionais (carregados dinamicamente)
+
+CAMPOS FISCAIS (com botão "Preencher com IA"):
+- productNCM (text) - 8 dígitos
+- productCFOP (text) - 4 dígitos
+- productICMSAliquota (number)
+- productICMSCST (text)
+- productPISAliquota (number)
+- productPISCST (text)
+- productCOFINSAliquota (number)
+- productCOFINSCST (text)
+- productOrigemMercadoria (select) - 0 a 8
+- productCEST (text)
+- productUnidadeComercial (select) - UN, KG, L, etc
+- productCodigoInterno (text)
+- productObservacoesFiscais (textarea)
+- productTributacaoEspecial (checkbox)
+
+6.5 ABRIR MODAL DE PRODUTO
+----------------------------
+
+Função: openProductModal() (Linha 1452-1610)
+
+PROCESSO:
+
+1. RESET E INICIALIZAÇÃO:
+```javascript
+const form = document.getElementById('productForm');
+form.reset();
+document.getElementById('productId').value = '';
+```
+
+2. CARREGAR CATEGORIAS NO SELECT:
+```javascript
+const categorySelect = document.getElementById('productCategory');
+categorySelect.innerHTML = '<option value="">Selecione...</option>';
+categories.forEach(cat => {
+    categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+});
+```
+
+3. CRIAR RADIO BUTTONS PARA GRUPOS DE ADICIONAIS:
+```javascript
+const addOnLinkContainer = document.getElementById('addOnCategoriesLink');
+addOnLinkContainer.innerHTML = '';
+
+// Opção "Nenhum"
+const noneDiv = document.createElement('div');
+noneDiv.className = 'radio-group';
+const noneRadio = document.createElement('input');
+noneRadio.type = 'radio';
+noneRadio.id = `addon-link-none`;
+noneRadio.value = '';
+noneRadio.name = 'addOnLink';
+noneRadio.checked = true;
+// ... adicionar label e append
+
+// Para cada grupo de adicionais
+addOnCategories.forEach((cat, index) => {
+    const div = document.createElement('div');
+    div.className = 'radio-group';
+    
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.id = `addon-link-${index}`;
+    radio.value = cat.id;
+    radio.name = 'addOnLink';
+    
+    const label = document.createElement('label');
+    label.htmlFor = radio.id;
+    label.textContent = cat.name;
+    
+    div.appendChild(radio);
+    div.appendChild(label);
+    addOnLinkContainer.appendChild(div);
+});
+```
+
+4. SE EDITANDO (id existe):
+```javascript
+if(id) {
+    const product = products.find(p => p.id === id);
+    
+    // Preencher campos básicos
+    document.getElementById('productModalTitle').textContent = 'Editar Produto';
+    document.getElementById('productId').value = product.id;
+    document.getElementById('productName').value = product.name;
+    document.getElementById('productDescription').value = product.description;
+    document.getElementById('productCategory').value = product.category_id;
+    document.getElementById('productPrice').value = product.price;
+    document.getElementById('productActive').checked = product.active;
+    
+    // Preencher impressão
+    const impressoes = (product.impressao || '').split(',');
+    document.getElementById('impressaoBalcao').checked = impressoes.includes('balcao');
+    document.getElementById('impressaoSalao').checked = impressoes.includes('salao');
+    document.getElementById('impressaoCozinha').checked = impressoes.includes('cozinha');
+    
+    // Preencher campos fiscais
+    document.getElementById('productNCM').value = product.ncm || '';
+    document.getElementById('productCFOP').value = product.cfop || '';
+    // ... outros campos fiscais
+    
+    // Marcar grupo de adicional vinculado
+    const linkedCategories = product.product_add_on_categories_link;
+    if (linkedCategories && linkedCategories.length > 0) {
+        const linkedId = linkedCategories[0].add_on_category_id;
+        const linkedRadio = document.querySelector(
+            `input[name="addOnLink"][value="${linkedId}"]`
+        );
+        if (linkedRadio) linkedRadio.checked = true;
+    }
+}
+```
+
+5. SE NOVO PRODUTO:
+```javascript
+else {
+    document.getElementById('productModalTitle').textContent = 'Novo Produto';
+    // Limpar todos os campos fiscais
+    // Se tem categoria selecionada, pré-selecionar
+    if(selectedCategoryId) {
+        categorySelect.value = selectedCategoryId;
+    }
+}
+```
+
+6.6 SALVAR PRODUTO
+-------------------
+
+Função: handleProductSubmit() (Linha 1616-1742)
+
+PROCESSO COMPLETO:
+
+1. COLETAR IMPRESSÕES:
+```javascript
+const impressaoSelecionadas = [];
+if (document.getElementById('impressaoBalcao').checked) impressaoSelecionadas.push('balcao');
+if (document.getElementById('impressaoSalao').checked) impressaoSelecionadas.push('salao');
+if (document.getElementById('impressaoCozinha').checked) impressaoSelecionadas.push('cozinha');
+```
+
+2. MONTAR DADOS DO PRODUTO:
+```javascript
+const productData = {
+    restaurant_id: getInstanceData().restaurantId,
+    name: document.getElementById('productName').value,
+    description: document.getElementById('productDescription').value,
+    category_id: document.getElementById('productCategory').value || null,
+    price: parseFloat(document.getElementById('productPrice').value),
+    display_order: 0,
+    preparation_time: 0,
+    active: document.getElementById('productActive').checked,
+    impressao: impressaoSelecionadas.join(','),
+    
+    // Campos Fiscais
+    ncm: document.getElementById('productNCM').value || null,
+    cfop: document.getElementById('productCFOP').value || null,
+    icms_aliquota: document.getElementById('productICMSAliquota').value 
+        ? parseFloat(document.getElementById('productICMSAliquota').value) 
+        : null,
+    icms_cst: document.getElementById('productICMSCST').value || null,
+    pis_aliquota: document.getElementById('productPISAliquota').value 
+        ? parseFloat(document.getElementById('productPISAliquota').value) 
+        : null,
+    pis_cst: document.getElementById('productPISCST').value || null,
+    cofins_aliquota: document.getElementById('productCOFINSAliquota').value 
+        ? parseFloat(document.getElementById('productCOFINSAliquota').value) 
+        : null,
+    cofins_cst: document.getElementById('productCOFINSCST').value || null,
+    origem_mercadoria: document.getElementById('productOrigemMercadoria').value || null,
+    cest: document.getElementById('productCEST').value || null,
+    unidade_comercial: document.getElementById('productUnidadeComercial').value || 'UN',
+    codigo_interno: document.getElementById('productCodigoInterno').value || null,
+    observacoes_fiscais: document.getElementById('productObservacoesFiscais').value || null,
+    tributacao_especial: document.getElementById('productTributacaoEspecial').checked,
+    ai_preenchido: document.getElementById('aiPreenchidoStatus').style.display !== 'none'
+};
+```
+
+3. INSERT OU UPDATE:
+```javascript
+let savedProduct;
+let productError;
+
+if (id) {
+    console.log('✏️ Atualizando produto existente...');
+    const { data, error } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', id)
+        .select()
+        .single();
+    savedProduct = data;
+    productError = error;
+} else {
+    console.log('➕ Criando novo produto...');
+    const { data, error } = await supabase
+        .from('products')
+        .insert([productData])
+        .select()
+        .single();
+    savedProduct = data;
+    productError = error;
+}
+```
+
+4. TRATAMENTO DE ERROS:
+```javascript
+if (productError) {
+    console.error('❌ Erro detalhado:', productError);
+    
+    // Erro de FK (categoria inválida)
+    if (productError.code === '23503' || productError.message?.includes('foreign key')) {
+        alert('Erro: Categoria inválida. Selecione uma categoria válida.');
+    } else {
+        alert(`Erro ao salvar produto: ${productError.message}`);
+    }
+    return;
+}
+```
+
+5. VINCULAR GRUPO DE ADICIONAIS:
+```javascript
+const selectedRadio = document.querySelector('input[name="addOnLink"]:checked');
+const selectedAddOnLink = selectedRadio ? selectedRadio.value : '';
+
+// Limpar links existentes
+await supabase
+    .from('product_add_on_categories_link')
+    .delete()
+    .eq('product_id', savedProduct.id);
+
+// Se selecionou um grupo, criar link
+if (selectedAddOnLink && selectedAddOnLink !== '') {
+    const linkToInsert = { 
+        product_id: savedProduct.id, 
+        add_on_category_id: selectedAddOnLink 
+    };
+    
+    await supabase
+        .from('product_add_on_categories_link')
+        .insert([linkToInsert]);
+}
+```
+
+6. FINALIZAÇÃO:
+```javascript
+closeProductModal();
+await loadProducts();
+renderProducts();
+showNotification('Produto salvo com sucesso!', 'success');
+```
+
+6.7 EXCLUIR PRODUTO
+--------------------
+
+Função: deleteProduct() (Linha 1909-1920)
+
+PROCESSO:
+1. Confirmar exclusão
+2. Deletar links com grupos de adicionais
+3. Deletar produto
+4. Recarregar e renderizar
+
+```javascript
+async function deleteProduct(id) {
+    if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+    
+    // Remover links com adicionais
+    await supabase
+        .from('product_add_on_categories_link')
+        .delete()
+        .eq('product_id', id);
+    
+    // Remover produto
+    const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+    
+    if (error) {
+        console.error('Erro ao excluir produto:', error);
+        alert('Erro ao excluir produto.');
+    } else {
+        await loadProducts();
+        renderProducts();
+    }
+}
+```
+
+================================================================================
+7. GESTÃO DE GRUPOS DE ADICIONAIS
+================================================================================
+
+7.1 ESTRUTURA DE DADOS
+-----------------------
+
+TABELA: add_on_categories
+
+CAMPOS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants)
+- name (text)
+- description (text, nullable)
+- selection_type (text) - 'single' ou 'multiple'
+- min_selection (integer) - Mínimo de seleções
+- max_selection (integer) - Máximo de seleções
+- created_at (timestamp)
+
+REGRAS DE SELEÇÃO:
+- single: Cliente pode escolher apenas 1 item
+- multiple: Cliente pode escolher vários itens (respeitando min/max)
+
+EXEMPLOS:
+1. Ponto da Carne (single, min=1, max=1)
+2. Adicionais (multiple, min=0, max=5)
+3. Ingredientes Obrigatórios (multiple, min=2, max=2)
+
+7.2 CARREGAMENTO
+-----------------
+
+Função: loadAddOnCategories() (Linha 1248-1256)
+
+QUERY:
+```javascript
+const { data, error } = await supabase
+    .from('add_on_categories')
+    .select('*')
+    .eq('restaurant_id', getInstanceData().restaurantId)
+    .order('name', { ascending: true });
+```
+
+7.3 RENDERIZAÇÃO
+-----------------
+
+Função: renderAddOnCategories() (Linha 1312-1327)
+
+HTML GERADO:
+```html
+<li class="category-item active" onclick="filterByAddOnCategory(null)">
+    <span>Todos os Itens</span>
+</li>
+
+<li class="category-item" onclick="filterByAddOnCategory('uuid')">
+    <span>Nome do Grupo</span>
+    <div class="category-actions">
+        <button onclick="event.stopPropagation(); openAddOnCategoryModal('uuid')">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button onclick="event.stopPropagation(); deleteAddOnCategory('uuid')">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</li>
+```
+
+7.4 MODAL DE GRUPO
+-------------------
+
+CAMPOS:
+- addOnCategoryId (hidden)
+- addOnCategoryName (text, required)
+- addOnCategoryDescription (textarea)
+- selectionType (radio):
+  * selectionTypeSingle - Seleção única
+  * selectionTypeMultiple - Seleção múltipla
+- minSelection (number) - Seleção mínima
+- maxSelection (number) - Seleção máxima
+
+ABRIR MODAL (Linha 1923-1952):
+```javascript
+function openAddOnCategoryModal(id = null) {
+    const form = document.getElementById('addOnCategoryForm');
+    form.reset();
+    document.getElementById('addOnCategoryId').value = '';
+    
+    // Valores padrão
+    document.getElementById('selectionTypeMultiple').checked = true;
+    document.getElementById('minSelection').value = 0;
+    document.getElementById('maxSelection').value = 1;
+
+    if(id) {
+        const category = addOnCategories.find(c => c.id === id);
+        if (category) {
+            document.getElementById('addOnCategoryModalTitle').textContent = 
+                'Editar Grupo de Adicionais';
+            document.getElementById('addOnCategoryId').value = category.id;
+            document.getElementById('addOnCategoryName').value = category.name;
+            document.getElementById('addOnCategoryDescription').value = 
+                category.description || '';
+            document.getElementById('minSelection').value = 
+                category.min_selection || 0;
+            document.getElementById('maxSelection').value = 
+                category.max_selection || 1;
+
+            if (category.selection_type === 'single') {
+                document.getElementById('selectionTypeSingle').checked = true;
+            } else {
+                document.getElementById('selectionTypeMultiple').checked = true;
+            }
+        }
+    } else {
+        document.getElementById('addOnCategoryModalTitle').textContent = 
+            'Novo Grupo de Adicionais';
+    }
+    
+    document.getElementById('addOnCategoryModal').classList.add('show');
+}
+```
+
+7.5 SALVAR GRUPO
+-----------------
+
+Função: handleAddOnCategorySubmit() (Linha 1958-1995)
+
+VALIDAÇÃO:
+```javascript
+const minSelection = parseInt(document.getElementById('minSelection').value) || 0;
+const maxSelection = parseInt(document.getElementById('maxSelection').value) || 1;
+
+if (minSelection > maxSelection) {
+    alert("A seleção mínima não pode ser maior que a seleção máxima.");
+    return;
+}
+```
+
+DADOS:
+```javascript
+const data = {
+    restaurant_id: getInstanceData().restaurantId,
+    name: document.getElementById('addOnCategoryName').value,
+    description: document.getElementById('addOnCategoryDescription').value,
+    selection_type: document.querySelector('input[name="selectionType"]:checked').value,
+    min_selection: minSelection,
+    max_selection: maxSelection,
+};
+```
+
+INSERT/UPDATE:
+```javascript
+if (id) {
+    await supabase.from('add_on_categories').update(data).eq('id', id);
+} else {
+    await supabase.from('add_on_categories').insert([data]);
+}
+```
+
+7.6 EXCLUIR GRUPO
+------------------
+
+Função: deleteAddOnCategory() (Linha 1997-2014)
+
+VALIDAÇÃO (tem itens):
+```javascript
+const addOnCount = addOns.filter(a => a.add_on_category_id === id).length;
+if (addOnCount > 0) {
+    alert(`Não é possível excluir este grupo, pois ele contém ${addOnCount} item(ns).`);
+    return;
+}
+```
+
+DELETE:
+```javascript
+if (!confirm('Tem certeza? Isso removerá o grupo permanentemente.')) return;
+
+await supabase.from('product_add_ons').delete().eq('add_on_category_id', id);
+const { error } = await supabase.from('add_on_categories').delete().eq('id', id);
+```
+
+================================================================================
+8. GESTÃO DE ITENS ADICIONAIS
+================================================================================
+
+8.1 ESTRUTURA DE DADOS
+-----------------------
+
+TABELA: product_add_ons
+
+CAMPOS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants)
+- add_on_category_id (uuid, FK → add_on_categories)
+- name (text)
+- price (decimal)
+- active (boolean)
+- created_at (timestamp)
+
+8.2 CARREGAMENTO
+-----------------
+
+Função: loadAddOns() (Linha 1258-1266)
+
+QUERY:
+```javascript
+const { data, error } = await supabase
+    .from('product_add_ons')
+    .select('*')
+    .eq('restaurant_id', getInstanceData().restaurantId)
+    .order('name', { ascending: true });
+```
+
+8.3 RENDERIZAÇÃO
+-----------------
+
+Função: renderAddOns() (Linha 1329-1351)
+
+FILTRO:
+```javascript
+const filteredAddOns = selectedAddOnCategoryId 
+    ? addOns.filter(p => p.add_on_category_id === selectedAddOnCategoryId) 
+    : addOns;
+```
+
+HTML GERADO:
+```html
+<div class="product-list-item">
+    <div class="product-list-item-details">
+        <div class="product-list-item-name">Nome do Adicional</div>
+    </div>
+    <div class="product-list-item-price">R$ 5.00</div>
+    <div class="product-list-item-actions">
+        <button onclick="openAddOnModal('uuid')">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button onclick="deleteAddOn('uuid')">
+            <i class="fas fa-trash"></i>
+        </button>
+    </div>
+</div>
+```
+
+8.4 MODAL DE ITEM
+------------------
+
+CAMPOS:
+- addOnId (hidden)
+- addOnName (text, required)
+- addOnPrice (number, required, step="0.01")
+- addOnCategory (select) - Grupos carregados dinamicamente
+- addOnActive (checkbox)
+
+ABRIR MODAL (Linha 2016-2043):
+```javascript
+function openAddOnModal(id = null) {
+    const form = document.getElementById('addOnForm');
+    form.reset();
+    document.getElementById('addOnId').value = '';
+    
+    // Carregar grupos no select
+    const categorySelect = document.getElementById('addOnCategory');
+    categorySelect.innerHTML = '<option value="">Selecione...</option>';
+    addOnCategories.forEach(cat => {
+        categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+    });
+
+    if(id) {
+        const addOn = addOns.find(a => a.id === id);
+        document.getElementById('addOnModalTitle').textContent = 'Editar Item Adicional';
+        document.getElementById('addOnId').value = addOn.id;
+        document.getElementById('addOnName').value = addOn.name;
+        document.getElementById('addOnPrice').value = addOn.price;
+        document.getElementById('addOnCategory').value = addOn.add_on_category_id;
+        document.getElementById('addOnActive').checked = addOn.active;
+    } else {
+        document.getElementById('addOnModalTitle').textContent = 'Novo Item Adicional';
+        if(selectedAddOnCategoryId) {
+            categorySelect.value = selectedAddOnCategoryId;
+        }
+    }
+    
+    document.getElementById('addOnModal').classList.add('show');
+}
+```
+
+8.5 SALVAR ITEM
+----------------
+
+Dados e processo similar aos produtos, mas mais simples (sem campos fiscais).
+
+8.6 EXCLUIR ITEM
+-----------------
+
+Simples delete sem validações adicionais.
+
+================================================================================
+9. SISTEMA DE MODAIS
+================================================================================
+
+9.1 ESTRUTURA CSS
+------------------
+
+MODAL BASE:
+```css
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1rem;
+}
+
+.modal.show {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    width: 100%;
+}
+```
+
+HEADER STICKY:
+```css
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
+```
+
+9.2 ABRIR/FECHAR
+-----------------
+
+ABRIR:
+```javascript
+document.getElementById('modalId').classList.add('show');
+```
+
+FECHAR:
+```javascript
+document.getElementById('modalId').classList.remove('show');
+```
+
+BOTÃO FECHAR (X):
+```html
+<button class="modal-close" onclick="closeModal()">&times;</button>
+```
+
+9.3 MODAIS DISPONÍVEIS
+-----------------------
+
+1. categoryModal - Categorias de produtos
+2. productModal - Produtos
+3. addOnCategoryModal - Grupos de adicionais
+4. addOnModal - Itens adicionais
+
+================================================================================
+10. CAMPOS FISCAIS E IA
+================================================================================
+
+10.1 CAMPOS FISCAIS OBRIGATÓRIOS (NF-e)
+-----------------------------------------
+
+NCM (Nomenclatura Comum do Mercosul):
+- 8 dígitos
+- Exemplo: 21069090 (preparações alimentícias diversas)
+
+CFOP (Código Fiscal de Operações):
+- 4 dígitos
+- Exemplo: 5102 (venda dentro do estado)
+
+ICMS (Imposto sobre Circulação de Mercadorias):
+- Alíquota (%)
+- CST (Código Situação Tributária)
+- Exemplo: 12.00% / CST 000
+
+PIS (Programa de Integração Social):
+- Alíquota (%)
+- CST
+- Exemplo: 1.65% / CST 01
+
+COFINS (Contribuição para Financiamento da Seguridade Social):
+- Alíquota (%)
+- CST
+- Exemplo: 7.60% / CST 01
+
+ORIGEM DA MERCADORIA:
+- 0: Nacional
+- 1: Estrangeira - Importação direta
+- 2: Estrangeira - Adquirida no mercado interno
+- ... (0 a 8)
+
+CEST (Código Especificador da Substituição Tributária):
+- Opcional
+- 7 dígitos
+
+UNIDADE COMERCIAL:
+- UN (unidade)
+- KG (quilograma)
+- L (litro)
+- CX (caixa)
+- PC (peça)
+- etc.
+
+10.2 SISTEMA DE IA (DESABILITADO)
+-----------------------------------
+
+Função: preencherComIA() (Linha 1809-1864)
+
+PROCESSO ATUAL:
+1. Verifica nome do produto
+2. Mostra spinner de carregamento
+3. Tenta buscar no cache local
+4. Se não tem cache, usa dados padrão
+5. Preenche campos do formulário
+6. Mostra notificação de sucesso
+
+CACHE LOCAL (Linha 1776-1806):
+
+CHAVE DE CACHE:
+```javascript
+const AI_CACHE_KEY = 'timepulse_ai_fiscal_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 horas
+```
+
+ESTRUTURA DO CACHE:
+```javascript
+{
+    "pizza_calabresa": {
+        data: { ncm: "...", cfop: "...", ... },
+        timestamp: 1234567890
+    },
+    "hamburguer_artesanal": {
+        data: { ... },
+        timestamp: 1234567891
+    }
+}
+```
+
+GET CACHE:
+```javascript
+function getCachedFiscalData(productKey) {
+    try {
+        const cache = JSON.parse(localStorage.getItem(AI_CACHE_KEY) || '{}');
+        const cached = cache[productKey];
+        
+        if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+            console.log('📦 Dados recuperados do cache:', productKey);
+            return cached.data;
+        }
+    } catch (error) {
+        console.warn('Erro ao ler cache:', error);
+    }
+    return null;
+}
+```
+
+SET CACHE:
+```javascript
+function setCachedFiscalData(productKey, data) {
+    try {
+        const cache = JSON.parse(localStorage.getItem(AI_CACHE_KEY) || '{}');
+        cache[productKey] = {
+            data: data,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cache));
+        console.log('💾 Dados salvos no cache:', productKey);
+    } catch (error) {
+        console.warn('Erro ao salvar cache:', error);
+    }
+}
+```
+
+10.3 DADOS FISCAIS PADRÃO
+--------------------------
+
+Função: gerarDadosFiscaisPadrao() (Linha 1891-1907)
+
+VALORES PADRÃO (Produtos Alimentícios):
+```javascript
+{
+    ncm: '21069090',           // Preparações alimentícias diversas
+    cfop: '5102',              // Venda dentro do estado
+    icms_aliquota: 12.00,      // 12%
+    icms_cst: '000',           // Tributada integralmente
+    pis_aliquota: 1.65,        // 1.65%
+    pis_cst: '01',             // Operação tributável
+    cofins_aliquota: 7.60,     // 7.60%
+    cofins_cst: '01',          // Operação tributável
+    origem_mercadoria: '0',    // Nacional
+    unidade_comercial: 'UN',   // Unidade
+    cest: null,
+    confianca: 0.5,            // 50% de confiança (padrão)
+    observacoes: 'Classificação padrão aplicada. Revisar manualmente.'
+}
+```
+
+10.4 PREENCHER CAMPOS
+----------------------
+
+Função: preencherCamposFiscais() (Linha 1867-1880)
+
+```javascript
+function preencherCamposFiscais(dados) {
+    document.getElementById('productNCM').value = dados.ncm || '';
+    document.getElementById('productCFOP').value = dados.cfop || '';
+    document.getElementById('productICMSAliquota').value = dados.icms_aliquota || '';
+    document.getElementById('productICMSCST').value = dados.icms_cst || '';
+    document.getElementById('productPISAliquota').value = dados.pis_aliquota || '';
+    document.getElementById('productPISCST').value = dados.pis_cst || '';
+    document.getElementById('productCOFINSAliquota').value = dados.cofins_aliquota || '';
+    document.getElementById('productCOFINSCST').value = dados.cofins_cst || '';
+    document.getElementById('productOrigemMercadoria').value = dados.origem_mercadoria || '';
+    document.getElementById('productUnidadeComercial').value = dados.unidade_comercial || 'UN';
+    
+    if (dados.cest) {
+        document.getElementById('productCEST').value = dados.cest;
+    }
+}
+```
+
+================================================================================
+11. SISTEMA DE NOTIFICAÇÕES
+================================================================================
+
+11.1 ESTRUTURA
+---------------
+
+Função: showNotification() (Linha 1745-1774)
+
+TIPOS:
+- 'success' (verde)
+- 'error' (vermelho)
+- 'info' (azul - não implementado no CSS)
+
+HTML GERADO:
+```html
+<div class="notification success">
+    <div class="notification-content">
+        <i class="fas fa-check-circle"></i>
+        <span>Mensagem aqui</span>
+        <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+```
+
+11.2 COMPORTAMENTO
+-------------------
+
+POSIÇÃO: Fixed, top-right (20px, 20px)
+ANIMAÇÃO: slideInRight (CSS)
+DURAÇÃO: 4 segundos (auto-remove)
+LIMITE: 1 notificação por vez (remove existente antes)
+
+```javascript
+function showNotification(message, type = 'success') {
+    // Remover existente
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Criar nova
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `...`;
+    
+    // Adicionar ao body
+    document.body.appendChild(notification);
+    
+    // Auto-remove após 4s
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 4000);
+}
+```
+
+11.3 CSS ANIMATION
+-------------------
+
+```css
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification {
+    animation: slideInRight 0.3s ease-out;
+}
+```
+
+================================================================================
+12. CACHE E PERFORMANCE
+================================================================================
+
+12.1 CACHE DE CONFIGURAÇÃO
+----------------------------
+
+HEADERS DE CACHE:
+```javascript
+headers: {
+    'Accept': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache'
+}
+```
+
+TIMESTAMP NAS URLs:
+```javascript
+const timestamp = Date.now();
+const configUrl = `${baseUrl}/api/config?t=${timestamp}`;
+```
+
+OBJETIVO: Evitar cache do navegador nas configurações
+
+12.2 CACHE DE DADOS FISCAIS (IA)
+----------------------------------
+
+localStorage KEY: 'timepulse_ai_fiscal_cache'
+DURAÇÃO: 24 horas
+ESTRUTURA: Map de produto → dados fiscais
+
+BENEFÍCIOS:
+- Economia de tokens da API de IA
+- Resposta instantânea para produtos repetidos
+- Persistência entre sessões
+
+12.3 OTIMIZAÇÕES
+-----------------
+
+1. CARREGAMENTO PARALELO:
+```javascript
+await Promise.all([
+    loadCategories(),
+    loadProducts(),
+    loadAddOnCategories(),
+    loadAddOns()
+]);
+```
+
+2. RENDERIZAÇÃO SOB DEMANDA:
+- Apenas produtos da categoria selecionada
+- Apenas adicionais do grupo selecionado
+
+3. DEBOUNCE IMPLÍCITO:
+- Modais previnem múltiplos salvamentos
+- Confirmações previnem múltiplos deletes
+
+================================================================================
+13. TABELAS SUPABASE
+================================================================================
+
+13.1 DIAGRAMA DE RELACIONAMENTOS
+----------------------------------
+
+restaurants
+    └─→ product_categories
+            └─→ products ←┐
+                    ↓      │
+        product_add_on_categories_link
+                    ↑
+    └─→ add_on_categories
+            └─→ product_add_ons
+
+13.2 PRODUCT_CATEGORIES
+------------------------
+
+Tabela: product_categories
+Descrição: Categorias de produtos do cardápio
+
+COLUNAS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants.id)
+- name (text, NOT NULL)
+- description (text)
+- display_order (integer, DEFAULT 0)
+- active (boolean, DEFAULT true)
+- created_at (timestamp)
+
+ÍNDICES:
+- PRIMARY KEY (id)
+- FOREIGN KEY (restaurant_id) → restaurants(id)
+- INDEX por restaurant_id, display_order
+
+13.3 PRODUCTS
+--------------
+
+Tabela: products
+Descrição: Produtos do cardápio
+
+COLUNAS BÁSICAS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants.id)
+- category_id (uuid, FK → product_categories.id, NULL)
+- name (text, NOT NULL)
+- description (text)
+- price (decimal, NOT NULL)
+- display_order (integer, DEFAULT 0)
+- preparation_time (integer)
+- active (boolean, DEFAULT true)
+- impressao (text) - "balcao,salao,cozinha"
+
+COLUNAS FISCAIS:
+- ncm (text)
+- cfop (text)
+- icms_aliquota (decimal)
+- icms_cst (text)
+- pis_aliquota (decimal)
+- pis_cst (text)
+- cofins_aliquota (decimal)
+- cofins_cst (text)
+- origem_mercadoria (text)
+- cest (text)
+- unidade_comercial (text, DEFAULT 'UN')
+- codigo_interno (text)
+- observacoes_fiscais (text)
+- tributacao_especial (boolean, DEFAULT false)
+- ai_preenchido (boolean, DEFAULT false)
+
+METADADOS:
+- created_at (timestamp)
+- updated_at (timestamp)
+
+13.4 ADD_ON_CATEGORIES
+-----------------------
+
+Tabela: add_on_categories
+Descrição: Grupos de adicionais (ex: "Ponto da Carne", "Adicionais")
+
+COLUNAS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants.id)
+- name (text, NOT NULL)
+- description (text)
+- selection_type (text) - 'single' ou 'multiple'
+- min_selection (integer, DEFAULT 0)
+- max_selection (integer, DEFAULT 1)
+- created_at (timestamp)
+
+REGRAS:
+- single: max_selection = 1 (obrigatoriamente)
+- multiple: min_selection <= max_selection
+
+13.5 PRODUCT_ADD_ONS
+---------------------
+
+Tabela: product_add_ons
+Descrição: Itens adicionais (ex: "Mal Passado", "Bacon Extra")
+
+COLUNAS:
+- id (uuid, PK)
+- restaurant_id (uuid, FK → restaurants.id)
+- add_on_category_id (uuid, FK → add_on_categories.id)
+- name (text, NOT NULL)
+- price (decimal, NOT NULL)
+- active (boolean, DEFAULT true)
+- created_at (timestamp)
+
+13.6 PRODUCT_ADD_ON_CATEGORIES_LINK
+-------------------------------------
+
+Tabela: product_add_on_categories_link
+Descrição: Vinculação produto ↔ grupo de adicionais (N:N)
+
+COLUNAS:
+- id (uuid, PK)
+- product_id (uuid, FK → products.id)
+- add_on_category_id (uuid, FK → add_on_categories.id)
+- created_at (timestamp)
+
+CONSTRAINTS:
+- UNIQUE (product_id, add_on_category_id)
+- Atualmente limitado a 1 grupo por produto (radio button)
+
+QUERIES COMUNS:
+
+Buscar grupos de um produto:
+```sql
+SELECT ac.* 
+FROM add_on_categories ac
+JOIN product_add_on_categories_link link ON link.add_on_category_id = ac.id
+WHERE link.product_id = '...'
+```
+
+Buscar produtos de um grupo:
+```sql
+SELECT p.* 
+FROM products p
+JOIN product_add_on_categories_link link ON link.product_id = p.id
+WHERE link.add_on_category_id = '...'
+```
+
+================================================================================
+14. FLUXOS COMPLETOS
+================================================================================
+
+14.1 FLUXO DE INICIALIZAÇÃO
+----------------------------
+
+1. DOMContentLoaded dispara
+2. initializeConfiguration()
+   a. fetchPublicConfig()
+      - Buscar /api/config
+      - Buscar /api/config/supabase
+      - Buscar /api/config/evolution (opcional)
+      - Buscar /api/config/mapbox (opcional)
+      - Buscar /api/config/openai (opcional)
+   b. Criar cliente Supabase
+3. loadRestaurantInfo()
+   a. Verificar autenticação (cookie)
+   b. Buscar dados do restaurante
+   c. Atualizar nome no sidebar
+4. loadAllData() (paralelo)
+   a. loadCategories()
+   b. loadProducts()
+   c. loadAddOnCategories()
+   d. loadAddOns()
+5. renderAll()
+   a. renderCategories()
+   b. renderProducts()
+   c. renderAddOnCategories()
+   d. renderAddOns()
+6. setupEventListeners()
+   a. categoryForm → handleCategorySubmit
+   b. productForm → handleProductSubmit
+   c. addOnCategoryForm → handleAddOnCategorySubmit
+   d. addOnForm → handleAddOnSubmit
+
+14.2 FLUXO DE CRIAÇÃO DE PRODUTO
+----------------------------------
+
+1. Usuário clica "Novo Produto"
+2. openProductModal(null)
+   a. Reset formulário
+   b. Carregar categorias no select
+   c. Criar radio buttons de grupos de adicionais
+   d. Pré-selecionar categoria atual (se houver)
+   e. Limpar campos fiscais
+   f. Mostrar modal
+3. Usuário preenche dados
+   a. Nome (obrigatório)
+   b. Descrição
+   c. Categoria
+   d. Preço (obrigatório)
+   e. Marcar impressões
+   f. Selecionar grupo de adicionais
+   g. (Opcional) Clicar "Preencher com IA"
+      - Verificar cache
+      - Se não tem, usar padrão
+      - Preencher campos fiscais
+4. Usuário clica "Salvar"
+5. handleProductSubmit(e)
+   a. Coletar impressões selecionadas
+   b. Montar productData
+   c. INSERT em products
+   d. Receber savedProduct
+   e. Deletar links existentes
+   f. Se selecionou grupo, INSERT em product_add_on_categories_link
+   g. Fechar modal
+   h. Recarregar produtos
+   i. Renderizar lista
+   j. Mostrar notificação de sucesso
+
+14.3 FLUXO DE EDIÇÃO DE PRODUTO
+---------------------------------
+
+1. Usuário clica botão editar do produto
+2. openProductModal(productId)
+   a. Reset formulário
+   b. Carregar categorias no select
+   c. Criar radio buttons de grupos
+   d. Buscar produto por ID
+   e. Preencher TODOS os campos (básicos + fiscais)
+   f. Marcar impressões do produto
+   g. Marcar grupo de adicional vinculado
+   h. Mostrar modal
+3. Usuário edita dados
+4. Usuário clica "Salvar"
+5. handleProductSubmit(e)
+   a. Coletar dados
+   b. UPDATE em products WHERE id = productId
+   c. Receber savedProduct
+   d. Deletar links existentes
+   e. Se selecionou grupo, INSERT novo link
+   f. Fechar modal
+   g. Recarregar e renderizar
+   h. Notificação de sucesso
+
+14.4 FLUXO DE EXCLUSÃO DE PRODUTO
+-----------------------------------
+
+1. Usuário clica botão excluir
+2. deleteProduct(id)
+3. Confirmar exclusão
+4. DELETE em product_add_on_categories_link WHERE product_id = id
+5. DELETE em products WHERE id = id
+6. Recarregar produtos
+7. Renderizar lista atualizada
+
+14.5 FLUXO DE FILTRO POR CATEGORIA
+------------------------------------
+
+1. Usuário clica em categoria
+2. filterByCategory(categoryId)
+3. Atualizar selectedCategoryId global
+4. Buscar nome da categoria
+5. Atualizar título "Produtos em [Nome]"
+6. renderCategories()
+   a. Marcar categoria selecionada como active
+7. renderProducts()
+   a. Filtrar produtos: category_id === selectedCategoryId
+   b. Renderizar apenas produtos filtrados
+   c. Se vazio, mostrar "Nenhum produto encontrado"
+
+14.6 FLUXO DE PREENCHIMENTO COM IA (PADRÃO)
+---------------------------------------------
+
+1. Usuário clica "Preencher com IA"
+2. preencherComIA()
+3. Validar nome do produto
+4. Mostrar spinner
+5. Criar chave de cache: nome_descricao
+6. getCachedFiscalData(key)
+   a. Buscar em localStorage
+   b. Verificar timestamp (< 24h)
+   c. Se válido, retornar dados
+   d. Se não, retornar null
+7. Se não tem cache:
+   a. gerarDadosFiscaisPadrao()
+   b. Retornar dados padrão
+   c. setCachedFiscalData(key, dados)
+8. preencherCamposFiscais(dados)
+   a. Preencher todos os campos do formulário
+9. Mostrar status "AI Preenchido"
+10. Notificação de sucesso
+11. Restaurar botão original
+
+14.7 FLUXO DE VINCULAÇÃO PRODUTO → GRUPO DE ADICIONAIS
+--------------------------------------------------------
+
+1. No modal de produto, renderizar radio buttons
+2. Para cada grupo de adicionais:
+   a. Criar <input type="radio" name="addOnLink" value="grupoId">
+   b. Criar <label> com nome do grupo
+3. Adicionar opção "Nenhum" (value="")
+4. Se editando produto:
+   a. Buscar links: product.product_add_on_categories_link
+   b. Se tem link, marcar radio do grupo correspondente
+   c. Se não tem, marcar "Nenhum"
+5. Ao salvar produto:
+   a. Ler radio selecionado
+   b. DELETE todos os links do produto
+   c. Se selecionou grupo (não "Nenhum"):
+      - INSERT (product_id, add_on_category_id)
+
+================================================================================
+FIM DA DOCUMENTAÇÃO
+================================================================================
+
+RESUMO FINAL:
+
+O arquivo cardapio.html é uma SPA (Single Page Application) completa para
+gestão de cardápio de restaurantes, com:
+
+✓ 2 tabs principais (Cardápio e Adicionais)
+✓ 4 entidades gerenciadas (Categorias, Produtos, Grupos, Itens)
+✓ 4 modais CRUD completos
+✓ Campos fiscais para NF-e
+✓ Sistema de cache inteligente
+✓ Autenticação via cookies
+✓ Integração total com Supabase
+✓ UI responsiva e moderna
+✓ Notificações visuais
+✓ Preenchimento automático (padrão)
+
+TECNOLOGIAS:
+- Vanilla JavaScript (ES6+)
+- Supabase Client
+- Font Awesome Icons
+- CSS3 Grid/Flexbox
+- localStorage para cache
+
+ARQUITETURA:
+- Sem frameworks (Vanilla JS)
+- State global em variáveis
+- Event-driven
+- Modular (funções separadas)
+- Async/await para operações assíncronas
