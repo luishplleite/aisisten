@@ -1,0 +1,202 @@
+[
+  {
+    "headers": {
+      "host": "n8n.timepulseai.com.br",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+      "content-length": "2879",
+      "accept": "*/*",
+      "accept-encoding": "gzip, deflate, br, zstd",
+      "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+      "content-type": "application/json",
+      "origin": "https://4af017f3-df57-45d1-8969-75bf7162c5e5-00-1dqlc70gikx52.spock.replit.dev",
+      "priority": "u=1, i",
+      "sec-ch-ua": "\"Google Chrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Windows\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "cross-site",
+      "x-forwarded-for": "45.4.24.87",
+      "x-forwarded-host": "n8n.timepulseai.com.br",
+      "x-forwarded-port": "443",
+      "x-forwarded-proto": "https",
+      "x-forwarded-server": "559ec9df6334",
+      "x-real-ip": "45.4.24.87"
+    },
+    "params": {},
+    "query": {},
+    "body": {
+      "plano": "basic",
+      "plano_nome": "Plano Básico",
+      "valor": 49.99,
+      "restaurante": {
+        "id": "1592e22a-e641-42ed-9e20-00f200f20274",
+        "name": "Restaruante_teste",
+        "owner_id": "2bc7ba0a-b6bc-466c-8232-e3043ec33a1c",
+        "owner_name": "teste",
+        "owner_cpf": "22283381843",
+        "owner_phone": "13997505622",
+        "cnpj": null,
+        "business_type": null,
+        "address": "Rua Vitoria 380",
+        "city": "Santos",
+        "state": "SP",
+        "zip_code": "00000-000",
+        "primary_color": "#28a745",
+        "logo_url": null,
+        "delivery_retun": 5,
+        "minimum_delivery_fee": 8,
+        "delivery_fee_per_km": 2.5,
+        "minimum_distance_km": 3,
+        "preparation_time": 30,
+        "delivery_radius": 10,
+        "minimum_order": 0,
+        "business_hours": {
+          "friday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": false
+          },
+          "monday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": false
+          },
+          "sunday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": true
+          },
+          "tuesday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": false
+          },
+          "saturday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": false
+          },
+          "thursday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": false
+          },
+          "wednesday": {
+            "open": "08:00",
+            "close": "18:00",
+            "closed": false
+          }
+        },
+        "notification_settings": {
+          "email": {
+            "new_order": false,
+            "daily_report": false
+          },
+          "sound": {
+            "new_order": true,
+            "order_update": false
+          }
+        },
+        "asaas_config": {},
+        "status": "active",
+        "plan": "basic",
+        "created_at": "2025-10-11T18:46:46.923+00:00",
+        "updated_at": "2025-10-11T18:46:46.923+00:00",
+        "latitude": null,
+        "longitude": null,
+        "pedidos_online": null,
+        "link_cardapio": null,
+        "payment_methods": {
+          "pix": {
+            "key": null,
+            "enabled": false
+          },
+          "card": {
+            "debit": false,
+            "credit": false,
+            "enabled": false
+          },
+          "cash": {
+            "enabled": true,
+            "needs_change": false
+          }
+        },
+        "whatsapp_config": {
+          "api_key": null,
+          "enabled": false,
+          "phone_number": null
+        },
+        "smtp_config": {
+          "host": null,
+          "port": null,
+          "enabled": false,
+          "password": null,
+          "username": null
+        },
+        "api_assas": null,
+        "trial_enabled": true,
+        "trial_start_date": "2025-10-11T18:46:47.021096+00:00",
+        "trial_end_date": "2025-10-18T18:46:47.021096+00:00",
+        "trial_days_remaining": 7,
+        "subscription_status": "trial",
+        "subscription_start_date": null,
+        "subscription_end_date": null,
+        "subscription_days_remaining": 30,
+        "whatsapp_disconnected_due_to_trial": false,
+        "operating_hours": {
+          "friday": {
+            "is_open": true,
+            "open_time": "08:00",
+            "close_time": "18:00"
+          },
+          "monday": {
+            "is_open": true,
+            "open_time": "08:00",
+            "close_time": "18:00"
+          },
+          "sunday": {
+            "is_open": false,
+            "open_time": null,
+            "close_time": null
+          },
+          "tuesday": {
+            "is_open": true,
+            "open_time": "08:00",
+            "close_time": "18:00"
+          },
+          "saturday": {
+            "is_open": true,
+            "open_time": "08:00",
+            "close_time": "18:00"
+          },
+          "thursday": {
+            "is_open": true,
+            "open_time": "08:00",
+            "close_time": "18:00"
+          },
+          "wednesday": {
+            "is_open": true,
+            "open_time": "08:00",
+            "close_time": "18:00"
+          }
+        },
+        "owner_email": null,
+        "trial_extension_reason": null,
+        "manual_activation_reason": null,
+        "status_change_reason": null
+      },
+      "instancia": {
+        "instanceId": "1592e22a-e641-42ed-9e20-00f200f20274",
+        "instanceName": "Restaruante_teste",
+        "token": "session_1760454047287",
+        "type": "restaurant",
+        "userEmail": "luisleite@timepulseai.com.br",
+        "restaurantId": "1592e22a-e641-42ed-9e20-00f200f20274"
+      },
+      "metodo_pagamento": "CREDIT_CARD"
+    },
+    "webhookUrl": "https://n8n.timepulseai.com.br/webhook/assinaturas",
+    "executionMode": "production"
+  }
+]

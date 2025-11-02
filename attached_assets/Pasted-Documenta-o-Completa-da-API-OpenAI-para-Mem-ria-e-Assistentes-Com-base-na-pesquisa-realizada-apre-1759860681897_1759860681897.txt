@@ -1,0 +1,241 @@
+Documentação Completa da API OpenAI para Memória e Assistentes
+
+Com base na pesquisa realizada, apresento a documentação completa dos endpoints da OpenAI para gerenciar memória e estado de conversação em assistentes.
+Alterações Importantes na API da OpenAI
+
+A OpenAI migrou da Assistants API para a nova Responses API, que oferece uma abordagem mais simples e flexível para gerenciar memória e conversações.
+Principais APIs para Memória
+1. Responses API (Nova Arquitetura)
+Criar Resposta com Memória
+
+text
+POST https://api.openai.com/v1/responses
+
+Parâmetros principais para memória:
+
+    conversation: ID da conversa para manter estado
+
+    previous_response_id: ID da resposta anterior para conversas multi-turno
+
+    store: Se deve armazenar a resposta para recuperação posterior
+
+Exemplo:
+
+python
+response = client.responses.create(
+    model="gpt-4.1",
+    input="Pergunta do usuário",
+    conversation="conv_123",  # ID da conversa existente
+    previous_response_id="resp_456"  # ID da resposta anterior
+)
+
+Recuperar Resposta
+
+text
+GET https://api.openai.com/v1/responses/{response_id}
+
+Deletar Resposta
+
+text
+DELETE https://api.openai.com/v1/responses/{response_id}
+
+2. Conversations API (Gerenciar Estado)
+Criar Conversa
+
+text
+POST https://api.openai.com/v1/conversations
+
+Exemplo:
+
+python
+conversation = client.conversations.create(
+    metadata={"user_id": "user123"},
+    items=[
+        {"type": "message", "role": "user", "content": "Olá!"}
+    ]
+)
+
+Recuperar Conversa
+
+text
+GET https://api.openai.com/v1/conversations/{conversation_id}
+
+Atualizar Conversa
+
+text
+POST https://api.openai.com/v1/conversations/{conversation_id}
+
+Deletar Conversa
+
+text
+DELETE https://api.openai.com/v1/conversations/{conversation_id}
+
+Listar Itens da Conversa
+
+text
+GET https://api.openai.com/v1/conversations/{conversation_id}/items
+
+Adicionar Itens à Conversa
+
+text
+POST https://api.openai.com/v1/conversations/{conversation_id}/items
+
+3. Chat Completions API (Método Tradicional)
+Criar Completion com Histórico
+
+text
+POST https://api.openai.com/v1/chat/completions
+
+Exemplo com memória manual:
+
+python
+messages_history = [
+    {"role": "system", "content": "Você é um assistente útil"},
+    {"role": "user", "content": "Meu nome é João"},
+    {"role": "assistant", "content": "Olá João! Como posso ajudar?"},
+    {"role": "user", "content": "Qual é o meu nome?"} # Nova mensagem
+]
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=messages_history,
+    store=True  # Armazenar para recuperação posterior
+)
+
+4. OpenAI Agents SDK (Memória Avançada)
+
+Para memória persistente mais avançada, o SDK oferece classes especializadas:
+
+python
+from agents.memory import SQLiteSession
+
+# Criar sessão com memória persistente
+session = SQLiteSession(
+    session_id="user123_session",
+    db_path="conversations.db"  # Arquivo persistente
+)
+
+# Adicionar itens à memória
+await session.add_items([
+    {"role": "user", "content": "Mensagem do usuário"}
+])
+
+# Recuperar histórico
+history = await session.get_items(limit=10)
+
+Métodos de Implementação de Memória
+Método 1: Using previous_response_id (Simples)
+
+python
+# Primeira mensagem
+response1 = client.responses.create(
+    model="gpt-4.1",
+    input="Meu nome é Maria"
+)
+
+# Segunda mensagem usando o ID da resposta anterior
+response2 = client.responses.create(
+    model="gpt-4.1",
+    input="Qual é o meu nome?",
+    previous_response_id=response1.id
+)
+
+Método 2: Using Conversations (Recomendado)
+
+python
+# Criar conversa
+conversation = client.conversations.create()
+
+# Usar a conversa em múltiplas respostas
+response1 = client.responses.create(
+    model="gpt-4.1",
+    input="Meu nome é Maria",
+    conversation=conversation.id
+)
+
+response2 = client.responses.create(
+    model="gpt-4.1", 
+    input="Qual é o meu nome?",
+    conversation=conversation.id
+)
+
+Método 3: Histórico Manual (Chat Completions)
+
+python
+conversation_history = []
+
+def add_to_history(role, content):
+    conversation_history.append({"role": role, "content": content})
+
+def get_response(user_message):
+    add_to_history("user", user_message)
+    
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=conversation_history
+    )
+    
+    assistant_message = response.choices[0].message.content
+    add_to_history("assistant", assistant_message)
+    
+    return assistant_message
+
+Implementação com Bibliotecas Externas
+Using Mem0 (Memória Persistente)
+
+python
+from mem0 import MemoryClient
+from agents import Agent, function_tool
+
+mem0 = MemoryClient()
+
+@function_tool
+def search_memory(query: str, user_id: str) -> str:
+    memories = mem0.search(query, user_id=user_id, limit=3)
+    if memories and memories.get('results'):
+        return "\n".join([f"- {mem['memory']}" for mem in memories['results']])
+    return "Nenhuma memória encontrada."
+
+@function_tool  
+def save_memory(content: str, user_id: str) -> str:
+    mem0.add([{"role": "user", "content": content}], user_id=user_id)
+    return "Informação salva na memória."
+
+Limitações e Considerações
+
+    API de Memória do ChatGPT não está disponível via API - A funcionalidade de memória do ChatGPT é exclusiva da interface web
+
+Armazenamento Temporal: Respostas são armazenadas apenas por 30 dias
+
+Gerenciamento Manual: Você deve implementar sua própria lógica de persistência para memória de longo prazo
+
+Context Window: Para conversas longas, considere o limite de tokens do modelo
+Exemplo Prático Completo
+
+python
+from openai import OpenAI
+
+client = OpenAI()
+
+class ConversationManager:
+    def __init__(self):
+        self.conversation = client.conversations.create()
+    
+    def send_message(self, message):
+        response = client.responses.create(
+            model="gpt-4.1",
+            input=message,
+            conversation=self.conversation.id,
+            store=True
+        )
+        return response.output_text
+    
+    def get_conversation_history(self):
+        items = client.conversations.items.list(self.conversation.id)
+        return items.data
+
+# Uso
+manager = ConversationManager()
+response1 = manager.send_message("Meu nome é Pedro")
+response2 = manager.send_message("Qual é o meu nome?")
+history = manager.get_conversation_history()

@@ -1,0 +1,95 @@
+POST
+https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/api/evolution/create-instance
+[HTTP/1.1 403 Forbidden 493ms]
+
+	
+POST
+	https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/api/evolution/create-instance
+Status
+403
+Forbidden
+VersãoHTTP/1.1
+Transferido1,01 kB (tamanho 104 B)
+Referrer Policyno-referrer
+Prioridade da requisiçãoHighest
+Resolução de DNSSistema
+
+	
+Access-Control-Allow-Credentials
+	true
+Access-Control-Allow-Origin
+	https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev
+Content-Length
+	104
+Content-Type
+	application/json; charset=utf-8
+Cross-Origin-Opener-Policy
+	same-origin
+Cross-Origin-Resource-Policy
+	cross-origin
+Date
+	Sat, 11 Oct 2025 20:23:09 GMT
+Etag
+	W/"68-XT0rywWKauEChqZ6jJ2nVmO5R7E"
+Origin-Agent-Cluster
+	?1
+Referrer-Policy
+	no-referrer
+Replit-Cluster
+	janeway
+Strict-Transport-Security
+	max-age=15552000; includeSubDomains
+Vary
+	Origin
+X-Content-Type-Options
+	nosniff
+X-Dns-Prefetch-Control
+	off
+X-Download-Options
+	noopen
+X-Frame-Options
+	SAMEORIGIN
+X-Permitted-Cross-Domain-Policies
+	none
+X-Robots-Tag
+	none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+X-Robots-Tag
+	none, noindex, noarchive, nofollow, nositelinkssearchbox, noimageindex
+X-Xss-Protection
+	0
+	
+Accept
+	application/json
+Accept-Encoding
+	gzip, deflate, br, zstd
+Accept-Language
+	pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3
+Connection
+	keep-alive
+Content-Length
+	361
+Content-Type
+	application/json
+Cookie
+	timepulse_instance_token=%7B%22instanceId%22%3A%221592e22a-e641-42ed-9e20-00f200f20274%22%2C%22instanceName%22%3A%22Restaruante_teste%22%2C%22token%22%3A%22session_1760213688753%22%2C%22type%22%3A%22restaurant%22%2C%22userEmail%22%3A%22luisleite%40timepulseai.com.br%22%2C%22restaurantId%22%3A%221592e22a-e641-42ed-9e20-00f200f20274%22%7D
+Host
+	5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev
+Origin
+	https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev
+Priority
+	u=0
+Sec-Fetch-Dest
+	empty
+Sec-Fetch-Mode
+	cors
+Sec-Fetch-Site
+	same-origin
+User-Agent
+	Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0
+❌ Erro ao criar instância: Error: Forbidden
+    createEvolutionInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/evo_teste.html:411
+    onclick https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/evo_teste.html:1
+injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    createEvolutionInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/evo_teste.html:415
+    onclick https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/evo_teste.html:1

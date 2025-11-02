@@ -1,0 +1,166 @@
+# Documentação das APIs de Navegação do Mapbox
+
+**Autor:** Manus AI
+
+Este documento compila a documentação técnica das principais APIs de navegação do Mapbox: **Map Matching**, **Directions**, **Optimization** e **Matrix**. As informações foram extraídas das documentações oficiais do Mapbox em 28 de Outubro de 2025 [1, 2, 3, 4].
+
+## 1. Map Matching API
+
+A **Mapbox Map Matching API** tem como objetivo "ajustar" (snaps) traços imprecisos e ruidosos de GPS ou telefone à rede de estradas e caminhos, usando a Directions API. Isso resulta em caminhos limpos que podem ser exibidos em um mapa ou usados para análise [1].
+
+### 1.1. Funcionalidade Principal
+
+A API retorna um caminho na rede de estradas que é o mais próximo dos traços de entrada.
+
+*   **Endpoint Principal (v5):** `GET https://api.mapbox.com/matching/v5/{profile}/{coordinates}.json`
+
+### 1.2. Perfis de Roteamento Suportados
+
+| Profile ID | Descrição |
+| :--- | :--- |
+| `mapbox/driving` | Tempos e distâncias de viagem de carro. |
+| `mapbox/walking` | Tempos e distâncias de viagem de pedestres e caminhadas. |
+| `mapbox/cycling` | Tempos e distâncias de viagem de bicicleta. |
+| `mapbox/driving-traffic` | Tempos e distâncias de viagem de carro informados por dados de tráfego. |
+
+### 1.3. Parâmetros-Chave
+
+| Parâmetro | Tipo | Obrigatório/Opcional | Descrição |
+| :--- | :--- | :--- | :--- |
+| `profile` | `string` | Obrigatório | O ID do perfil de roteamento a ser usado. |
+| `coordinates` | `number` ou `string` | Obrigatório | Uma lista de pares `{longitude},{latitude}` separados por ponto e vírgula. Suporta de 2 a 100 coordenadas. |
+| `radiuses` | `number` | Opcional | Lista separada por ponto e vírgula indicando a distância máxima (em metros, 0.0 a 50.00) que uma coordenada pode ser movida para se ajustar à rede. Padrão é 5. |
+| `timestamps` | `number` | Opcional | Lista de números separados por ponto e vírgula em **tempo Unix** correspondentes a cada coordenada de entrada. **Altamente recomendado** para melhor qualidade de correspondência. |
+| `steps` | `boolean` | Opcional | Se `true`, retorna instruções passo a passo (turn-by-turn). Padrão é `false`. |
+| `annotations` | `string` | Opcional | Retorna metadados adicionais (`distance`, `duration`, `speed`, `congestion`, `maxspeed`). Requer `overview=full`. |
+
+### 1.4. Restrições e Limites
+
+*   **Limite de Coordenadas:** Máximo de 100 coordenadas por requisição.
+*   **Limite de Taxa:** 300 requisições por minuto.
+*   **Requisito de Exibição:** Os resultados devem ser exibidos em um mapa Mapbox usando uma das bibliotecas ou SDKs do Mapbox.
+
+## 2. Directions API
+
+A **Mapbox Directions API** calcula rotas ideais e fornece instruções passo a passo (turn-by-turn) para destinos usando perfis de direção, caminhada e ciclismo, considerando condições de tráfego e incidentes [2].
+
+### 2.1. Funcionalidade Principal
+
+Calcula a rota mais rápida entre até 25 *waypoints* (pontos de passagem) e fornece a geometria da rota e instruções detalhadas.
+
+*   **Endpoint Principal (v5):** `GET https://api.mapbox.com/directions/v5/{profile}/{coordinates}`
+
+### 2.2. Perfis de Roteamento Suportados
+
+| Profile ID | Descrição | Limite de Coordenadas |
+| :--- | :--- | :--- |
+| `mapbox/driving-traffic` | Roteamento automotivo com base em condições de tráfego atuais e históricas. | 25 |
+| `mapbox/driving` | Roteamento automotivo, priorizando estradas de alta velocidade (como rodovias). | 25 |
+| `mapbox/walking` | Roteamento para pedestres e caminhadas, usando calçadas e trilhas. | 25 |
+| `mapbox/cycling` | Roteamento para bicicletas, evitando rodovias e preferindo ciclovias. | 25 |
+
+### 2.3. Parâmetros-Chave
+
+| Parâmetro | Tipo | Obrigatório/Opcional | Descrição |
+| :--- | :--- | :--- | :--- |
+| `profile` | `string` | Obrigatório | O perfil de roteamento a ser usado. |
+| `coordinates` | `number` | Obrigatório | Lista de 2 a 25 pares `{longitude},{latitude}` separados por ponto e vírgula. |
+| `alternatives` | `boolean` | Opcional | Se `true`, tenta retornar rotas alternativas (até duas). Padrão é `false`. |
+| `annotations` | `string` | Opcional | Retorna metadados adicionais (`distance`, `duration`, `speed`, `congestion`, `maxspeed`, `closure`, `state_of_charge`). Requer `overview=full`. |
+| `exclude` | `string` | Opcional | Exclui certos tipos de estradas (`motorway`, `toll`, `ferry`, `unpaved`, `cash_only_tolls`) ou locais personalizados. |
+| `depart_at` | `string` | Opcional | Especifica o horário de partida para considerar condições de tráfego futuras (formato ISO 8601). |
+| `language` | `string` | Opcional | O idioma das instruções passo a passo (padrão é `en`). |
+| `engine` | `string` | Opcional | Se definido como `electric`, ativa o roteamento para veículos elétricos (EV) com paradas de carregamento otimizadas. |
+
+### 2.4. Roteamento para Veículos Elétricos (EV)
+
+O roteamento EV (Private Preview) está disponível nos perfis `driving` e `driving-traffic` e é ativado com o parâmetro `engine=electric`. Requer parâmetros adicionais obrigatórios para o EV, como `ev_max_charge`, `ev_connector_types`, `energy_consumption_curve` e `ev_charging_curve`.
+
+### 2.5. Restrições e Limites
+
+*   **Limite de Waypoints:** Máximo de 25 waypoints por requisição (ou 12 se usar `engine=electric`).
+*   **Limite de Taxa:** 300 requisições por minuto.
+*   **Distância Máxima:** 10.000 km para perfis de carro/ciclismo, 1.000 km para caminhada.
+
+## 3. Optimization API v2 (Beta)
+
+A **Mapbox Optimization API v2** é uma API para calcular planos eficientes para veículos visitarem múltiplos locais, resolvendo problemas de roteamento de veículos (VRP - Vehicle Routing Problems) [3].
+
+### 3.1. Funcionalidade Principal
+
+Permite submeter problemas complexos de roteamento (frota de veículos, locais a serem visitados, restrições de janela de tempo, capacidade, etc.) e receber uma solução otimizada.
+
+*   **Endpoint Principal:** `POST https://api.mapbox.com/optimized-trips/v2`
+
+### 3.2. Fluxo de Uso
+
+1.  **Submeter o Problema:** Enviar um documento JSON (documento de problema de roteamento) via `POST` para o endpoint principal. A resposta retorna um `id` único.
+2.  **Recuperar a Solução:** Usar o `id` para consultar o status e receber o documento de solução via `GET https://api.mapbox.com/optimized-trips/v2/{id}`.
+
+### 3.3. Estrutura do Documento de Problema de Roteamento (JSON)
+
+O documento de entrada contém cinco elementos principais:
+
+| Elemento | Obrigatório | Descrição |
+| :--- | :--- | :--- |
+| `version` | Sim | Versão do esquema do documento (atualmente `1`). |
+| `locations` | Sim | Pontos físicos no espaço a serem visitados. |
+| `vehicles` | Sim | Frota de veículos, incluindo capacidades e requisitos. |
+| `services` | Opcional | Locais de parada única (por exemplo, entrega ou coleta). |
+| `shipments` | Opcional | Itens que precisam ser coletados em um local e entregues em outro (pickup-and-delivery). |
+| `options` | Opcional | Permite escolher o objetivo da otimização (ex: minimizar a duração total da viagem ou minimizar o tempo de conclusão da agenda mais longa). |
+
+**Nota:** Pelo menos um de `shipments` ou `services` é obrigatório.
+
+### 3.4. Restrições e Limites
+
+*   **Limite de Locais:** Máximo de 1.000 locais por problema de roteamento.
+*   **Limite de Taxa:** 300 problemas de roteamento submetidos por minuto.
+
+## 4. Matrix API
+
+A **Mapbox Matrix API** retorna tempos de viagem (duração) e/ou distâncias entre múltiplos pontos de origem e destino, de forma eficiente [4].
+
+### 4.1. Funcionalidade Principal
+
+Calcula uma matriz de tempos de viagem ou distâncias entre um conjunto de coordenadas. Não retorna geometrias de rota.
+
+*   **Endpoint Principal (v1):** `GET https://api.mapbox.com/directions-matrix/v1/{profile}/{coordinates}`
+
+### 4.2. Perfis de Roteamento Suportados
+
+Os mesmos perfis da Directions API: `mapbox/driving`, `mapbox/walking`, `mapbox/cycling` e `mapbox/driving-traffic`.
+
+### 4.3. Parâmetros-Chave
+
+| Parâmetro | Tipo | Obrigatório/Opcional | Descrição |
+| :--- | :--- | :--- | :--- |
+| `profile` | `string` | Obrigatório | O perfil de roteamento a ser usado. |
+| `coordinates` | `number` | Obrigatório | Lista de pares `{longitude},{latitude}` separados por ponto e vírgula. Máximo de 25 coordenadas (10 para `driving-traffic`). |
+| `annotations` | `string` | Opcional | Especifica as matrizes resultantes: `duration` (padrão), `distance`, ou ambas. |
+| `sources` | `integer` ou `string` | Opcional | Usa as coordenadas em um índice específico como origens (`all` por padrão). Permite matrizes assimétricas. |
+| `destinations` | `integer` ou `string` | Opcional | Usa as coordenadas em um índice específico como destinos (`all` por padrão). Permite matrizes assimétricas. |
+| `depart_at` | `string` | Opcional | Especifica o horário de partida para considerar condições de tráfego futuras (formato ISO 8601). |
+
+### 4.4. Matrizes Simétricas e Assimétricas
+
+*   **Matriz Simétrica (padrão):** Todas as coordenadas de entrada são usadas como origens e destinos (N×N).
+*   **Matriz Assimétrica:** Usa os parâmetros `sources` e `destinations` para criar matrizes 1×N, N×1 ou M×N.
+
+### 4.5. Restrições e Limites
+
+*   **Limite de Coordenadas:** Máximo de 25 coordenadas (10 para `driving-traffic`).
+*   **Limite de Elementos:** O faturamento é por elemento (origem-destino). Máximo de 625 elementos por requisição (25 fontes × 25 destinos).
+*   **Limite de Taxa:** 60 requisições por minuto (30 para `driving-traffic`).
+
+***
+
+## Referências
+
+[1] Mapbox. *Map Matching API*. Disponível em: [https://docs.mapbox.com/api/navigation/map-matching/](https://docs.mapbox.com/api/navigation/map-matching/).
+
+[2] Mapbox. *Directions API*. Disponível em: [https://docs.mapbox.com/api/navigation/directions/](https://docs.mapbox.com/api/navigation/directions/).
+
+[3] Mapbox. *Optimization API v2*. Disponível em: [https://docs.mapbox.com/api/navigation/optimization/](https://docs.mapbox.com/api/navigation/optimization/).
+
+[4] Mapbox. *Matrix API*. Disponível em: [https://docs.mapbox.com/api/navigation/matrix/](https://docs.mapbox.com/api/navigation/matrix/).

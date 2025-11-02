@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle da Instância</title>
+    <!-- Incluindo Tailwind CSS para um design moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo customizado para os toggles (interruptores) */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4ade80; /* green-400 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4ade80; /* green-400 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+    <div class="container mx-auto p-4 max-w-2xl">
+        <div class="bg-white rounded-lg shadow-xl p-6 md:p-8">
+            <div class="mb-6 text-center">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Painel de Controle</h1>
+                <p class="text-gray-500 mt-1">Gerencie as configurações da sua instância</p>
+            </div>
+
+            <!-- Formulário de Configurações -->
+            <form id="settingsForm" class="space-y-6">
+                <!-- Seção de Autenticação e Conexão -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Conexão e Autenticação</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="apiBaseUrlInput" class="block text-sm font-medium text-gray-600 mb-1">URL Base da API (ex: https://.../settings/set/)</label>
+                            <input type="text" id="apiBaseUrlInput" name="apiBaseUrlInput" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition" value="https://evolution.timepulseai.com.br/settings/set/" required>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="apiKey" class="block text-sm font-medium text-gray-600 mb-1">API Key</label>
+                                <input type="password" id="apiKey" name="apiKey" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Sua chave de API" required>
+                            </div>
+                            <div>
+                                <label for="instanceName" class="block text-sm font-medium text-gray-600 mb-1">Nome da Instância</label>
+                                <input type="text" id="instanceName" name="instanceName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="nome-da-instancia" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Configurações Gerais -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Configurações Gerais</h2>
+                    <div class="space-y-4">
+                        <!-- Toggle para Rejeitar Chamadas -->
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="font-medium text-gray-700">Rejeitar Chamadas</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="rejectCall" id="rejectCall" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="rejectCall" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+
+                        <!-- Mensagem de Rejeição -->
+                        <div>
+                            <label for="msgCall" class="block text-sm font-medium text-gray-600 mb-1">Mensagem de Rejeição</label>
+                            <input type="text" id="msgCall" name="msgCall" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition" placeholder="Chamada rejeitada automaticamente.">
+                        </div>
+
+                        <!-- Outros Toggles -->
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="font-medium text-gray-700">Ignorar Grupos</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="groupsIgnore" id="groupsIgnore" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="groupsIgnore" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="font-medium text-gray-700">Sempre Online</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="alwaysOnline" id="alwaysOnline" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="alwaysOnline" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                         <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="font-medium text-gray-700">Ler Mensagens</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="readMessages" id="readMessages" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="readMessages" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                         <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="font-medium text-gray-700">Sincronizar Histórico Completo</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="syncFullHistory" id="syncFullHistory" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="syncFullHistory" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="font-medium text-gray-700">Ler Status</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="readStatus" id="readStatus" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                <label for="readStatus" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão de Envio e Mensagem de Status -->
+                <div>
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                        Salvar Configurações
+                    </button>
+                    <div id="statusMessage" class="mt-4 text-center text-sm"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Lógica para manipular o formulário e fazer a chamada de API
+        const form = document.getElementById('settingsForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Previne o recarregamento da página
+            
+            // Mostra feedback visual no botão
+            submitButton.disabled = true;
+            submitButton.textContent = 'Salvando...';
+            statusMessage.textContent = '';
+            statusMessage.className = 'mt-4 text-center text-sm';
+
+            // Coleta os dados do formulário
+            const formData = new FormData(form);
+            const apiKey = formData.get('apiKey');
+            const instanceName = formData.get('instanceName');
+            const apiBaseUrl = formData.get('apiBaseUrlInput'); 
+
+            // Constrói a URL final, garantindo que não haja barras duplas
+            const finalApiUrl = (apiBaseUrl.endsWith('/') ? apiBaseUrl : apiBaseUrl + '/') + instanceName;
+
+            // Constrói o corpo (payload) da requisição com os nomes corretos
+            const payload = {
+                rejectCall: formData.has('rejectCall'),
+                msgCall: formData.get('msgCall') || "Chamada rejeitada automaticamente.",
+                groupsIgnore: formData.has('groupsIgnore'),
+                alwaysOnline: formData.has('alwaysOnline'),
+                readMessages: formData.has('readMessages'),
+                syncFullHistory: formData.has('syncFullHistory'),
+                readStatus: formData.has('readStatus')
+            };
+
+            try {
+                // Usa a URL construída
+                const response = await fetch(finalApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': apiKey
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    // Sucesso
+                    statusMessage.textContent = 'Configurações salvas com sucesso!';
+                    statusMessage.classList.add('text-green-600');
+                } else {
+                    // Erro na resposta da API
+                    const errorData = await response.json().catch(() => ({ message: 'Verifique o console para detalhes.' }));
+                    statusMessage.textContent = `Erro: ${response.status} - ${errorData.message || response.statusText}`;
+                    statusMessage.classList.add('text-red-600');
+                }
+            } catch (error) {
+                // Erro de rede ou outro problema
+                console.error('Falha na requisição:', error);
+                statusMessage.textContent = 'Falha na comunicação com o servidor. Verifique a URL e sua conexão.';
+                statusMessage.classList.add('text-red-600');
+            } finally {
+                // Reabilita o botão
+                submitButton.disabled = false;
+                submitButton.textContent = 'Salvar Configurações';
+            }
+        });
+    </script>
+</body>
+</html>
+

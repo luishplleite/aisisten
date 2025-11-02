@@ -1,0 +1,143 @@
+# Exemplo de Código Básico para PWA
+
+Para criar uma PWA básica e instalável, são necessários três componentes principais:
+1.  Um arquivo HTML que referencia o Manifest e registra o Service Worker.
+2.  O arquivo **Web App Manifest** (`manifest.webmanifest` ou `manifest.json`).
+3.  O arquivo **Service Worker** (`sw.js`).
+
+## 1. Arquivo HTML (`index.html`)
+
+O arquivo principal deve incluir o link para o Manifest e o script para registrar o Service Worker.
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Primeira PWA</title>
+
+    <!-- 1. Link para o Web App Manifest -->
+    <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- Opcional: define a cor da barra de status em navegadores móveis -->
+    <meta name="theme-color" content="#2196F3">
+
+</head>
+<body>
+    <h1>Olá, Mundo PWA!</h1>
+    <p>Esta é uma Progressive Web App simples.</p>
+
+    <!-- 3. Script para registrar o Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registrado com sucesso no escopo: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Falha no registro do ServiceWorker: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
+```
+
+## 2. Web App Manifest (`manifest.webmanifest`)
+
+Este arquivo JSON descreve a aplicação para o sistema operacional e é crucial para a instalação.
+
+```json
+{
+  "short_name": "MinhaPWA",
+  "name": "Minha Primeira Progressive Web App",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#2196F3",
+  "theme_color": "#2196F3",
+  "description": "Um exemplo básico de PWA.",
+  "lang": "pt-BR"
+}
+```
+
+**Nota:** Para que a PWA seja instalável, os ícones (`icons`) devem ser fornecidos nos tamanhos especificados (192x192 e 512x512 são o mínimo recomendado).
+
+## 3. Service Worker Básico (`sw.js`)
+
+Este é o script que permite que a PWA funcione offline. O exemplo abaixo é o mais básico, apenas para cumprir o requisito de instalabilidade e registrar o Service Worker.
+
+```javascript
+// Nome do cache
+const CACHE_NAME = 'pwa-cache-v1';
+
+// Arquivos a serem cacheados
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/styles.css', // Assumindo que você tem um arquivo CSS
+  '/sw.js',
+  '/manifest.webmanifest',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
+];
+
+// Evento de instalação: armazena os arquivos no cache
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Cache aberto com sucesso');
+        // Adiciona todos os arquivos essenciais ao cache
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Evento de 'fetch': intercepta requisições e serve do cache se disponível
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Retorna o recurso do cache se encontrado
+        if (response) {
+          return response;
+        }
+        // Caso contrário, busca na rede
+        return fetch(event.request);
+      })
+  );
+});
+
+// Evento de ativação: limpa caches antigos
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // Deleta caches que não estão na whitelist
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+```

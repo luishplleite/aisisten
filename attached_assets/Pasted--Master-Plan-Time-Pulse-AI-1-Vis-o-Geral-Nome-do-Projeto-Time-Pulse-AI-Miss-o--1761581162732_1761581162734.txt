@@ -1,0 +1,861 @@
+# Master Plan: Time Pulse AI
+
+## 1. Visão Geral
+
+**Nome do Projeto:** Time Pulse AI
+
+**Missão:** Criar um aplicativo "hub" completo para entregadores motoboys, focado em eficiência operacional e gestão financeira. O app será a ferramenta central do entregador, permitindo o gerenciamento de corridas (recebimento, aceite, recusa), navegação otimizada em tempo real (via Mapbox) e controle total dos ganhos (com integração de saques via Asaas).
+
+**Problema Principal:** Entregadores de delivery atualmente lidam com ferramentas fragmentadas. Falta um app que unifique a visualização de rotas, o gerenciamento de corridas e o controle financeiro de forma transparente, além de fornecer inteligência de demanda (mapa de calor).
+
+## 2. Proposta de Valor
+
+O Time Pulse AI centraliza o fluxo de trabalho do motoboy, oferecendo:
+* **Eficiência:** Aceite e recuse corridas rapidamente, com visualização clara dos pontos de coleta e entrega no Mapbox antes mesmo de aceitar.
+* **Inteligência:** Um mapa de calor em tempo real indica as áreas com maior volume de pedidos, otimizando o posicionamento do entregador.
+* **Transparência Financeira:** Controle exato das taxas ganhas por entrega e um histórico detalhado, com a facilidade de solicitar saques diretamente para uma conta Asaas.
+* **Flexibilidade:** Regras de negócio pensadas para o dia a dia, como a possibilidade de transferir uma corrida ou cancelar um aceite recente.
+
+## 3. Público-Alvo
+
+* **Público Primário:** Entregadores motoboys (autônomos ou vinculados a plataformas) que buscam otimizar suas rotas, aumentar seus ganhos e ter um controle financeiro descomplicado.
+
+## 4. Objetivos e Metas (KPIs)
+
+* **Adoção:** Atingir X entregadores ativos nos primeiros 6 meses.
+* **Engajamento:** Reduzir o tempo médio entre o recebimento do pedido e o aceite (Eficiência).
+* **Retenção:** Manter uma taxa de X% de usuários ativos semanalmente.
+* **Performance:** Garantir 99.9% de uptime na API de recebimento de pedidos.
+
+# Implementation Plan: Time Pulse AI
+
+## 1. Escopo Técnico
+
+* **Plataforma:** Aplicativo Mobile (priorizar React Native ou Flutter para cross-platform, ou Nativo se houver preferência).
+* **Backend:** API RESTful (Node.js, Python, ou outra linguagem de preferência) para gerenciar usuários, corridas, finanças e regras de negócio.
+* **Banco de Dados:** PostgreSQL ou MongoDB, capaz de lidar com dados geoespaciais (para o mapa de calor) e transações financeiras.
+* **Hospedagem:** VPS Externa (Ex: DigitalOcean, Vultr, ou servidor dedicado). O deploy deve ser conteinerizado (Docker) para facilitar a gestão.
+
+## 2. Principais Integrações (APIs Externas)
+
+1.  **API da Plataforma de Delivery (Principal):**
+    * **Endpoint:** (A definir) `POST /new-order` - Webhook para receber novas entregas.
+    * **Endpoint:** (A definir) `PUT /order-status` - Para atualizar o status (Aceito, Recusado, Em Coleta, Entregue).
+2.  **Mapbox (Geolocalização e Mapas):**
+    * **SDK Mobile:** Para renderizar os mapas nativamente no app.
+    * **API de Roteamento:** Para traçar a rota Coleta -> Entrega.
+    * **Serviço de Geocoding:** Para converter endereços em coordenadas.
+    * **Dataset (Heatmap):** Para alimentar os dados do mapa de calor (o backend deve processar e enviar os dados de densidade).
+3.  **Asaas (Pagamentos/Financeiro):**
+    * **API de Pagamentos:** Para registrar os valores a receber pelo entregador.
+    * **API de Transferência (Saque):** Para permitir que o entregador solicite a retirada dos valores para sua conta Asaas.
+4.  **Serviço de Push Notification:**
+    * Firebase Cloud Messaging (FCM) ou OneSignal para "Notificação de Novas Entregas" e outros alertas.
+
+## 3. Fases de Desenvolvimento (Roadmap Mínimo)
+
+### Fase 1: Core e Autenticação (MVP Básico)
+* Setup da Infraestrutura (VPS, Docker, DB).
+* Desenvolvimento da API de Autenticação (Login, Cadastro, Perfil do Entregador).
+* Integração com FCM para Push Notifications.
+* Integração básica do Mapbox SDK (exibir mapa).
+
+### Fase 2: O Fluxo da Corrida
+* Integração com a API de Delivery para receber pedidos (Webhook).
+* Tela de "Novo Pedido" (Modal com 'Aceitar' / 'Recusar').
+* Tela de "Corrida Ativa":
+    * Exibição do mapa com rota (Coleta e Entrega).
+    * Tracking real-time do GPS do entregador.
+    * Botões de atualização de status ("Cheguei na Coleta", "Pedido Retirado", "Finalizar Entrega").
+* Tela de "Entregas Aceitas" (Fila de corridas).
+
+### Fase 3: Módulo Financeiro
+* Desenvolvimento da lógica de cálculo de taxas/ganhos no backend.
+* Tela "Financeiro" no app (Dashboard com Saldo, Ganhos do Dia).
+* Tela "Histórico de Entregas".
+* Integração com API Asaas para solicitação de saque.
+
+### Fase 4: Recursos Avançados e Regras
+* Implementação das regras de 5 minutos (Transferência e Cancelamento).
+* Desenvolvimento do serviço de Mapa de Calor (Backend processando dados de pedidos e app renderizando no Mapbox).
+
+## 4. Stack Tecnológica Sugerida
+
+* **Mobile App:** React Native ou Flutter.
+* **Backend:** Node.js (Express/Fastify) ou Python (Django/FastAPI).
+* **Banco de Dados:** PostgreSQL (com PostGIS para queries geográficas).
+* **Mensageria (Notificações):** Firebase (FCM).
+* **Infraestrutura:** VPS (Debian/Ubuntu) + Docker + Nginx (Reverse Proxy).
+
+# Design Guidelines: Time Pulse AI
+
+## 1. Filosofia de Design
+
+O design deve ser focado na **utilidade** e **rapidez**. O entregador estará em movimento (muitas vezes à noite, sob sol forte ou chuva). A interface deve ser legível, de alto contraste e com alvos de toque (botões) grandes e claros.
+
+* **Foco:** Mapa e Ação.
+* **Estilo:** Funcional, limpo, moderno. Baseado em cards e botões de ação claros.
+
+## 2. Paleta de Cores (Baseado nas Referências)
+
+* **Primária (Ação Positiva):** Verde Vibrante (Ex: `#00B172`, `#2ECC71`) - Usar para botões de "Aceitar", "Iniciar", "Confirmar".
+* **Secundária (Ação Negativa/Alerta):** Vermelho Forte (Ex: `#E74C3C`, `#D93025`) - Usar para "Recusar", "Cancelar", "Sair".
+* **Fundo Principal:** Branco (`#FFFFFF`) ou Cinza Claro (`#F4F4F7`) - Para garantir legibilidade.
+* **Texto Principal:** Preto ou Cinza Escuro (`#222222`).
+* **Mapas (Dark Mode Opcional):** Considerar um "Modo Noturno" automático para o mapa, que é menos distrativo ao dirigir à noite.
+
+## 3. Tipografia
+
+* **Fonte:** Uma fonte Sans-Serif moderna e de fácil leitura (Ex: Roboto, Inter, Montserrat).
+* **Hierarquia:**
+    * **Títulos (Valores Financeiros):** Grandes e em negrito.
+    * **Texto de Ação (Botões):** Médio e em negrito.
+    * **Endereços e Descrições:** Tamanho padrão, regular.
+
+## 4. Componentes de UI (Baseado nas Referências)
+
+* **Cards (Dashboard Financeiro):**
+    * Como na referência 2 (FIT Delivery).
+    * Sombra suave, ícone claro (carteira, etc.), título da métrica (Ex: "Saldo") e valor em destaque.
+    * Usar cores (verde, vermelho) para destacar métricas positivas ou negativas (Ex: "Cash in Hand").
+* **Botões de Ação (Tela do Mapa):**
+    * Como na referência 1 (TMOVE).
+    * Ocupando a largura da tela (ou divididos 50/50).
+    * Cores de alto contraste (Verde/Vermelho).
+    * Texto claro e direto (Ex: "ACEITAR", "RECUSAR").
+* **Modal de Novo Pedido:**
+    * Deve ser um "card" flutuante sobre o mapa.
+    * Informações claras: Distância (Coleta e Entrega), Valor da Taxa.
+    * Botões de Aceitar/Recusar.
+
+## 5. UX (Experiência do Usuário)
+
+* **Mínimo de Cliques:** O fluxo de aceite de corrida deve ser de 1 clique.
+* **Feedback Imediato:** O usuário deve saber instantaneamente se a ação (aceitar, cancelar) foi bem-sucedida.
+* **Foco no Mapa:** O mapa deve ser o elemento central na tela de corrida. Informações (endereço, nome do cliente) devem ficar em um card inferior ou superior, sem cobrir o mapa inteiro.
+* **Notificações:** A "Notificação de Nova Entrega" deve ser clara, sonora e acionar a tela do app imediatamente.
+
+# App Flow, Pages, and Roles: Time Pulse AI
+
+## 1. Papéis de Usuário
+
+* **Entregador (Motoboy):** O único usuário do sistema. Ele pode:
+    * Ficar Online/Offline.
+    * Receber, aceitar e recusar pedidos.
+    * Navegar para coleta e entrega.
+    * Atualizar o status do pedido.
+    * Visualizar seu mapa de calor.
+    * Gerenciar suas finanças (histórico e saques).
+
+## 2. Estrutura de Páginas (Telas Principais)
+
+1.  **Splash Screen / Login**
+    * Tela de autenticação (Login/Senha, talvez "Lembrar de mim").
+    * Fluxo de "Esqueci minha senha".
+
+2.  **Dashboard / Tela Inicial (Quando Online)**
+    * **Componente Principal:** Mapa (Mapbox) mostrando a localização atual do entregador e o Mapa de Calor de demanda.
+    * **Header:** Botão de Status (Online/Offline) e Acesso ao Perfil/Menu.
+    * **Modal (Popup):** *Modal de Nova Entrega* (quando um pedido chega).
+
+3.  **Modal: Nova Entrega**
+    * Sobrepõe o Dashboard.
+    * **Informações:** Tempo/Distância até a coleta, Endereço da Coleta, Endereço da Entrega, Valor da Corrida.
+    * **Ações:** [Botão: ACEITAR] [Botão: RECUSAR].
+    * (Deve ter um timer para expirar a oferta).
+
+4.  **Tela: Corrida Ativa**
+    * Exibe o mapa focado na rota (do entregador para a Coleta, ou da Coleta para a Entrega).
+    * **Card Inferior (com informações):** Endereço (Coleta/Entrega), nome do cliente, detalhes do pedido.
+    * **Botão de Ação (Contextual):**
+        * "CHEGUEI NA COLETA"
+        * "PEDIDO RETIRADO" (muda a rota para o ponto de entrega)
+        * "FINALIZAR ENTREGA"
+    * *Acesso às regras de negócio (Transferir / Cancelar) nos primeiros 5 minutos.*
+
+5.  **Tela: Financeiro (Extrato)**
+    * Dashboard financeiro (como na referência 2).
+    * **Cards:** Saldo Atual, Ganhos do Dia, Ganhos da Semana.
+    * **Ação:** Botão "SOLICITAR SAQUE" (que inicia o fluxo da API Asaas).
+    * **Lista/Histórico:** Lista detalhada de todas as entregas concluídas e seus valores.
+
+6.  **Tela: Fila de Entregas (Entregas Aceitas)**
+    * Uma lista simples (caso o entregador aceite mais de uma corrida) mostrando as corridas pendentes.
+
+7.  **Tela: Perfil / Configurações**
+    * Dados do Entregador (Nome, Foto, Veículo).
+    * Configurações da conta (Dados bancários/Asaas).
+    * Configurações de Notificação.
+    * Botão "Sair" (Logout).
+
+## 3. Fluxo de Usuário (Principal)
+
+1.  **Ficar Online:**
+    * Entregador abre o app -> Faz Login -> Clica no botão "Ficar Online" no Dashboard.
+    * O app começa a enviar sua localização (GPS real-time) para o backend.
+
+2.  **Receber Pedido:**
+    * Backend recebe um pedido da API de Delivery.
+    * Backend envia um Push Notification (FCM) para o app.
+    * App exibe o "Modal: Nova Entrega" com os detalhes e botões (Aceitar/Recusar).
+
+3.  **Executar Corrida:**
+    * Entregador clica em "ACEITAR".
+    * App muda para a "Tela: Corrida Ativa", mostrando a rota para a **Coleta**.
+    * Entregador chega, clica em "CHEGUEI NA COLETA".
+    * Entregador retira o pedido, clica em "PEDIDO RETIRADO".
+    * App atualiza o mapa, mostrando a rota para a **Entrega**.
+    * Entregador chega no destino, clica em "FINALIZAR ENTREGA".
+
+4.  **Após a Corrida:**
+    * O app retorna ao Dashboard (Mapa de Calor), pronto para a próxima.
+    * O backend credita o valor da taxa na conta do entregador (visível na Tela Financeiro).
+
+5.  **Fluxo de Saque:**
+    * Entregador vai para "Tela: Financeiro".
+    * Vê "Saldo Disponível: R$ XX,XX".
+    * Clica em "SOLICITAR SAQUE".
+    * App confirma o valor e chama a API Asaas para iniciar a transferência.
+
+    analizar o banco de dados
+    -- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.activity_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid,
+  user_id uuid,
+  user_name character varying,
+  action character varying NOT NULL,
+  entity_type character varying NOT NULL,
+  entity_id uuid,
+  description text,
+  ip_address inet,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT activity_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT activity_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.add_on_categories (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  name character varying NOT NULL,
+  description text,
+  selection_type character varying NOT NULL CHECK (selection_type::text = ANY (ARRAY['single'::character varying, 'multiple'::character varying]::text[])),
+  min_selection integer DEFAULT 0,
+  max_selection integer,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT add_on_categories_pkey PRIMARY KEY (id),
+  CONSTRAINT add_on_categories_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id)
+);
+CREATE TABLE public.admin_action_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  admin_id uuid NOT NULL,
+  action_type character varying NOT NULL,
+  target_type character varying NOT NULL,
+  target_id uuid,
+  action_description text NOT NULL,
+  old_values jsonb,
+  new_values jsonb,
+  ip_address inet,
+  user_agent text,
+  success boolean DEFAULT true,
+  error_message text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT admin_action_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT admin_action_logs_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES public.system_administrators(id)
+);
+CREATE TABLE public.admin_restaurant_stats (
+  total_restaurants bigint,
+  active_restaurants bigint,
+  inactive_restaurants bigint,
+  suspended_restaurants bigint,
+  trial_restaurants bigint,
+  paid_restaurants bigint,
+  expired_restaurants bigint,
+  cancelled_restaurants bigint,
+  active_trials bigint,
+  expired_trials bigint,
+  avg_trial_days_remaining numeric
+);
+CREATE TABLE public.admin_restaurants_detailed (
+  id uuid,
+  name character varying,
+  owner_name character varying,
+  owner_phone character varying,
+  city character varying,
+  state character varying,
+  status character varying,
+  subscription_status character varying,
+  trial_enabled boolean,
+  trial_start_date timestamp with time zone,
+  trial_end_date timestamp with time zone,
+  trial_days_remaining integer,
+  subscription_start_date timestamp with time zone,
+  subscription_end_date timestamp with time zone,
+  subscription_days_remaining integer,
+  whatsapp_disconnected_due_to_trial boolean,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone,
+  trial_days_remaining_calculated integer,
+  status_display text
+);
+CREATE TABLE public.asaas_config (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  environment character varying NOT NULL DEFAULT 'sandbox'::character varying UNIQUE CHECK (environment::text = ANY (ARRAY['sandbox'::character varying, 'production'::character varying]::text[])),
+  api_key_encrypted text,
+  webhook_url text,
+  active boolean DEFAULT false,
+  config_data jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  created_by uuid,
+  CONSTRAINT asaas_config_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.blockable_elements (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  element_id character varying NOT NULL UNIQUE,
+  element_name character varying NOT NULL,
+  page character varying NOT NULL,
+  description text,
+  element_type character varying DEFAULT 'section'::character varying,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT blockable_elements_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.buffer_mensagem (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  cell text,
+  message text,
+  idMessage text,
+  timestamp text,
+  CONSTRAINT buffer_mensagem_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.business_types (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name character varying NOT NULL UNIQUE,
+  description text,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  is_food_business boolean DEFAULT false,
+  CONSTRAINT business_types_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.chat_histories (
+  id integer NOT NULL DEFAULT nextval('chat_histories_id_seq'::regclass),
+  session_id character varying NOT NULL,
+  message jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT chat_histories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.chat_histories_duplicate_user (
+  id integer NOT NULL DEFAULT nextval('chat_histories_id_seq'::regclass),
+  session_id character varying NOT NULL,
+  message jsonb NOT NULL,
+  CONSTRAINT chat_histories_duplicate_user_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.coupon_usage (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  coupon_id uuid NOT NULL,
+  order_id uuid NOT NULL,
+  customer_id uuid,
+  discount_applied numeric NOT NULL,
+  used_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT coupon_usage_pkey PRIMARY KEY (id),
+  CONSTRAINT coupon_usage_coupon_id_fkey FOREIGN KEY (coupon_id) REFERENCES public.coupons(id),
+  CONSTRAINT coupon_usage_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id)
+);
+CREATE TABLE public.coupons (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  code character varying NOT NULL,
+  name character varying NOT NULL,
+  description text,
+  discount_type character varying NOT NULL CHECK (discount_type::text = ANY (ARRAY['percentage'::character varying::text, 'fixed'::character varying::text, 'free_delivery'::character varying::text])),
+  discount_value numeric NOT NULL CHECK (discount_value >= 0::numeric),
+  minimum_order_value numeric DEFAULT 0.00,
+  maximum_discount numeric,
+  usage_limit integer,
+  usage_count integer DEFAULT 0,
+  valid_from timestamp with time zone DEFAULT now(),
+  valid_until timestamp with time zone,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT coupons_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.custom_payment_methods (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  name character varying NOT NULL,
+  description text,
+  enabled boolean DEFAULT true,
+  requires_change boolean DEFAULT false,
+  icon character varying DEFAULT 'fa-money-bill'::character varying,
+  display_order integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT custom_payment_methods_pkey PRIMARY KEY (id),
+  CONSTRAINT custom_payment_methods_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id)
+);
+CREATE TABLE public.customers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  name character varying NOT NULL,
+  phone character varying,
+  email character varying,
+  address text,
+  city character varying,
+  zip_code character varying,
+  birth_date date,
+  preferences jsonb DEFAULT '{}'::jsonb,
+  total_orders integer DEFAULT 0,
+  total_spent numeric DEFAULT 0.00,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  cpf numeric,
+  CONSTRAINT customers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.deliverers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  name character varying NOT NULL,
+  cpf character varying,
+  phone character varying NOT NULL,
+  email character varying,
+  motorcycle_plate character varying,
+  motorcycle_model character varying,
+  motorcycle_year integer,
+  type character varying NOT NULL CHECK (type::text = ANY (ARRAY['own'::character varying::text, 'third-party'::character varying::text])),
+  salary numeric,
+  commission numeric CHECK (commission >= 0::numeric AND commission <= 100::numeric),
+  balance numeric DEFAULT 0.00,
+  status character varying DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying::text, 'inactive'::character varying::text, 'busy'::character varying::text, 'unavailable'::character varying::text])),
+  last_location point,
+  last_seen timestamp with time zone DEFAULT now(),
+  total_deliveries integer DEFAULT 0,
+  rating numeric DEFAULT 5.00 CHECK (rating >= 0::numeric AND rating <= 5::numeric),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  id_pedido text,
+  CONSTRAINT deliverers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.delivery_baixa_dia (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  deliverer_id uuid NOT NULL,
+  order_id uuid NOT NULL UNIQUE,
+  data_baixa date NOT NULL,
+  valor_pago numeric DEFAULT 0.00,
+  status character varying DEFAULT 'Pago'::character varying,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT delivery_baixa_dia_pkey PRIMARY KEY (id),
+  CONSTRAINT delivery_baixa_dia_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id),
+  CONSTRAINT delivery_baixa_dia_deliverer_id_fkey FOREIGN KEY (deliverer_id) REFERENCES public.deliverers(id),
+  CONSTRAINT delivery_baixa_dia_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id)
+);
+CREATE TABLE public.notifications (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  user_id uuid,
+  title character varying NOT NULL,
+  message text NOT NULL,
+  type character varying DEFAULT 'info'::character varying CHECK (type::text = ANY (ARRAY['info'::character varying::text, 'success'::character varying::text, 'warning'::character varying::text, 'error'::character varying::text])),
+  read_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.order_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL,
+  product_id uuid,
+  product_name character varying NOT NULL,
+  quantity integer NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  price numeric NOT NULL CHECK (price >= 0::numeric),
+  notes text,
+  created_at timestamp with time zone DEFAULT now(),
+  status text,
+  selected_add_ons jsonb,
+  CONSTRAINT order_items_pkey PRIMARY KEY (id),
+  CONSTRAINT order_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id)
+);
+CREATE TABLE public.orders (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  customer_id uuid,
+  deliverer_id uuid,
+  status character varying DEFAULT 'novo'::character varying CHECK (status::text = ANY (ARRAY['novo'::character varying::text, 'aceito'::character varying::text, 'preparo'::character varying::text, 'pronto'::character varying::text, 'saiu_entrega'::character varying::text, 'entregue'::character varying::text, 'rejeitado'::character varying::text, 'cancelado'::character varying::text, 'Aberta'::character varying::text, 'encerrado'::character varying::text, 'aguardando'::character varying::text])),
+  delivery_address text NOT NULL,
+  delivery_coordinates point,
+  delivery_fee numeric DEFAULT 0.00 CHECK (delivery_fee >= 0::numeric),
+  subtotal numeric DEFAULT 0.00 CHECK (subtotal >= 0::numeric),
+  total numeric DEFAULT 0.00 CHECK (total >= 0::numeric),
+  notes text,
+  customer_name character varying NOT NULL,
+  customer_phone character varying NOT NULL,
+  payment_method text CHECK (payment_method = ANY (ARRAY['money'::text, 'card'::text, 'card_debit'::text, 'card_credit'::text, 'pix'::text, 'voucher'::text, 'Cartão de Crédito/Débito'::text])),
+  payment_status character varying DEFAULT 'pending'::character varying CHECK (payment_status::text = ANY (ARRAY['pending'::character varying::text, 'paid'::character varying::text, 'cancelled'::character varying::text, 'pago'::character varying::text])),
+  change_for_amount numeric CHECK (change_for_amount IS NULL OR change_for_amount >= 0::numeric),
+  change_amount numeric CHECK (change_amount IS NULL OR change_amount >= 0::numeric),
+  estimated_delivery_time timestamp with time zone,
+  accepted_at timestamp with time zone,
+  prepared_at timestamp with time zone,
+  delivered_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  delivery_distance numeric,
+  delivery_duration numeric,
+  order type text,
+  return order boolean,
+  order_items text,
+  order_balcao text,
+  order_mesa text,
+  status_env_aceito boolean,
+  idpix text,
+  tipo_entrega boolean,
+  CONSTRAINT orders_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.platform_admins (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  email character varying NOT NULL UNIQUE,
+  name character varying,
+  asaas_api text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT platform_admins_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.product_add_on_categories_link (
+  product_id uuid NOT NULL,
+  add_on_category_id uuid NOT NULL,
+  CONSTRAINT product_add_on_categories_link_pkey PRIMARY KEY (add_on_category_id, product_id),
+  CONSTRAINT product_add_on_categories_link_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
+  CONSTRAINT product_add_on_categories_link_add_on_category_id_fkey FOREIGN KEY (add_on_category_id) REFERENCES public.add_on_categories(id)
+);
+CREATE TABLE public.product_add_ons (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  add_on_category_id uuid NOT NULL,
+  restaurant_id uuid NOT NULL,
+  name character varying NOT NULL,
+  price numeric NOT NULL DEFAULT 0.00 CHECK (price >= 0::numeric),
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT product_add_ons_pkey PRIMARY KEY (id),
+  CONSTRAINT product_add_ons_add_on_category_id_fkey FOREIGN KEY (add_on_category_id) REFERENCES public.add_on_categories(id),
+  CONSTRAINT product_add_ons_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id)
+);
+CREATE TABLE public.product_categories (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  name character varying NOT NULL,
+  description text,
+  display_order integer DEFAULT 0,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT product_categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.product_to_product_add_ons_link (
+  product_id uuid NOT NULL,
+  add_on_id uuid NOT NULL,
+  CONSTRAINT product_to_product_add_ons_link_pkey PRIMARY KEY (product_id, add_on_id),
+  CONSTRAINT product_to_product_add_ons_link_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
+  CONSTRAINT product_to_product_add_ons_link_add_on_id_fkey FOREIGN KEY (add_on_id) REFERENCES public.product_add_ons(id)
+);
+CREATE TABLE public.products (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  category_id uuid,
+  name character varying NOT NULL,
+  description text,
+  price numeric NOT NULL CHECK (price >= 0::numeric),
+  image_url text,
+  active boolean DEFAULT true,
+  display_order integer DEFAULT 0,
+  preparation_time integer DEFAULT 0,
+  calories integer,
+  ingredients ARRAY,
+  allergens ARRAY,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  impressao text,
+  adicional_produtos uuid,
+  ncm character varying,
+  cfop character varying,
+  icms_aliquota numeric,
+  icms_cst character varying,
+  pis_aliquota numeric,
+  pis_cst character varying,
+  cofins_aliquota numeric,
+  cofins_cst character varying,
+  origem_mercadoria character varying,
+  situacao_tributaria character varying,
+  cest character varying,
+  unidade_comercial character varying DEFAULT 'UN'::character varying,
+  peso_liquido numeric,
+  peso_bruto numeric,
+  gtin_ean character varying,
+  codigo_interno character varying,
+  observacoes_fiscais text,
+  tributacao_especial boolean DEFAULT false,
+  regime_tributario character varying,
+  ai_preenchido boolean DEFAULT false,
+  ai_preenchido_em timestamp with time zone,
+  CONSTRAINT products_pkey PRIMARY KEY (id),
+  CONSTRAINT products_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.product_categories(id),
+  CONSTRAINT products_adicional_produtos_fkey FOREIGN KEY (adicional_produtos) REFERENCES public.add_on_categories(id)
+);
+CREATE TABLE public.products_backup_20250903 (
+  id uuid,
+  restaurant_id uuid,
+  category_id uuid,
+  name character varying,
+  description text,
+  price numeric,
+  image_url text,
+  active boolean,
+  display_order integer,
+  preparation_time integer,
+  calories integer,
+  ingredients ARRAY,
+  allergens ARRAY,
+  created_at timestamp with time zone,
+  updated_at timestamp with time zone,
+  impressao text,
+  adicional_produtos uuid,
+  ncm character varying,
+  cfop character varying,
+  icms_aliquota numeric,
+  icms_cst character varying,
+  pis_aliquota numeric,
+  pis_cst character varying,
+  cofins_aliquota numeric,
+  cofins_cst character varying,
+  origem_mercadoria character varying,
+  situacao_tributaria character varying,
+  cest character varying,
+  unidade_comercial character varying,
+  peso_liquido numeric,
+  peso_bruto numeric,
+  gtin_ean character varying,
+  codigo_interno character varying,
+  observacoes_fiscais text,
+  tributacao_especial boolean,
+  regime_tributario character varying,
+  ai_preenchido boolean,
+  ai_preenchido_em timestamp with time zone
+);
+CREATE TABLE public.prompit (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  tipo_negocio character varying NOT NULL,
+  prompt text NOT NULL,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT prompit_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.provisional_order_items (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_key text NOT NULL,
+  restaurant_id uuid NOT NULL,
+  product_id uuid,
+  product_name text NOT NULL,
+  base_price numeric NOT NULL,
+  final_price numeric NOT NULL,
+  quantity integer NOT NULL DEFAULT 1,
+  selected_add_ons jsonb,
+  add_ons_total numeric,
+  add_ons_description text,
+  notes text,
+  item_total numeric NOT NULL,
+  item_sequence text,
+  sequence_id text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT provisional_order_items_pkey PRIMARY KEY (id),
+  CONSTRAINT provisional_order_items_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id)
+);
+CREATE TABLE public.restaurant_subscription_config (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL UNIQUE,
+  plan_id uuid,
+  custom_config jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT restaurant_subscription_config_pkey PRIMARY KEY (id),
+  CONSTRAINT restaurant_subscription_config_restaurant_id_fkey FOREIGN KEY (restaurant_id) REFERENCES public.restaurants(id),
+  CONSTRAINT restaurant_subscription_config_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id)
+);
+CREATE TABLE public.restaurants (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name character varying NOT NULL,
+  owner_id uuid,
+  owner_name character varying NOT NULL,
+  owner_cpf character varying,
+  owner_phone character varying NOT NULL,
+  cnpj character varying,
+  business_type character varying,
+  address text NOT NULL,
+  city character varying NOT NULL,
+  state character varying NOT NULL,
+  zip_code character varying NOT NULL,
+  primary_color character varying DEFAULT '#28a745'::character varying,
+  logo_url text,
+  delivery_retun numeric DEFAULT 5.00 CHECK (delivery_retun >= 0::numeric),
+  minimum_delivery_fee numeric DEFAULT 8.00 CHECK (minimum_delivery_fee >= 0::numeric),
+  delivery_fee_per_km numeric DEFAULT 2.50 CHECK (delivery_fee_per_km >= 0::numeric),
+  minimum_distance_km numeric DEFAULT 3.0 CHECK (minimum_distance_km > 0::numeric),
+  preparation_time integer DEFAULT 30 CHECK (preparation_time > 0),
+  delivery_radius numeric DEFAULT 10.0 CHECK (delivery_radius > 0::numeric),
+  minimum_order numeric DEFAULT 0.00 CHECK (minimum_order >= 0::numeric),
+  business_hours jsonb DEFAULT '{"friday": {"open": "08:00", "close": "18:00", "closed": false}, "monday": {"open": "08:00", "close": "18:00", "closed": false}, "sunday": {"open": "08:00", "close": "18:00", "closed": true}, "tuesday": {"open": "08:00", "close": "18:00", "closed": false}, "saturday": {"open": "08:00", "close": "18:00", "closed": false}, "thursday": {"open": "08:00", "close": "18:00", "closed": false}, "wednesday": {"open": "08:00", "close": "18:00", "closed": false}}'::jsonb,
+  notification_settings jsonb DEFAULT '{"email": {"new_order": false, "daily_report": false}, "sound": {"new_order": true, "order_update": false}}'::jsonb,
+  asaas_config jsonb DEFAULT '{}'::jsonb,
+  status character varying DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying::text, 'inactive'::character varying::text, 'suspended'::character varying::text])),
+  plan character varying DEFAULT 'basic'::character varying CHECK (plan::text = ANY (ARRAY['basic'::character varying::text, 'premium'::character varying::text, 'enterprise'::character varying::text])),
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  latitude numeric,
+  longitude numeric,
+  pedidos_online boolean,
+  link_cardapio text,
+  payment_methods jsonb DEFAULT '{"pix": {"key": null, "enabled": false}, "card": {"debit": false, "credit": false, "enabled": false}, "cash": {"enabled": true, "needs_change": false}}'::jsonb,
+  whatsapp_config jsonb DEFAULT '{"api_key": null, "enabled": false, "phone_number": null}'::jsonb,
+  smtp_config jsonb DEFAULT '{"host": null, "port": null, "enabled": false, "password": null, "username": null}'::jsonb,
+  api_assas text,
+  trial_enabled boolean DEFAULT true,
+  trial_start_date timestamp with time zone DEFAULT now(),
+  trial_end_date timestamp with time zone DEFAULT (now() + '7 days'::interval),
+  trial_days_remaining integer DEFAULT 7,
+  subscription_status character varying DEFAULT 'trial'::character varying CHECK (subscription_status::text = ANY (ARRAY['trial'::character varying, 'active'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])),
+  subscription_start_date text,
+  subscription_end_date text,
+  subscription_days_remaining integer DEFAULT 30,
+  whatsapp_disconnected_due_to_trial boolean DEFAULT false,
+  operating_hours jsonb DEFAULT '{"friday": {"is_open": true, "open_time": "08:00", "close_time": "18:00"}, "monday": {"is_open": true, "open_time": "08:00", "close_time": "18:00"}, "sunday": {"is_open": false, "open_time": null, "close_time": null}, "tuesday": {"is_open": true, "open_time": "08:00", "close_time": "18:00"}, "saturday": {"is_open": true, "open_time": "08:00", "close_time": "18:00"}, "thursday": {"is_open": true, "open_time": "08:00", "close_time": "18:00"}, "wednesday": {"is_open": true, "open_time": "08:00", "close_time": "18:00"}}'::jsonb,
+  owner_email character varying,
+  trial_extension_reason text,
+  manual_activation_reason text,
+  status_change_reason text,
+  third_party_delivery_enabled boolean DEFAULT false,
+  house_delivery_enabled boolean DEFAULT false,
+  house_minimum_delivery_fee numeric DEFAULT 5.00 CHECK (house_minimum_delivery_fee >= 0::numeric),
+  house_delivery_fee_per_km numeric DEFAULT 2.00 CHECK (house_delivery_fee_per_km >= 0::numeric),
+  house_minimum_distance_km numeric DEFAULT 2.0 CHECK (house_minimum_distance_km > 0::numeric),
+  house_delivery_radius numeric DEFAULT 8.0 CHECK (house_delivery_radius > 0::numeric),
+  id_revendedor text,
+  business_type_id uuid,
+  CONSTRAINT restaurants_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_restaurants_business_type FOREIGN KEY (business_type_id) REFERENCES public.business_types(id)
+);
+CREATE TABLE public.sessao_assinaturas (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  plano text NOT NULL,
+  id_restaurante text,
+  invoiceNumber text,
+  price text,
+  ip_real text,
+  id_pagamento text,
+  data_pagamento text,
+  status text,
+  fatura text,
+  CONSTRAINT sessao_assinaturas_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.subcontas_asass (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name text,
+  email text,
+  phone text,
+  address text,
+  addressNumber text,
+  complement text,
+  postalCode text,
+  cpfCnpj text,
+  birthDate text,
+  personType text,
+  city text,
+  state text,
+  country text,
+  walletId text,
+  apiKey text,
+  agency text,
+  account text,
+  accountDigi text,
+  status boolean,
+  saldo_atual text,
+  tipo_conta text,
+  CONSTRAINT subcontas_asass_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.subscription_blocking_config (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  plan_id uuid NOT NULL,
+  element_id uuid NOT NULL,
+  block_after_days integer DEFAULT 1,
+  is_blocked boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscription_blocking_config_pkey PRIMARY KEY (id),
+  CONSTRAINT subscription_blocking_config_plan_id_fkey FOREIGN KEY (plan_id) REFERENCES public.subscription_plans(id),
+  CONSTRAINT subscription_blocking_config_element_id_fkey FOREIGN KEY (element_id) REFERENCES public.blockable_elements(id)
+);
+CREATE TABLE public.subscription_plans (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name character varying NOT NULL UNIQUE,
+  display_name character varying NOT NULL,
+  description text,
+  price numeric DEFAULT 0.00,
+  trial_days integer DEFAULT 7,
+  features jsonb DEFAULT '{}'::jsonb,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT subscription_plans_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.system_administrators (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  email character varying NOT NULL UNIQUE,
+  password_hash character varying NOT NULL,
+  name character varying NOT NULL,
+  role character varying DEFAULT 'admin'::character varying CHECK (role::text = ANY (ARRAY['admin'::character varying::text, 'super_admin'::character varying::text])),
+  permissions jsonb DEFAULT '{"system": {"logs": true, "stats": true, "settings": false}, "trials": {"view": true, "block": true, "extend": true}, "restaurants": {"edit": true, "view": true, "delete": false}, "subscriptions": {"view": true, "cancel": true, "manage": true}}'::jsonb,
+  last_login timestamp with time zone,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT system_administrators_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.system_settings (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  setting_key character varying NOT NULL,
+  setting_value jsonb NOT NULL,
+  description text,
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT system_settings_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.withdrawal_requests (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  restaurant_id uuid NOT NULL,
+  deliverer_id uuid NOT NULL,
+  amount numeric NOT NULL CHECK (amount > 0::numeric),
+  status character varying DEFAULT 'pending'::character varying CHECK (status::text = ANY (ARRAY['pending'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text, 'paid'::character varying::text])),
+  rejection_reason text,
+  bank_name character varying,
+  account_number character varying,
+  account_holder character varying,
+  approved_at timestamp with time zone,
+  rejected_at timestamp with time zone,
+  paid_at timestamp with time zone,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT withdrawal_requests_pkey PRIMARY KEY (id),
+  CONSTRAINT withdrawal_requests_deliverer_id_fkey FOREIGN KEY (deliverer_id) REFERENCES public.deliverers(id)
+);
+
+analizar o gestao_pedidos.html
+
+naseado nele crar o aplizativo do motoboy
+
+criar a tela do aplicarivo do motoboy para entregas completo

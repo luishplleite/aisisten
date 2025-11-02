@@ -1,0 +1,59 @@
+# Visão Geral de Progressive Web Apps (PWA) - MDN Web Docs
+
+Uma **Progressive Web App (PWA)** é uma aplicação construída com tecnologias da plataforma web, mas que oferece uma experiência de usuário similar à de uma aplicação específica de plataforma.
+
+Como um website, uma PWA pode ser executada em múltiplas plataformas e dispositivos a partir de uma única base de código. Como uma aplicação específica de plataforma, ela pode ser instalada no dispositivo, pode operar offline e em segundo plano, e pode se integrar com o dispositivo e outras aplicações instaladas.
+
+## Guias Conceituais
+
+Os guias conceituais fornecem explicações sobre diferentes aspectos das PWAs:
+
+*   **O que é uma Progressive Web App?**: Introdução às PWAs, comparando-as com websites tradicionais e apps nativos, e descrevendo suas principais características.
+*   **Tornando PWAs instaláveis**: Explora o que significa ser "instalável", o que uma PWA precisa fornecer para ser instalável (como o **Web App Manifest**), e como personalizar a experiência de instalação.
+*   **Operação Offline e em Segundo Plano**: Introduz tecnologias como **Service Workers** e APIs relacionadas que permitem que uma PWA forneça uma boa experiência de usuário mesmo com conectividade intermitente e realize operações em segundo plano.
+*   **Cache**: Visão geral das APIs que permitem que uma PWA armazene recursos localmente (**Cache API**) e estratégias comuns para implementar funcionalidade offline.
+*   **Melhores Práticas para PWAs**: Adaptação a diferentes navegadores/dispositivos, acessibilidade, desempenho e integração com o sistema operacional.
+
+## Como Fazer (How-to)
+
+Instruções detalhadas para implementar funcionalidades específicas de PWA:
+
+*   **Criar uma aplicação autônoma (standalone)**: Especificar que a PWA deve ser lançada em sua própria janela dedicada.
+*   **Definir ícones da aplicação**: Como definir o conjunto de ícones a ser usado quando a PWA for instalada.
+*   **Personalizar cores da aplicação**: Definir cores de fundo e tema.
+*   **Exibir badges**: Mostrar um indicador no ícone da PWA (ex: para novas mensagens).
+*   **Expor ações comuns como atalhos**: Criar atalhos para ações comuns da PWA no menu de atalhos do sistema operacional.
+*   **Acionar a instalação a partir da sua PWA**: Fornecer uma UI personalizada para convidar os usuários a instalar a PWA.
+*   **Associar arquivos à sua PWA**: Permitir que a PWA lide com tipos de arquivo específicos.
+
+## Tutoriais
+
+Exemplos práticos de construção de PWAs:
+
+*   **Criação da sua primeira PWA**: Tutorial para iniciantes que ensina a criar um web app funcional e aprimorá-lo para PWA, incluindo o desenvolvimento e inspeção de um **Manifest** e a adição de um **Service Worker**.
+*   **Deep dive em PWA**: Tutorial de nível intermediário que inclui funcionalidades adicionais como **Notificações**, **Push** e otimização de desempenho.
+
+## Referência de API
+
+Lista de APIs essenciais para construir uma PWA:
+
+### Web App Manifest
+
+*   **Membros do Web app manifest**: Usados para descrever a PWA, personalizar sua aparência e integrá-la ao sistema operacional.
+
+### Service Worker APIs
+
+*   **Comunicação com a aplicação**: `Client.postMessage()`, `Broadcast Channel API`.
+*   **Operação Offline**: `Cache API` (armazenamento persistente para respostas HTTP), `Clients`, `FetchEvent` (para interceptar requisições e servir do cache).
+*   **Operação em Segundo Plano**: `Background Synchronization API` (adiar tarefas até que haja conexão estável), `Web Periodic Background Synchronization API` (executar tarefas em intervalos periódicos), `Background Fetch API` (gerenciar downloads longos).
+
+### Outras APIs Web
+
+*   **IndexedDB**: Armazenamento de dados estruturados no lado do cliente.
+*   **Badging API**: Exibir um badge no ícone da aplicação.
+*   **Notifications API**: Enviar notificações no nível do sistema operacional.
+*   **Web Share API**: Mecanismo para compartilhar conteúdo com outras aplicações no dispositivo.
+*   **Window Controls Overlay API**: Permite ocultar a barra de título da janela em PWAs desktop.
+
+---
+*Fonte: MDN Web Docs - Progressive web apps*

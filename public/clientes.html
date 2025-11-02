@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - TimePulse AI</title>
+    <meta name="description" content="Gerencie clientes e relatórios de consumo">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        /* Clientes Specific Styles */
+        .clients-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .clients-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-info {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .clients-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .clients-table-container {
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            border: 1px solid #e9ecef;
+        }
+
+        .clients-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .clients-table th,
+        .clients-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .clients-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+
+        .clients-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            background: white;
+            min-width: 150px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 600px;
+            animation: fadeInScale 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .modal-close {
+            color: #aaa;
+            font-size: 2rem;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover,
+        .modal-close:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #eee;
+        }
+
+        .modal-actions .btn {
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .clients-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+
+            .clients-title {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input {
+                min-width: auto;
+            }
+
+            .filters-container {
+                justify-content: stretch;
+            }
+
+            .filter-select {
+                min-width: auto;
+                flex: 1;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Loading and Empty States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            color: white;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .notification.success { background: var(--success-color); }
+        .notification.error { background: var(--danger-color); }
+        .notification.warning { background: var(--warning-color); color: #212529; }
+        .notification.info { background: var(--info-color); }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .consumption-report {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .consumption-report h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .consumption-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .consumption-stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .consumption-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .consumption-stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+
+            /* Clientes específico mobile - tabela responsiva */
+            .clients-table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .clients-table {
+                min-width: 100%;
+                font-size: 0.85rem;
+            }
+
+            .clients-table th,
+            .clients-table td {
+                padding: 0.5rem;
+                white-space: nowrap;
+            }
+
+            .clients-table th:nth-child(4),
+            .clients-table td:nth-child(4),
+            .clients-table th:nth-child(5),
+            .clients-table td:nth-child(5) {
+                display: none;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .action-buttons .btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link active">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" onclick="signOut()">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="clients-header">
+                <h1 class="clients-title">
+                    <i class="fas fa-users"></i>
+                    Gestão de Clientes
+                </h1>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="openNewClientModal()">
+                        <i class="fas fa-plus"></i> Novo Cliente
+                    </button>
+                    <button class="btn btn-info" onclick="exportClients()">
+                        <i class="fas fa-download"></i> Exportar
+                    </button>
+                    <button class="btn btn-warning" onclick="generateReports()">
+                        <i class="fas fa-chart-bar"></i> Relatórios
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: var(--primary-color);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value" id="totalClients">0</div>
+                    <div class="stat-label">Total de Clientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: var(--info-color);">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-value" id="totalOrders">0</div>
+                    <div class="stat-label">Total de Pedidos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: var(--success-color);">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-value" id="totalRevenue">R$ 0,00</div>
+                    <div class="stat-label">Receita Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: var(--warning-color);">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-value" id="newClientsMonth">0</div>
+                    <div class="stat-label">Novos este Mês</div>
+                </div>
+            </div>
+
+            <!-- Client List Section -->
+            <div class="clients-section">
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i>
+                    Lista de Clientes
+                </h2>
+
+                <!-- Search and Filters -->
+                <div class="search-container">
+                    <div class="form-group search-input">
+                        <input type="text" id="searchInput" class="form-input" placeholder="Buscar por nome, telefone ou endereço..." onkeyup="searchClients()">
+                    </div>
+                    <div class="filters-container">
+                        <select id="dateFilter" class="filter-select" onchange="filterClients()">
+                            <option value="">Período de Cadastro</option>
+                            <option value="today">Hoje</option>
+                            <option value="week">Esta Semana</option>
+                            <option value="month">Este Mês</option>
+                            <option value="year">Este Ano</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clients Table -->
+                <div class="clients-table-container">
+                    <table class="clients-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Endereço</th>
+                                <th>Total de Pedidos</th>
+                                <th>Total Gasto</th>
+                                <th>Cadastrado em</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientsTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Carregando clientes...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Client Modal -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Novo Cliente</h3>
+                <button class="modal-close" onclick="closeClientModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="clientForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="clientName">Nome *</label>
+                            <input type="text" id="clientName" name="name" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="clientPhone">Telefone</label>
+                            <input type="tel" id="clientPhone" name="phone" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="clientEmail">Email</label>
+                            <input type="email" id="clientEmail" name="email" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="clientCpf">CPF</label>
+                            <input type="text" id="clientCpf" name="cpf" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="clientCity">Cidade</label>
+                            <input type="text" id="clientCity" name="city" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="clientZipCode">CEP</label>
+                            <input type="text" id="clientZipCode" name="zip_code" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="clientBirthDate">Data de Nascimento</label>
+                            <input type="date" id="clientBirthDate" name="birth_date" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="clientAddress">Endereço</label>
+                        <textarea id="clientAddress" name="address" class="form-input form-textarea" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="saveClient()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consumption Report Modal -->
+    <div id="consumptionModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>Relatório de Consumo</h3>
+                <button class="modal-close" onclick="closeConsumptionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="consumption-report">
+                    <h3 id="consumptionClientName">Nome do Cliente</h3>
+                    <div class="consumption-stats">
+                        <div class="consumption-stat">
+                            <div class="consumption-stat-value" id="clientTotalOrders">0</div>
+                            <div class="consumption-stat-label">Total de Pedidos</div>
+                        </div>
+                        <div class="consumption-stat">
+                            <div class="consumption-stat-value" id="clientTotalSpent">R$ 0,00</div>
+                            <div class="consumption-stat-label">Total Gasto</div>
+                        </div>
+                        <div class="consumption-stat">
+                            <div class="consumption-stat-value" id="clientAvgOrder">R$ 0,00</div>
+                            <div class="consumption-stat-label">Ticket Médio</div>
+                        </div>
+                        <div class="consumption-stat">
+                            <div class="consumption-stat-value" id="clientLastOrder">-</div>
+                            <div class="consumption-stat-label">Último Pedido</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h4>Histórico de Pedidos</h4>
+                    <div id="ordersHistory">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Carregando histórico...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeConsumptionModal()">Fechar</button>
+                <button type="button" class="btn btn-info" onclick="exportClientReport()">
+                    <i class="fas fa-download"></i> Exportar Relatório
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let supabase;
+        let restaurantId;
+        let allClients = [];
+        let filteredClients = [];
+        let currentEditingClient = null;
+
+
+
+        // ===== SISTEMA SIMPLIFICADO DE INSTÂNCIA =====
+        function getInstanceData() {
+            try {
+                const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    try {
+                        const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                        const tokenData = JSON.parse(cookieValue);
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing cookie:', e);
+                    }
+                }
+                
+                const localStorageData = localStorage.getItem('timepulse_instance_token');
+                if (localStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(localStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing localStorage:', e);
+                    }
+                }
+                
+                const sessionStorageData = sessionStorage.getItem('timepulse_instance_token');
+                if (sessionStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(sessionStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing sessionStorage:', e);
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('getInstanceData error:', error);
+                return null;
+            }
+        }
+
+        function isAuthenticated() {
+            const instanceData = getInstanceData();
+            return instanceData && instanceData.instanceId && instanceData.restaurantId;
+        }
+
+        function requireAuth() {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            document.cookie = 'timepulse_instance_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            window.location.href = 'login.html';
+        }
+
+        // ===== SISTEMA DE CONFIGURAÇÃO SEGURA =====
+        /**
+         * Carrega as configurações do arquivo config.js local.
+         */
+        async function fetchPublicConfig() {
+            try {
+                const currentHost = window.location.hostname;
+                const currentPort = window.location.port;
+                const currentProtocol = window.location.protocol;
+                
+                // Determinar URL base baseada no ambiente atual
+                let baseUrl;
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                    baseUrl = `${currentProtocol}//${currentHost}:${currentPort || '5000'}`;
+                } else if (currentHost === 'timepulseai.com.br' || currentHost === 'www.timepulseai.com.br') {
+                    baseUrl = `https://${currentHost}`;
+                } else if (currentHost.includes('replit')) {
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                } else {
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                }
+                
+                const timestamp = Date.now();
+                const configUrl = `${baseUrl}/api/config?t=${timestamp}`;
+                
+                console.log(`🔍 Clientes - Carregando configuração de: ${configUrl}`);
+                
+                // Buscar configuração básica do servidor
+                const response = await fetch(configUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+                }
+                
+                const basicConfig = await response.json();
+                console.log('✅ Configuração básica carregada nos clientes');
+                
+                // Buscar configuração do Supabase
+                const supabaseUrl = `${baseUrl}/api/config/supabase`;
+                const supabaseResponse = await fetch(supabaseUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!supabaseResponse.ok) {
+                    throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+                }
+                
+                const supabaseConfig = await supabaseResponse.json();
+                console.log('✅ Configuração Supabase carregada nos clientes');
+                
+                // Buscar configuração do Evolution API
+                let evolutionConfig = {};
+                try {
+                    const evolutionResponse = await fetch(`${baseUrl}/api/config/evolution?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (evolutionResponse.ok) {
+                        evolutionConfig = await evolutionResponse.json();
+                        console.log('✅ Configuração Evolution carregada nos clientes');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Evolution API não disponível:', error.message);
+                }
+                
+                // Buscar configuração do Mapbox
+                let mapboxConfig = {};
+                try {
+                    const mapboxResponse = await fetch(`${baseUrl}/api/config/mapbox?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (mapboxResponse.ok) {
+                        mapboxConfig = await mapboxResponse.json();
+                        console.log('✅ Configuração Mapbox carregada nos clientes');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Mapbox API não disponível:', error.message);
+                }
+                
+                // Buscar configuração do OpenAI
+                let openaiConfig = {};
+                try {
+                    const openaiResponse = await fetch(`${baseUrl}/api/config/openai?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (openaiResponse.ok) {
+                        openaiConfig = await openaiResponse.json();
+                        console.log('✅ Configuração OpenAI carregada nos clientes');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ OpenAI API não disponível:', error.message);
+                }
+                
+                const finalConfig = {
+                    ...basicConfig,
+                    supabaseUrl: supabaseConfig.url,
+                    supabaseAnonKey: supabaseConfig.anon_key,
+                    evolution: evolutionConfig,
+                    mapbox: mapboxConfig,
+                    openai: openaiConfig
+                };
+                
+                return finalConfig;
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar configuração nos clientes:', error);
+                return null;
+            }
+        }
+
+        async function loadSecureConfig() {
+            try {
+                const config = await fetchPublicConfig();
+                if (!config || !config.supabaseUrl || !config.supabaseAnonKey) {
+                    throw new Error('Não foi possível carregar as configurações seguras do servidor.');
+                }
+
+                // Inicializa o Supabase com configurações seguras
+                if (window.supabase) {
+                    supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                    console.log('✅ Supabase inicializado com sucesso nos clientes');
+                } else {
+                    throw new Error('Biblioteca Supabase não encontrada.');
+                }
+
+                return config;
+            } catch (error) {
+                console.error('❌ Falha ao carregar configurações.', error);
+                // Exibe uma página de erro amigável ao usuário
+                document.body.innerHTML = `<div class="error-page" style="text-align: center; padding: 50px; font-family: 'Inter', sans-serif;">
+                    <h2 style="color: #dc3545; margin-bottom: 20px;">Erro de Configuração</h2>
+                    <p style="margin-bottom: 10px;">${error.message}</p>
+                    <p style="margin-bottom: 30px;">Verifique se o arquivo config.js está carregado e recarregue a página.</p>
+                    <button onclick="window.location.reload()" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Recarregar</button>
+                </div>`;
+                throw error;
+            }
+        }
+
+        // Authentication check
+        async function checkAuthenticationAndLoadConfig() {
+            if (!isAuthenticated()) {
+                console.log('Instância não autenticada. Redirecionando para a página de login...');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const currentInstance = getInstanceData();
+            restaurantId = currentInstance.restaurantId;
+
+            console.log('🔍 Debug - Current Instance:', currentInstance);
+            console.log('🔍 Debug - Restaurant ID:', restaurantId);
+
+            if (!restaurantId) {
+                console.error('❌ Restaurant ID não encontrado na instância');
+                showNotification('Erro: Restaurante não encontrado. Faça login novamente.', 'error');
+                return;
+            }
+
+            try {
+                await loadSecureConfig();
+                console.log('🎉 Configurações carregadas e autenticação verificada.');
+                
+                // Fetch restaurant name
+                await fetchRestaurantName(restaurantId);
+                
+                console.log('🔍 Debug - Current Restaurant após fetch:', restaurantId);
+                
+                // Load data
+                await loadClients();
+                await updateStatistics();
+
+                console.log('✅ Aplicação Clientes iniciada!');
+
+            } catch (error) {
+                console.error('Falha na inicialização da aplicação após a autenticação.', error);
+                showNotification('Erro ao inicializar aplicação.', 'error');
+            }
+        }
+
+        // Sign out function
+        async function signOut() {
+            // Usar modal padrão de confirmação
+            if (await showCustomConfirmation('Deseja realmente sair?', 'Sair')) {
+                try {
+                    // 1. PRIMEIRO: Fazer logout do Supabase
+                    if (window.supabase) {
+                        await window.supabase.auth.signOut();
+                        console.log('✅ Logout do Supabase realizado');
+                    }
+                    
+                    // 2. Limpar dados locais
+                    if (window.SECURE_INSTANCE_MANAGER) {
+                        window.SECURE_INSTANCE_MANAGER.logout();
+                    } else {
+                        // Fallback manual
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    }
+                } catch (error) {
+                    console.error('Erro durante logout:', error);
+                }
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Modal de confirmação padrão para todo o sistema
+        function showCustomConfirmation(message, title = 'Confirmação') {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                        <div class="modal" id="customConfirmationDialog" style="z-index: 16000; display:flex;">
+                            <div class="modal-content" style="max-width: 400px;">
+                                <div class="modal-header"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+                                <div class="modal-body" style="text-align: center; padding: 2rem;"><p>${message}</p></div>
+                                <div style="padding: 1.5rem; border-top: 1px solid #e9ecef; display: flex; justify-content: center; gap: 1rem;">
+                                    <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                                    <button class="btn btn-primary" id="confirmConfirmBtn">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const dialog = document.getElementById('customConfirmationDialog');
+                const close = () => { dialog.remove(); resolve(false); };
+                const confirm = () => { dialog.remove(); resolve(true); };
+                dialog.querySelector('.modal-close').onclick = close;
+                dialog.querySelector('#cancelConfirmBtn').onclick = close;
+                dialog.querySelector('#confirmConfirmBtn').onclick = confirm;
+            });
+        }
+
+        // Fetch restaurant name
+        async function fetchRestaurantName(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('restaurants')
+                    .select('name')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    document.getElementById('restaurantName').textContent = data.name;
+                } else {
+                    document.getElementById('restaurantName').textContent = 'Restaurante Desconhecido';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar nome do restaurante:', error.message);
+                document.getElementById('restaurantName').textContent = 'Erro ao Carregar';
+            }
+        }
+
+        // Load clients from database
+        async function loadClients() {
+            try {
+                const { data, error } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                allClients = data || [];
+                filteredClients = [...allClients];
+                renderClientsTable();
+                
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error.message);
+                showNotification('Erro ao carregar clientes.', 'error');
+                document.getElementById('clientsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i><br>
+                            Erro ao carregar clientes
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Render clients table
+        function renderClientsTable() {
+            const tbody = document.getElementById('clientsTableBody');
+            
+            if (filteredClients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-users"></i><br>
+                            Nenhum cliente encontrado
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredClients.map(client => `
+                <tr>
+                    <td>
+                        <strong>${client.name}</strong>
+                        ${client.cpf ? `<br><small>CPF: ${formatCPF(client.cpf)}</small>` : ''}
+                    </td>
+                    <td>${client.phone || '-'}</td>
+                    <td>${client.address || '-'}</td>
+                    <td>${client.total_orders || 0}</td>
+                    <td>R$ ${(client.total_spent || 0).toFixed(2).replace('.', ',')}</td>
+                    <td>${formatDate(client.created_at)}</td>
+                    <td>
+                        <div class="client-actions">
+                            <button class="btn btn-info btn-sm" onclick="editClient('${client.id}')" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="viewConsumption('${client.id}')" title="Relatório">
+                                <i class="fas fa-chart-line"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteClient('${client.id}')" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+
+        // Search clients
+        function searchClients() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            filteredClients = allClients.filter(client => {
+                const matchesSearch = searchTerm === '' || 
+                    client.name.toLowerCase().includes(searchTerm) ||
+                    (client.phone && client.phone.includes(searchTerm)) ||
+                    (client.address && client.address.toLowerCase().includes(searchTerm));
+
+                const matchesDate = dateFilter === '' || checkDateFilter(client.created_at, dateFilter);
+
+                return matchesSearch && matchesDate;
+            });
+
+            renderClientsTable();
+        }
+
+        // Filter clients
+        function filterClients() {
+            searchClients();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('dateFilter').value = '';
+            filteredClients = [...allClients];
+            renderClientsTable();
+        }
+
+        // Check date filter
+        function checkDateFilter(dateString, filter) {
+            const date = new Date(dateString);
+            const now = new Date();
+            
+            switch (filter) {
+                case 'today':
+                    return date.toDateString() === now.toDateString();
+                case 'week':
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    return date >= weekAgo;
+                case 'month':
+                    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                case 'year':
+                    return date.getFullYear() === now.getFullYear();
+                default:
+                    return true;
+            }
+        }
+
+        // Update statistics
+        async function updateStatistics() {
+            try {
+                // Calculate statistics from loaded clients
+                const totalClients = allClients.length;
+                const totalOrders = allClients.reduce((sum, client) => sum + (client.total_orders || 0), 0);
+                const totalRevenue = allClients.reduce((sum, client) => sum + (client.total_spent || 0), 0);
+                
+                // New clients this month
+                const now = new Date();
+                const newClientsMonth = allClients.filter(client => {
+                    const clientDate = new Date(client.created_at);
+                    return clientDate.getMonth() === now.getMonth() && 
+                           clientDate.getFullYear() === now.getFullYear();
+                }).length;
+
+                // Update UI
+                document.getElementById('totalClients').textContent = totalClients;
+                document.getElementById('totalOrders').textContent = totalOrders;
+                document.getElementById('totalRevenue').textContent = `R$ ${totalRevenue.toFixed(2).replace('.', ',')}`;
+                document.getElementById('newClientsMonth').textContent = newClientsMonth;
+
+            } catch (error) {
+                console.error('Erro ao atualizar estatísticas:', error.message);
+            }
+        }
+
+        // Modal functions
+        function openNewClientModal() {
+            currentEditingClient = null;
+            document.getElementById('modalTitle').textContent = 'Novo Cliente';
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientModal').classList.add('show');
+        }
+
+        function editClient(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            currentEditingClient = client;
+            document.getElementById('modalTitle').textContent = 'Editar Cliente';
+            
+            // Fill form with client data
+            document.getElementById('clientName').value = client.name || '';
+            document.getElementById('clientPhone').value = client.phone || '';
+            document.getElementById('clientEmail').value = client.email || '';
+            document.getElementById('clientCpf').value = client.cpf || '';
+            document.getElementById('clientCity').value = client.city || '';
+            document.getElementById('clientZipCode').value = client.zip_code || '';
+            document.getElementById('clientBirthDate').value = client.birth_date || '';
+            document.getElementById('clientAddress').value = client.address || '';
+            
+            document.getElementById('clientModal').classList.add('show');
+        }
+
+        function closeClientModal() {
+            document.getElementById('clientModal').classList.remove('show');
+            currentEditingClient = null;
+        }
+
+        // Save client (create or update)
+        async function saveClient() {
+            const formData = new FormData(document.getElementById('clientForm'));
+            const clientData = {
+                restaurant_id: restaurantId,
+                name: formData.get('name'),
+                phone: formData.get('phone'),
+                email: formData.get('email') || null,
+                cpf: formData.get('cpf') ? parseFloat(formData.get('cpf')) : null,
+                city: formData.get('city'),
+                zip_code: formData.get('zip_code'),
+                birth_date: formData.get('birth_date') || null,
+                address: formData.get('address'),
+                total_orders: 0,
+                total_spent: 0.00
+            };
+
+            // Validation
+            if (!clientData.name.trim()) {
+                showNotification('Nome é obrigatório.', 'error');
+                return;
+            }
+
+            try {
+                let result;
+                if (currentEditingClient) {
+                    // Update existing client
+                    result = await supabase
+                        .from('customers')
+                        .update(clientData)
+                        .eq('id', currentEditingClient.id)
+                        .select();
+                } else {
+                    // Create new client
+                    result = await supabase
+                        .from('customers')
+                        .insert([clientData])
+                        .select();
+                }
+
+                if (result.error) throw result.error;
+
+                showNotification(
+                    currentEditingClient ? 'Cliente atualizado com sucesso!' : 'Cliente cadastrado com sucesso!',
+                    'success'
+                );
+                
+                closeClientModal();
+                await loadClients();
+                await updateStatistics();
+
+            } catch (error) {
+                console.error('Erro ao salvar cliente:', error.message);
+                showNotification('Erro ao salvar cliente.', 'error');
+            }
+        }
+
+        // Delete client
+        async function deleteClient(clientId) {
+            if (!confirm('Tem certeza que deseja excluir este cliente?')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabase
+                    .from('customers')
+                    .delete()
+                    .eq('id', clientId);
+
+                if (error) throw error;
+
+                showNotification('Cliente excluído com sucesso!', 'success');
+                await loadClients();
+                await updateStatistics();
+
+            } catch (error) {
+                console.error('Erro ao excluir cliente:', error.message);
+                showNotification('Erro ao excluir cliente.', 'error');
+            }
+        }
+
+        // View consumption report
+        async function viewConsumption(clientId) {
+            const client = allClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            // Update modal title
+            document.getElementById('consumptionClientName').textContent = client.name;
+            
+            // Update basic stats
+            document.getElementById('clientTotalOrders').textContent = client.total_orders || 0;
+            document.getElementById('clientTotalSpent').textContent = `R$ ${(client.total_spent || 0).toFixed(2).replace('.', ',')}`;
+            
+            const avgOrder = client.total_orders > 0 ? (client.total_spent || 0) / client.total_orders : 0;
+            document.getElementById('clientAvgOrder').textContent = `R$ ${avgOrder.toFixed(2).replace('.', ',')}`;
+
+            try {
+                // Load order history filtering by customer phone and restaurant instance
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select('id, total, created_at, status, customer_phone')
+                    .eq('customer_phone', client.phone)
+                    .eq('restaurant_id', restaurantId)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                // Update last order date
+                if (orders && orders.length > 0) {
+                    document.getElementById('clientLastOrder').textContent = formatDate(orders[0].created_at);
+                    
+                    // Load order items for each order and render history
+                    const historyPromises = orders.map(async (order) => {
+                        // Fetch order items for this order
+                        const { data: orderItems, error: itemsError } = await supabase
+                            .from('order_items')
+                            .select('id, product_name, quantity, price, notes, selected_add_ons')
+                            .eq('order_id', order.id);
+
+                        if (itemsError) {
+                            console.error('Erro ao carregar itens do pedido:', itemsError);
+                        }
+
+                        const itemsHtml = orderItems ? orderItems.map(item => `
+                            <div style="margin-left: 20px; padding: 0.5rem 0; border-left: 3px solid #e9ecef; padding-left: 10px;">
+                                <strong>${item.product_name}</strong> (${item.quantity}x)<br>
+                                <small>R$ ${item.price.toFixed(2).replace('.', ',')} cada</small>
+                                ${item.notes ? `<br><small style="color: #6c757d;">Obs: ${item.notes}</small>` : ''}
+                                ${item.selected_add_ons ? `<br><small style="color: #17a2b8;">Adicionais: ${JSON.stringify(item.selected_add_ons)}</small>` : ''}
+                            </div>
+                        `).join('') : '';
+                        
+                        return `
+                            <div style="padding: 1rem; border-bottom: 1px solid #eee; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <div>
+                                        <strong>Pedido #${order.id.substring(0, 8)}</strong><br>
+                                        <small>${formatDate(order.created_at)}</small>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <strong>R$ ${order.total.toFixed(2).replace('.', ',')}</strong><br>
+                                        <small style="color: ${getStatusColor(order.status)};">${order.status}</small>
+                                    </div>
+                                </div>
+                                ${itemsHtml}
+                            </div>
+                        `;
+                    });
+
+                    const historyHtmlArray = await Promise.all(historyPromises);
+                    const historyHtml = historyHtmlArray.join('');
+                    
+                    document.getElementById('ordersHistory').innerHTML = historyHtml;
+                } else {
+                    document.getElementById('clientLastOrder').textContent = 'Nunca';
+                    document.getElementById('ordersHistory').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-cart"></i><br>
+                            Nenhum pedido encontrado
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Erro ao carregar histórico de pedidos:', error.message);
+                document.getElementById('ordersHistory').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i><br>
+                        Erro ao carregar histórico
+                    </div>
+                `;
+            }
+
+            document.getElementById('consumptionModal').classList.add('show');
+        }
+
+        function closeConsumptionModal() {
+            document.getElementById('consumptionModal').classList.remove('show');
+        }
+
+        // Export functions
+        function exportClients() {
+            if (filteredClients.length === 0) {
+                showNotification('Nenhum cliente para exportar.', 'warning');
+                return;
+            }
+
+            const csv = convertToCSV(filteredClients);
+            downloadCSV(csv, 'clientes.csv');
+            showNotification('Lista de clientes exportada com sucesso!', 'success');
+        }
+
+        function exportClientReport() {
+            // Implementation for exporting individual client report
+            showNotification('Relatório exportado com sucesso!', 'success');
+        }
+
+        function generateReports() {
+            // Implementation for generating reports
+            showNotification('Relatório gerado com sucesso!', 'success');
+        }
+
+        // Utility functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        function formatCPF(cpf) {
+            if (!cpf) return '';
+            const cpfStr = cpf.toString();
+            return cpfStr.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'novo': '#17a2b8',
+                'aceito': '#ffc107',
+                'preparo': '#fd7e14',
+                'pronto': '#28a745',
+                'entregue': '#6f42c1',
+                'cancelado': '#dc3545'
+            };
+            return colors[status] || '#6c757d';
+        }
+
+        function convertToCSV(data) {
+            const headers = ['Nome', 'Telefone', 'Endereço', 'Total Pedidos', 'Total Gasto', 'Cadastrado em'];
+            const rows = data.map(client => [
+                client.name,
+                client.phone || '',
+                client.address || '',
+                client.total_orders || 0,
+                (client.total_spent || 0).toFixed(2),
+                formatDate(client.created_at)
+            ]);
+
+            return [headers, ...rows].map(row => 
+                row.map(field => `"${field}"`).join(',')
+            ).join('\n');
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 5000);
+        }
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', checkAuthenticationAndLoadConfig);
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const clientModal = document.getElementById('clientModal');
+            const consumptionModal = document.getElementById('consumptionModal');
+            
+            if (event.target === clientModal) {
+                closeClientModal();
+            }
+            if (event.target === consumptionModal) {
+                closeConsumptionModal();
+            }
+        }
+    </script>
+
+    <script>
+    // Função para controlar o menu mobile
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
+
+    // Fechar menu ao clicar em um link (em mobile)
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

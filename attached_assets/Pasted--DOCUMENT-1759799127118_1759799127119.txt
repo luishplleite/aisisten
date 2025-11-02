@@ -1,0 +1,1209 @@
+================================================================================
+           DOCUMENTAÇÃO COMPLETA - MODAL "NOVO PEDIDO - DELIVERY"
+                        TimePulse AI - Sistema de Gestão
+================================================================================
+
+📋 ÍNDICE
+1. Visão Geral
+2. Estrutura do Modal
+3. Campos do Formulário
+4. Funções JavaScript
+5. Fluxo de Criação de Pedido
+6. Validações e Regras de Negócio
+7. Integrações e APIs
+8. Troubleshooting
+
+================================================================================
+1. VISÃO GERAL
+================================================================================
+
+O modal "Novo Pedido - Delivery" é responsável por criar pedidos de entrega
+no sistema TimePulse AI. Ele integra:
+- Dados do cliente
+- Endereço completo com CEP
+- Busca e seleção de produtos
+- Cálculo automático de taxa de entrega via Mapbox
+- Cálculo de troco para pagamento em dinheiro
+- Validação completa de campos obrigatórios
+
+LOCALIZAÇÃO: public/gestao_pedidos.html (linhas 1680-1875)
+ID DO MODAL: deliveryOrderModal
+CLASSE CSS: modal delivery-modal
+
+================================================================================
+2. ESTRUTURA DO MODAL
+================================================================================
+
+COMPONENTES PRINCIPAIS:
+┌─────────────────────────────────────────────────────────────┐
+│ CABEÇALHO                                                   │
+│ - Título: "Novo Pedido - Delivery"                        │
+│ - Ícone: <i class="fas fa-motorcycle"></i>                │
+│ - Botão fechar: closeDeliveryOrderModal()                 │
+├─────────────────────────────────────────────────────────────┤
+│ CORPO DO FORMULÁRIO (deliveryOrderForm)                    │
+│                                                             │
+│ ┌─── SEÇÃO 1: DADOS DO CLIENTE ───────────────────────┐  │
+│ │ - Telefone* (deliveryCustomerPhone)                 │  │
+│ │ - Nome do Cliente* (deliveryCustomerName)           │  │
+│ │ - CEP (deliveryCep) + autocomplete                  │  │
+│ │ - Rua (deliveryRua)                                 │  │
+│ │ - Número (deliveryNumber)                           │  │
+│ │ - Complemento (deliveryComplement)                  │  │
+│ │ - Bairro (deliveryBairro) - DESTACADO              │  │
+│ │ - Cidade (deliveryCidade) - readonly                │  │
+│ │ - UF (deliveryUf) - readonly                        │  │
+│ │ - Endereço completo (deliveryAddress) - hidden      │  │
+│ └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─── SEÇÃO 2: ITENS DO PEDIDO ────────────────────────┐  │
+│ │ - Botão: Adicionar Item                             │  │
+│ │ - Campo busca: deliveryProductSearch                │  │
+│ │ - Resultados: deliverySearchResults                 │  │
+│ │ - Tabela de itens: deliveryItemsTableBody           │  │
+│ │   Colunas: Item | Qtd | Preço | Total | Ações      │  │
+│ └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─── SEÇÃO 3: CÁLCULO DE ENTREGA ─────────────────────┐  │
+│ │ - Checkbox: Incluir retorno (ida e volta)           │  │
+│ │ - Métricas (calculadas automaticamente):            │  │
+│ │   * Distância (km)                                  │  │
+│ │   * Tempo Estimado (min)                            │  │
+│ │   * Taxa de Entrega (R$)                            │  │
+│ │ - Input manual: deliveryFee                         │  │
+│ └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─── SEÇÃO 4: FORMA DE PAGAMENTO ─────────────────────┐  │
+│ │ - Select: deliveryPaymentMethod*                    │  │
+│ │   Opções: Dinheiro | Cartão | PIX | Vale            │  │
+│ │ - Se Dinheiro (deliveryChangeFields):               │  │
+│ │   * Cliente paga: deliveryChangeForAmount           │  │
+│ │   * Troco: deliveryChangeAmount (readonly)          │  │
+│ │   * Exibição troco: deliveryChangeDisplay           │  │
+│ └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─── SEÇÃO 5: TOTAL ───────────────────────────────────┐  │
+│ │ - Subtotal: deliverySubtotalDisplay                 │  │
+│ │ - Taxa de Entrega: deliveryFeeDisplayTotal          │  │
+│ │ - Total: deliveryTotalDisplay                       │  │
+│ └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│ ┌─── SEÇÃO 6: OBSERVAÇÕES ─────────────────────────────┐  │
+│ │ - Textarea: deliveryOrderNotes                      │  │
+│ └──────────────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│ RODAPÉ                                                      │
+│ - Botão Cancelar: closeDeliveryOrderModal()                │
+│ - Botão Criar Pedido: submitDeliveryOrder()                │
+└─────────────────────────────────────────────────────────────┘
+
+* Campos obrigatórios
+
+================================================================================
+3. CAMPOS DO FORMULÁRIO
+================================================================================
+
+3.1 DADOS DO CLIENTE
+---------------------
+Campo: deliveryCustomerPhone
+- Tipo: tel
+- ID: deliveryCustomerPhone
+- Obrigatório: SIM
+- Placeholder: "(11) 99999-9999"
+- Validação: Campo não pode estar vazio
+
+Campo: deliveryCustomerName
+- Tipo: text
+- ID: deliveryCustomerName
+- Obrigatório: SIM
+- Placeholder: "Nome completo"
+- Validação: Campo não pode estar vazio
+
+3.2 ENDEREÇO
+-------------
+Campo: deliveryCep
+- Tipo: text
+- ID: deliveryCep
+- Obrigatório: NÃO (mas recomendado)
+- Maxlength: 8
+- Placeholder: "11065001"
+- Evento onblur: pesquisacep(this.value, 'delivery')
+- Função: Autocomplete via API ViaCEP
+
+Campo: deliveryRua
+- Tipo: text
+- ID: deliveryRua
+- Preenchido por: CEP autocomplete ou manual
+- Placeholder: "Rua/Avenida"
+
+Campo: deliveryNumber
+- Tipo: text
+- ID: deliveryNumber
+- Placeholder: "551"
+
+Campo: deliveryComplement
+- Tipo: text
+- ID: deliveryComplement
+- Placeholder: "Apto, Casa, etc."
+
+Campo: deliveryBairro
+- Tipo: text
+- ID: deliveryBairro
+- Classe especial: highlighted-field
+- Placeholder: "Bairro"
+- Importância: Campo destacado visualmente
+
+Campo: deliveryCidade
+- Tipo: text
+- ID: deliveryCidade
+- Readonly: true
+- Placeholder: "Santos"
+- Preenchido por: CEP autocomplete
+
+Campo: deliveryUf
+- Tipo: text
+- ID: deliveryUf
+- Readonly: true
+- Maxlength: 2
+- Placeholder: "SP"
+- Preenchido por: CEP autocomplete
+
+Campo: deliveryAddress (OCULTO)
+- Tipo: hidden
+- ID: deliveryAddress
+- Função: Armazena endereço completo formatado
+- Formato: "Rua, Número, Complemento, Bairro, Cidade - UF"
+
+3.3 ITENS DO PEDIDO
+--------------------
+Campo: deliveryProductSearch
+- Tipo: text
+- ID: deliveryProductSearch
+- Placeholder: "Buscar produto (nome ou código)..."
+- Evento oninput: ordersManager.performProductSearch(this.value.trim(), 'delivery')
+- Função: Busca produtos em tempo real
+
+Tabela: deliveryItemsTableBody
+- ID: deliveryItemsTableBody
+- Colunas:
+  1. Item (nome do produto)
+  2. Qtd (quantidade editável)
+  3. Preço (preço unitário editável)
+  4. Total (calculado automaticamente)
+  5. Ações (editar notas, remover item)
+
+3.4 CÁLCULO DE ENTREGA
+-----------------------
+Campo: deliveryIncludeRoundtrip
+- Tipo: checkbox
+- ID: deliveryIncludeRoundtrip
+- Label: "Incluir retorno (ida e volta)"
+- Função: Altera cálculo da taxa de entrega
+
+Display de Métricas (somente leitura):
+- Distância: Calculada via Mapbox Directions API
+- Tempo Estimado: Calculado via Mapbox Directions API
+- Taxa de Entrega: Calculada com base na distância
+
+Campo: deliveryFee
+- Tipo: number
+- ID: deliveryFee
+- Step: 0.01
+- Min: 0
+- Valor padrão: 8.00
+- Função: Permite ajuste manual da taxa
+
+3.5 FORMA DE PAGAMENTO
+-----------------------
+Campo: deliveryPaymentMethod
+- Tipo: select
+- ID: deliveryPaymentMethod
+- Obrigatório: SIM
+- Evento onchange: toggleDeliveryChangeFields()
+- Opções:
+  * "" - Selecione...
+  * "money" - Dinheiro
+  * "card" - Cartão
+  * "pix" - PIX
+  * "voucher" - Vale
+
+Campos de Troco (visível apenas se pagamento = "money"):
+Container: deliveryChangeFields
+
+Campo: deliveryChangeForAmount
+- Tipo: number
+- ID: deliveryChangeForAmount
+- Step: 0.01
+- Placeholder: "0,00"
+- Evento oninput: calculateDeliveryChange()
+- Label: "Cliente paga:"
+
+Campo: deliveryChangeAmount
+- Tipo: number
+- ID: deliveryChangeAmount
+- Step: 0.01
+- Placeholder: "0,00"
+- Readonly: true
+- Label: "Troco:"
+- Função: Exibe troco calculado
+
+Display: deliveryChangeDisplay
+- ID: deliveryChangeDisplay
+- Container: deliveryChangeCalculation
+- Formato: "Troco: R$ X,XX"
+- Visível apenas se troco > 0
+
+3.6 TOTAIS
+-----------
+Display: deliverySubtotalDisplay
+- ID: deliverySubtotalDisplay
+- Formato: "R$ X,XX"
+- Cálculo: Soma de (quantidade × preço) de todos os itens
+
+Display: deliveryFeeDisplayTotal
+- ID: deliveryFeeDisplayTotal
+- Formato: "R$ X,XX"
+- Valor: Cópia de deliveryFee
+
+Display: deliveryTotalDisplay
+- ID: deliveryTotalDisplay
+- Formato: "R$ X,XX"
+- Cálculo: Subtotal + Taxa de Entrega
+
+Campos hidden:
+- deliverySubtotal: Armazena subtotal numérico
+- deliveryTotal: Armazena total numérico
+
+3.7 OBSERVAÇÕES
+----------------
+Campo: deliveryOrderNotes
+- Tipo: textarea
+- ID: deliveryOrderNotes
+- Rows: 2
+- Placeholder: "Observações especiais"
+- Opcional
+
+================================================================================
+4. FUNÇÕES JAVASCRIPT
+================================================================================
+
+4.1 ABERTURA E FECHAMENTO DO MODAL
+-----------------------------------
+
+openDeliveryOrderModal()
+- Linha: 5495
+- Função: Abre o modal de delivery
+- Ações:
+  1. Exibe modal (adiciona classe 'show')
+  2. Reseta formulário deliveryOrderForm
+  3. Limpa itens do pedido via ordersManager
+
+Código:
+```javascript
+function openDeliveryOrderModal() {
+    const modal = document.getElementById('deliveryOrderModal');
+    if (modal) {
+        const form = document.getElementById('deliveryOrderForm');
+        if (form) form.reset();
+        if (ordersManager) ordersManager.newOrderItems = [];
+        if (ordersManager) ordersManager.renderNewOrderItems('delivery');
+        modal.classList.add('show');
+    }
+}
+```
+
+closeDeliveryOrderModal()
+- Linha: 5508
+- Função: Fecha o modal de delivery
+- Ações:
+  1. Remove classe 'show' do modal
+  2. Reseta formulário
+  3. Limpa itens do pedido
+
+Código:
+```javascript
+function closeDeliveryOrderModal() {
+    const modal = document.getElementById('deliveryOrderModal');
+    if (modal) {
+        modal.classList.remove('show');
+        const form = document.getElementById('deliveryOrderForm');
+        if (form) form.reset();
+        if (ordersManager) ordersManager.newOrderItems = [];
+    }
+}
+```
+
+4.2 AUTOCOMPLETE DE CEP
+------------------------
+
+pesquisacep(valor, context)
+- Linha: 3102
+- Parâmetros:
+  * valor: CEP informado (com ou sem hífen)
+  * context: 'delivery' (identifica qual formulário)
+- Função: Busca endereço via API ViaCEP
+- Validação: Regex /^[0-9]{5}-?[0-9]{3}$/
+
+Fluxo:
+1. Remove caracteres não numéricos do CEP
+2. Valida formato com regex
+3. Cria script tag dinâmico apontando para ViaCEP
+4. ViaCEP retorna dados via callback JSONP
+5. Chama meu_callback(conteudo)
+
+meu_callback(conteudo)
+- Linha: 3121
+- Parâmetro: conteudo (objeto retornado pelo ViaCEP)
+- Função: Preenche campos de endereço
+- Campos preenchidos (context = 'delivery'):
+  * deliveryRua ← conteudo.logradouro
+  * deliveryBairro ← conteudo.bairro
+  * deliveryCidade ← conteudo.localidade
+  * deliveryUf ← conteudo.uf
+  * deliveryAddress ← endereço formatado completo
+
+Código relevante:
+```javascript
+if (context === 'delivery') {
+    document.getElementById('deliveryRua').value = (conteudo.logradouro);
+    document.getElementById('deliveryBairro').value = (conteudo.bairro);
+    document.getElementById('deliveryCidade').value = (conteudo.localidade);
+    document.getElementById('deliveryUf').value = (conteudo.uf);
+    document.getElementById('deliveryAddress').value = 
+        `${conteudo.logradouro}, ${deliveryNumber}, ${deliveryComplement}, ${conteudo.bairro}, ${conteudo.localidade} - ${conteudo.uf}`;
+}
+```
+
+4.3 CÁLCULO DE ROTA E TAXA DE ENTREGA
+---------------------------------------
+
+calculateDeliveryRoute()
+- Linha: 3007
+- Função: Calcula distância, tempo e taxa de entrega
+- Integração: Mapbox Geocoding API + Directions API
+- Gatilho: Alteração no endereço ou checkbox de retorno
+
+Fluxo completo:
+1. Captura endereço de entrega (deliveryAddress)
+2. Captura estado do checkbox (deliveryIncludeRoundtrip)
+3. Valida endereço e coordenadas do restaurante
+4. Exibe "Calculando rota..." nos displays
+5. Chama geocodeAddress(deliveryAddress) para obter coordenadas
+6. Chama calculateRouteDistance() para calcular rota
+7. Chama calculateDeliveryFee() para calcular taxa
+8. Atualiza displays com resultados
+9. Trata erros exibindo mensagem
+
+geocodeAddress(address)
+- Linha: 2907 (aproximado)
+- Parâmetro: address (string)
+- Retorno: { longitude, latitude, formatted_address }
+- API: Mapbox Geocoding API v5
+- URL: https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json
+
+Código:
+```javascript
+const encodedAddress = encodeURIComponent(address);
+const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${accessToken}&country=br&limit=1`;
+
+const response = await fetch(url);
+const data = await response.json();
+
+if (data.features && data.features.length > 0) {
+    const coordinates = data.features[0].center;
+    return {
+        longitude: coordinates[0],
+        latitude: coordinates[1],
+        formatted_address: data.features[0].place_name
+    };
+}
+```
+
+calculateRouteDistance(restaurantCoords, deliveryCoords, includeRoundtrip)
+- Linha: 2938
+- Parâmetros:
+  * restaurantCoords: { longitude, latitude }
+  * deliveryCoords: { longitude, latitude }
+  * includeRoundtrip: boolean
+- Retorno: { distance, duration, geometry }
+- API: Mapbox Directions API v5
+- Modo: driving-traffic
+
+Lógica:
+- Se includeRoundtrip = true:
+  coordinates = "resto_lng,resto_lat;entrega_lng,entrega_lat;resto_lng,resto_lat"
+- Se includeRoundtrip = false:
+  coordinates = "resto_lng,resto_lat;entrega_lng,entrega_lat"
+
+URL exemplo:
+https://api.mapbox.com/directions/v5/mapbox/driving-traffic/{coordinates}?access_token={token}&geometries=geojson&overview=simplified
+
+Conversões:
+- distance: route.distance / 1000 (metros → km)
+- duration: route.duration / 60 (segundos → minutos)
+
+calculateDeliveryFee(distance, includeRoundtrip)
+- Linha: 2981
+- Parâmetros:
+  * distance: distância em km
+  * includeRoundtrip: boolean
+- Retorno: { totalFee }
+- Configurações do restaurante:
+  * minimumDistanceKm: 3.0 (padrão)
+  * minimumDeliveryFee: 8.00 (padrão)
+  * deliveryFeePerKm: 0.50 (padrão)
+  * deliveryReturnPerKm: 0.12 (padrão)
+
+REGRAS DE CÁLCULO:
+
+A) SEM RETORNO (includeRoundtrip = false):
+   totalFee = minimumDeliveryFee
+   
+   SE distance > minimumDistanceKm:
+      extraDistance = distance - minimumDistanceKm
+      totalFee += extraDistance * deliveryFeePerKm
+
+   Exemplo: distância 5km
+   - Até 3km: R$ 8,00
+   - Extra 2km: 2 × R$ 0,50 = R$ 1,00
+   - Total: R$ 9,00
+
+B) COM RETORNO (includeRoundtrip = true):
+   oneWayDistance = distance / 2
+   
+   outboundCost = minimumDeliveryFee
+   SE oneWayDistance > minimumDistanceKm:
+      extraDistance = oneWayDistance - minimumDistanceKm
+      outboundCost += extraDistance * deliveryFeePerKm
+   
+   returnCost = oneWayDistance * deliveryReturnPerKm
+   totalFee = outboundCost + returnCost
+
+   Exemplo: distância total 10km (5km ida + 5km volta)
+   - Ida até 3km: R$ 8,00
+   - Ida extra 2km: 2 × R$ 0,50 = R$ 1,00
+   - Retorno 5km: 5 × R$ 0,12 = R$ 0,60
+   - Total: R$ 9,60
+
+4.4 GERENCIAMENTO DE ITENS
+---------------------------
+
+Funções disponíveis (Linha 5787-5790):
+
+updateDeliveryOrderItemQuantity(index, quantity)
+- Atualiza quantidade de um item
+- Chama: ordersManager.updateNewOrderItemQuantity(index, quantity, 'delivery')
+
+updateDeliveryOrderItemPrice(index, price)
+- Atualiza preço unitário de um item
+- Chama: ordersManager.updateNewOrderItemPrice(index, price, 'delivery')
+
+editDeliveryOrderItemNotes(index)
+- Abre modal para editar observações do item
+- Chama: ordersManager.editNewOrderItemNotes(index, 'delivery')
+
+removeDeliveryOrderItem(index)
+- Remove item da lista
+- Chama: ordersManager.removeNewOrderItem(index, 'delivery')
+
+Busca de produtos:
+- Campo: deliveryProductSearch
+- Evento: oninput
+- Função: ordersManager.performProductSearch(value.trim(), 'delivery')
+- Resultados exibidos em: deliverySearchResults
+
+4.5 CÁLCULO DE TROCO
+---------------------
+
+toggleDeliveryChangeFields()
+- Linha: 5978
+- Gatilho: onChange do select deliveryPaymentMethod
+- Função: Exibe/oculta campos de troco
+
+Código:
+```javascript
+function toggleDeliveryChangeFields() {
+    document.getElementById('deliveryChangeFields').style.display = 
+        document.getElementById('deliveryPaymentMethod').value === 'money' 
+        ? 'block' : 'none';
+}
+```
+
+calculateDeliveryChange()
+- Linha: 5984
+- Gatilho: oninput do campo deliveryChangeForAmount
+- Função: Calcula e exibe troco
+
+Fluxo:
+1. Captura total do pedido (deliveryTotal.value)
+2. Captura valor pago pelo cliente (deliveryChangeForAmount.value)
+3. Chama calculateChange(total, changeFor)
+4. Atualiza deliveryChangeAmount (campo readonly)
+5. Atualiza deliveryChangeDisplay (texto formatado)
+6. Exibe/oculta deliveryChangeCalculation conforme troco > 0
+
+Código:
+```javascript
+function calculateDeliveryChange() {
+    const total = parseFloat(document.getElementById('deliveryTotal').value);
+    const changeFor = parseFloat(document.getElementById('deliveryChangeForAmount').value);
+    const change = calculateChange(total, changeFor);
+    
+    document.getElementById('deliveryChangeAmount').value = change;
+    document.getElementById('deliveryChangeDisplay').textContent = change.replace('.', ',');
+    document.getElementById('deliveryChangeCalculation').style.display = 
+        change > 0 ? 'block' : 'none';
+}
+```
+
+calculateChange(total, changeFor)
+- Função utilitária (definida em outro local)
+- Cálculo: changeFor - total
+- Retorno: string formatada com 2 casas decimais
+
+4.6 SUBMISSÃO DO PEDIDO
+------------------------
+
+submitDeliveryOrder()
+- Linha: 5638
+- Função: Valida e envia pedido para o servidor
+- Assíncrona: async function
+
+FLUXO COMPLETO:
+
+1. CAPTURA DE DADOS:
+```javascript
+const customerName = document.getElementById('deliveryCustomerName')?.value.trim();
+const customerPhone = document.getElementById('deliveryCustomerPhone')?.value.trim();
+const rua = document.getElementById('deliveryRua')?.value.trim();
+const numero = document.getElementById('deliveryNumber')?.value.trim();
+const complemento = document.getElementById('deliveryComplement')?.value.trim();
+const bairro = document.getElementById('deliveryBairro')?.value.trim();
+const cidade = document.getElementById('deliveryCidade')?.value.trim();
+const uf = document.getElementById('deliveryUf')?.value.trim();
+const zipCode = document.getElementById('deliveryCep')?.value.trim();
+const paymentMethod = document.getElementById('deliveryPaymentMethod')?.value;
+const deliveryFee = parseFloat(document.getElementById('deliveryFee')?.value) || 0;
+const notes = document.getElementById('deliveryOrderNotes')?.value.trim();
+```
+
+2. FORMATAÇÃO DO ENDEREÇO:
+```javascript
+let deliveryAddress = '';
+if (rua) {
+    deliveryAddress = rua;
+    if (numero) deliveryAddress += `, ${numero}`;
+    if (complemento) deliveryAddress += `, ${complemento}`;
+    if (bairro) deliveryAddress += `, ${bairro}`;
+    if (cidade) deliveryAddress += `, ${cidade}`;
+    if (uf) deliveryAddress += ` - ${uf}`;
+} else {
+    deliveryAddress = document.getElementById('deliveryAddress')?.value.trim();
+}
+```
+
+3. VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS:
+```javascript
+const missingFields = [];
+if (!customerName) missingFields.push('Nome do Cliente');
+if (!customerPhone) missingFields.push('Telefone');
+if (!deliveryAddress) missingFields.push('Endereço de Entrega');
+if (!paymentMethod) missingFields.push('Forma de Pagamento');
+
+if (missingFields.length > 0) {
+    const message = `Preencha os campos obrigatórios: ${missingFields.join(', ')}`;
+    ordersManager.showNotification(message, 'warning');
+    return;
+}
+```
+
+4. VALIDAÇÃO DE ITENS:
+```javascript
+if (ordersManager.newOrderItems.length === 0) {
+    ordersManager.showNotification('Adicione pelo menos um item ao pedido', 'warning');
+    return;
+}
+```
+
+5. CÁLCULO DE TOTAIS:
+```javascript
+const subtotal = ordersManager.newOrderItems.reduce(
+    (sum, item) => sum + (item.quantity * item.price), 0
+);
+const totalAmount = subtotal + deliveryFee;
+```
+
+6. CAPTURA DE TROCO (se pagamento em dinheiro):
+```javascript
+const cashReceived = paymentMethod === 'money' 
+    ? parseFloat(document.getElementById('deliveryChangeForAmount')?.value) || 0 
+    : null;
+```
+
+7. MONTAGEM DO OBJETO orderData:
+```javascript
+const orderData = {
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    delivery_address: deliveryAddress,
+    zip_code: zipCode,
+    delivery_fee: deliveryFee,
+    payment_method: paymentMethod,
+    notes: notes,
+    subtotal: subtotal,
+    total_amount: totalAmount,
+    cash_received: cashReceived,
+    items: [...ordersManager.newOrderItems]
+};
+```
+
+8. ENVIO PARA O SERVIDOR:
+```javascript
+await ordersManager.saveOrder(orderData);
+```
+
+9. FECHAMENTO DO MODAL:
+```javascript
+closeDeliveryOrderModal();
+```
+
+ESTRUTURA DO orderData ENVIADO:
+{
+    customer_name: string (obrigatório),
+    customer_phone: string (obrigatório),
+    delivery_address: string (obrigatório),
+    zip_code: string (opcional),
+    delivery_fee: number,
+    payment_method: string (obrigatório - 'money'|'card'|'pix'|'voucher'),
+    notes: string (opcional),
+    subtotal: number,
+    total_amount: number,
+    cash_received: number|null (apenas se money),
+    items: [
+        {
+            product_name: string,
+            quantity: number,
+            price: number,
+            notes: string (opcional)
+        }
+    ]
+}
+
+================================================================================
+5. FLUXO DE CRIAÇÃO DE PEDIDO
+================================================================================
+
+DIAGRAMA DE FLUXO:
+
+┌─────────────────────────────────────────────────────────────┐
+│ 1. ABERTURA DO MODAL                                        │
+│    - Usuário clica "Novo Pedido" → "Delivery"              │
+│    - openDeliveryOrderModal() é chamada                     │
+│    - Formulário é resetado                                  │
+│    - Lista de itens é limpa                                 │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. PREENCHIMENTO DE DADOS DO CLIENTE                        │
+│    - Usuário digita telefone (obrigatório)                  │
+│    - Usuário digita nome (obrigatório)                      │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. PREENCHIMENTO DE ENDEREÇO                                │
+│    OPÇÃO A - Com CEP:                                       │
+│      - Usuário digita CEP                                   │
+│      - onblur dispara pesquisacep()                         │
+│      - ViaCEP retorna dados                                 │
+│      - meu_callback() preenche campos automaticamente       │
+│      - Usuário completa número e complemento                │
+│                                                             │
+│    OPÇÃO B - Manual:                                        │
+│      - Usuário preenche todos os campos manualmente         │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. ADIÇÃO DE ITENS                                          │
+│    OPÇÃO A - Busca rápida:                                  │
+│      - Usuário digita no campo deliveryProductSearch        │
+│      - oninput dispara performProductSearch()               │
+│      - Resultados aparecem em tempo real                    │
+│      - Usuário clica no produto desejado                    │
+│                                                             │
+│    OPÇÃO B - Modal de seleção:                              │
+│      - Usuário clica "Adicionar Item"                       │
+│      - openProductSelectionModal('delivery') é chamada      │
+│      - Produtos organizados por categoria                   │
+│      - Usuário seleciona produto                            │
+│                                                             │
+│    → Item é adicionado à tabela deliveryItemsTableBody      │
+│    → Subtotal é atualizado automaticamente                  │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 5. CÁLCULO DE ENTREGA                                       │
+│    - Sistema monta endereço completo                        │
+│    - calculateDeliveryRoute() é disparado                   │
+│    - geocodeAddress() obtém coordenadas                     │
+│    - calculateRouteDistance() calcula rota via Mapbox       │
+│    - calculateDeliveryFee() calcula taxa                    │
+│    - Displays são atualizados:                              │
+│      * Distância: X,X km                                    │
+│      * Tempo: X min                                         │
+│      * Taxa: R$ X,XX                                        │
+│    - Usuário pode ajustar taxa manualmente                  │
+│    - Se marcar "Incluir retorno", recalcula                 │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 6. SELEÇÃO DE FORMA DE PAGAMENTO                            │
+│    - Usuário seleciona no select deliveryPaymentMethod      │
+│    - onChange dispara toggleDeliveryChangeFields()          │
+│                                                             │
+│    SE paymentMethod == 'money':                             │
+│      - deliveryChangeFields torna-se visível                │
+│      - Usuário informa valor que cliente pagará             │
+│      - oninput dispara calculateDeliveryChange()            │
+│      - Troco é calculado e exibido automaticamente          │
+│                                                             │
+│    SENÃO:                                                   │
+│      - deliveryChangeFields permanece oculto                │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 7. REVISÃO E OBSERVAÇÕES                                    │
+│    - Usuário revisa:                                        │
+│      * Subtotal calculado                                   │
+│      * Taxa de entrega                                      │
+│      * Total do pedido                                      │
+│    - Usuário adiciona observações (opcional)                │
+└────────────────────────┬────────────────────────────────────┘
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 8. SUBMISSÃO DO PEDIDO                                      │
+│    - Usuário clica "Criar Pedido"                           │
+│    - submitDeliveryOrder() é chamada                        │
+│                                                             │
+│    Validações:                                              │
+│    ✓ Nome do Cliente está preenchido?                       │
+│    ✓ Telefone está preenchido?                              │
+│    ✓ Endereço está preenchido?                              │
+│    ✓ Forma de pagamento está selecionada?                   │
+│    ✓ Há pelo menos 1 item no pedido?                        │
+│                                                             │
+│    SE todas validações OK:                                  │
+│      - orderData é montado                                  │
+│      - await ordersManager.saveOrder(orderData)             │
+│      - Pedido é salvo no Supabase                           │
+│      - Modal é fechado                                      │
+│      - Notificação de sucesso é exibida                     │
+│      - Lista de pedidos é atualizada                        │
+│                                                             │
+│    SE alguma validação FALHAR:                              │
+│      - Notificação de erro é exibida                        │
+│      - Modal permanece aberto                               │
+│      - Usuário corrige e tenta novamente                    │
+└─────────────────────────────────────────────────────────────┘
+
+================================================================================
+6. VALIDAÇÕES E REGRAS DE NEGÓCIO
+================================================================================
+
+6.1 VALIDAÇÕES DE CAMPOS
+-------------------------
+
+OBRIGATÓRIOS (bloqueiam submissão):
+✓ Nome do Cliente (deliveryCustomerName)
+  → Mensagem: "Preencha os campos obrigatórios: Nome do Cliente"
+
+✓ Telefone (deliveryCustomerPhone)
+  → Mensagem: "Preencha os campos obrigatórios: Telefone"
+
+✓ Endereço de Entrega (deliveryAddress)
+  → Mensagem: "Preencha os campos obrigatórios: Endereço de Entrega"
+
+✓ Forma de Pagamento (deliveryPaymentMethod)
+  → Mensagem: "Preencha os campos obrigatórios: Forma de Pagamento"
+
+✓ Pelo menos 1 item no pedido
+  → Mensagem: "Adicione pelo menos um item ao pedido"
+
+OPCIONAIS:
+- CEP (recomendado para autocomplete)
+- Complemento
+- Observações
+
+6.2 REGRAS DE CÁLCULO
+----------------------
+
+SUBTOTAL:
+- Fórmula: Σ(quantidade × preço) para todos os itens
+- Atualização: Automática ao adicionar/remover/editar itens
+
+TAXA DE ENTREGA:
+- Base: R$ 8,00 (configurável por restaurante)
+- Distância mínima: 3 km (configurável)
+- Taxa por km adicional: R$ 0,50 (configurável)
+- Taxa de retorno por km: R$ 0,12 (configurável)
+
+Exemplo de configuração do restaurante:
+{
+    minimum_distance_km: 3.0,
+    minimum_delivery_fee: 8.00,
+    delivery_fee_per_km: 0.50,
+    delivery_return_per_km: 0.12
+}
+
+TOTAL:
+- Fórmula: Subtotal + Taxa de Entrega
+- Atualização: Automática
+
+TROCO (apenas se pagamento em dinheiro):
+- Fórmula: Valor pago - Total
+- Validação: Valor pago deve ser ≥ Total
+- Exibição: Somente se troco > 0
+
+6.3 REGRAS DE INTERFACE
+------------------------
+
+CAMPOS READONLY:
+- Cidade (preenchido por CEP)
+- UF (preenchido por CEP)
+- Troco (calculado automaticamente)
+
+CAMPOS DESTACADOS:
+- Bairro (classe: highlighted-field)
+  Razão: Campo importante para cálculo de taxa
+
+CAMPOS CONDICIONAIS:
+- deliveryChangeFields
+  Visível apenas se: paymentMethod === 'money'
+
+CÁLCULOS AUTOMÁTICOS:
+- Taxa de entrega (ao preencher endereço)
+- Subtotal (ao modificar itens)
+- Total (ao modificar subtotal ou taxa)
+- Troco (ao informar valor pago)
+
+6.4 REGRAS DE INTEGRAÇÃO MAPBOX
+---------------------------------
+
+GEOCODING:
+- Limite: 1 resultado
+- País: Brasil (country=br)
+- Encoding: URL encoded
+
+DIRECTIONS:
+- Modo: driving-traffic (considera trânsito)
+- Geometria: geojson
+- Overview: simplified
+- Coordenadas: WGS84 (longitude, latitude)
+
+TRATAMENTO DE ERROS:
+- Endereço não encontrado:
+  → Exibe: "Erro ao calcular rota. Verifique o endereço."
+  → Taxa permanece no valor padrão
+
+- API indisponível:
+  → Permite ajuste manual da taxa
+  → Não bloqueia criação do pedido
+
+================================================================================
+7. INTEGRAÇÕES E APIS
+================================================================================
+
+7.1 VIACEP API
+---------------
+Endpoint: https://viacep.com.br/ws/{cep}/json/
+Método: GET (via JSONP)
+Callback: meu_callback
+
+REQUEST:
+- CEP: 8 dígitos sem formatação
+- Exemplo: 11065001
+
+RESPONSE (sucesso):
+{
+    "cep": "11065-001",
+    "logradouro": "Rua Exemplo",
+    "complemento": "",
+    "bairro": "Centro",
+    "localidade": "Santos",
+    "uf": "SP",
+    "ibge": "3548500",
+    "gia": "",
+    "ddd": "13",
+    "siafi": "7071"
+}
+
+RESPONSE (erro):
+{
+    "erro": true
+}
+
+CAMPOS UTILIZADOS:
+- logradouro → deliveryRua
+- bairro → deliveryBairro
+- localidade → deliveryCidade
+- uf → deliveryUf
+
+7.2 MAPBOX GEOCODING API
+-------------------------
+Endpoint: https://api.mapbox.com/geocoding/v5/mapbox.places/{query}.json
+Método: GET
+Autenticação: access_token (query param)
+
+REQUEST:
+- query: Endereço completo (URL encoded)
+- country: br
+- limit: 1
+- access_token: MAPBOX_ACCESS_TOKEN
+
+RESPONSE (sucesso):
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [-46.332474, -23.963036]
+            },
+            "place_name": "Rua Exemplo, Santos, São Paulo, Brasil",
+            ...
+        }
+    ]
+}
+
+DADOS EXTRAÍDOS:
+- coordinates[0] → longitude
+- coordinates[1] → latitude
+- place_name → formatted_address
+
+7.3 MAPBOX DIRECTIONS API
+--------------------------
+Endpoint: https://api.mapbox.com/directions/v5/mapbox/driving-traffic/{coordinates}
+Método: GET
+Autenticação: access_token (query param)
+
+REQUEST:
+- coordinates: "lng1,lat1;lng2,lat2" ou "lng1,lat1;lng2,lat2;lng1,lat1"
+- geometries: geojson
+- overview: simplified
+- access_token: MAPBOX_ACCESS_TOKEN
+
+COORDINATES FORMATS:
+Sem retorno:
+  "restaurante_lng,restaurante_lat;entrega_lng,entrega_lat"
+
+Com retorno (ida e volta):
+  "restaurante_lng,restaurante_lat;entrega_lng,entrega_lat;restaurante_lng,restaurante_lat"
+
+RESPONSE (sucesso):
+{
+    "routes": [
+        {
+            "distance": 1300.5,  // metros
+            "duration": 240,     // segundos
+            "geometry": { ... }
+        }
+    ]
+}
+
+CONVERSÕES:
+- distance (m → km): value / 1000
+- duration (s → min): value / 60
+
+DADOS RETORNADOS:
+{
+    distance: 1.3,      // km
+    duration: 4,        // min
+    geometry: {...}     // GeoJSON
+}
+
+7.4 SUPABASE (BACKEND)
+-----------------------
+Gerenciado por: ordersManager.saveOrder(orderData)
+
+Tabela: orders
+Campos criados:
+- customer_name
+- customer_phone
+- delivery_address
+- zip_code
+- delivery_fee
+- payment_method
+- notes
+- subtotal
+- total (ou total_amount)
+- cash_received
+- order_type: 'delivery'
+- status: 'novo'
+- restaurant_id: (do contexto do usuário)
+- created_at: timestamp atual
+
+Tabela: order_items
+Campos criados para cada item:
+- order_id: (FK para orders)
+- product_name
+- quantity
+- unit_price
+- total_price: quantity × unit_price
+- notes
+
+TRANSAÇÃO:
+1. INSERT em orders
+2. Se sucesso, INSERT em order_items
+3. Se erro em order_items, DELETE order em orders (rollback)
+
+================================================================================
+8. TROUBLESHOOTING
+================================================================================
+
+8.1 PROBLEMAS COMUNS
+---------------------
+
+PROBLEMA: CEP não preenche automaticamente
+CAUSA: CEP inválido ou API ViaCEP indisponível
+SOLUÇÃO:
+- Verificar formato do CEP (8 dígitos)
+- Preencher campos manualmente
+- Verificar console para erros de rede
+
+PROBLEMA: Taxa de entrega não é calculada
+CAUSA: Endereço inválido ou API Mapbox indisponível
+SOLUÇÃO:
+- Verificar se MAPBOX_ACCESS_TOKEN está configurado
+- Verificar endereço completo no campo oculto deliveryAddress
+- Ajustar taxa manualmente no campo deliveryFee
+- Verificar console para erros de API
+
+PROBLEMA: Troco não é calculado
+CAUSA: Valor pago menor que total ou campo vazio
+SOLUÇÃO:
+- Verificar se forma de pagamento é "Dinheiro"
+- Informar valor pago maior ou igual ao total
+- Verificar se campos de troco estão visíveis
+
+PROBLEMA: Não permite criar pedido sem CEP
+CAUSA: CEP não é obrigatório, mas endereço completo é
+SOLUÇÃO:
+- CEP é opcional
+- Preencher manualmente: Rua, Número, Bairro, Cidade, UF
+- Sistema monta endereço automaticamente
+
+PROBLEMA: Itens não aparecem na tabela
+CAUSA: Erro na busca de produtos ou problemas no ordersManager
+SOLUÇÃO:
+- Verificar se cardápio está cadastrado no Supabase
+- Verificar se ordersManager está inicializado
+- Usar busca rápida ou modal de seleção
+- Verificar console para erros JavaScript
+
+8.2 VERIFICAÇÕES DE DEBUG
+--------------------------
+
+CONSOLE LOGS IMPORTANTES:
+- "✅ Pedido criado com sucesso:" → Sucesso na criação
+- "❌ Erro ao criar pedido:" → Erro na submissão
+- "🔧 Executando consulta Supabase:" → Chamada ao backend
+- "📦 Cardápio carregado do cache" → Produtos disponíveis
+
+VALIDAR DADOS ANTES DA SUBMISSÃO:
+```javascript
+// No console do navegador:
+const form = document.getElementById('deliveryOrderForm');
+const customerName = document.getElementById('deliveryCustomerName').value;
+const customerPhone = document.getElementById('deliveryCustomerPhone').value;
+const address = document.getElementById('deliveryAddress').value;
+const paymentMethod = document.getElementById('deliveryPaymentMethod').value;
+const items = ordersManager.newOrderItems;
+
+console.log({
+    customerName,
+    customerPhone,
+    address,
+    paymentMethod,
+    items
+});
+```
+
+VERIFICAR CONFIGURAÇÃO MAPBOX:
+```javascript
+// No console do navegador:
+console.log('Mapbox Token:', window.MAPBOX_ACCESS_TOKEN ? 'Configurado' : 'NÃO configurado');
+console.log('Restaurante coords:', currentRestaurant?.latitude, currentRestaurant?.longitude);
+```
+
+VERIFICAR SUPABASE:
+```javascript
+// No console do navegador:
+console.log('Supabase Client:', supabase ? 'Inicializado' : 'NÃO inicializado');
+console.log('Restaurant ID:', currentRestaurant?.id);
+```
+
+8.3 ERROS E SOLUÇÕES
+---------------------
+
+ERRO: "Preencha os campos obrigatórios"
+- Verificar se todos os campos obrigatórios estão preenchidos
+- Campos: Nome, Telefone, Endereço, Forma de Pagamento
+
+ERRO: "Adicione pelo menos um item ao pedido"
+- Adicionar produtos via busca ou modal
+- Verificar se ordersManager.newOrderItems.length > 0
+
+ERRO: "Endereço não encontrado" (Geocoding)
+- Verificar formatação do endereço
+- Tentar preencher CEP válido
+- Preencher manualmente todos os campos
+
+ERRO: "Erro ao calcular rota" (Directions)
+- Verificar token Mapbox
+- Verificar coordenadas do restaurante
+- Taxa pode ser ajustada manualmente
+
+ERRO: "Restaurant ID não encontrado"
+- Verificar autenticação do usuário
+- Verificar se usuário tem restaurante associado
+- Relogar no sistema
+
+ERRO: Network/CORS (APIs externas)
+- Verificar conexão com internet
+- APIs podem estar temporariamente indisponíveis
+- Usar funcionalidades manuais como alternativa
+
+================================================================================
+RESUMO FINAL
+================================================================================
+
+O modal "Novo Pedido - Delivery" é um componente completo que:
+
+✅ COLETA dados do cliente (nome, telefone)
+✅ AUTOCOMPLETA endereço via CEP (ViaCEP)
+✅ PERMITE seleção de produtos com busca em tempo real
+✅ CALCULA automaticamente rota e taxa de entrega (Mapbox)
+✅ CALCULA subtotal, total e troco
+✅ VALIDA todos os campos obrigatórios
+✅ ENVIA pedido para o Supabase
+✅ TRATA erros de forma amigável
+
+PRINCIPAIS DEPENDÊNCIAS:
+- ordersManager (gerenciamento de pedidos e itens)
+- ViaCEP API (autocomplete de endereço)
+- Mapbox Geocoding API (coordenadas)
+- Mapbox Directions API (rota e distância)
+- Supabase (persistência de dados)
+
+ARQUIVOS RELACIONADOS:
+- public/gestao_pedidos.html (interface)
+- public/js/secure-config.js (configuração Supabase/Mapbox)
+- server.js (backend - endpoint create_delivery_order)
+
+================================================================================
+FIM DA DOCUMENTAÇÃO
+================================================================================
+
+Última atualização: 07/10/2025
+Versão do sistema: TimePulse AI 1.0.0
+Desenvolvido por: TimePulse Team

@@ -1,0 +1,27 @@
+ Erro de autenticação: Invalid API key injected.js:27:27
+    get https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/__replco/static/devtools/injected.js:27
+    handleLogin https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/login.html:302
+❌ Erro no processo de login: Credenciais inválidas. Verifique seu e-mail e senha. injected.js:27:27
+    get https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/__replco/static/devtools/injected.js:27
+    handleLogin https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/login.html:342
+🔍 =========================== FIM ERRO DEBUG =========================== injected.js:27:27
+    get https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/__replco/static/devtools/injected.js:27
+    handleLogin https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/login.html:367
+🚀 Iniciando processo de login... injected.js:27:27
+❌ Erro de autenticação: Invalid API key injected.js:27:27
+    get https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/__replco/static/devtools/injected.js:27
+    handleLogin https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/login.html:302
+❌ Erro no processo de login: Credenciais inválidas. Verifique seu e-mail e senha. injected.js:27:27
+    get https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/__replco/static/devtools/injected.js:27
+    handleLogin https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/login.html:342
+🔍 =========================== FIM ERRO DEBUG =========================== injected.js:27:27
+    get https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/__replco/static/devtools/injected.js:27
+    handleLogin https://e3e7e4ec-e553-4ffb-a3a1-ebb47e911ae9-00-i9dl6hxu40g.spock.replit.dev/login.html:367
+Erro no mapa de código: Error: request failed with status 404
+Stack in the worker:networkRequest@resource://devtools/client/shared/source-map-loader/utils/network-request.js:43:9
+
+URL do recurso: https://cdn.replit.com/_next/static/css/c8fc56b9c24f7fb3.css
+URL do mapa de código: c8fc56b9c24f7fb3.css.map
+
+​
+
