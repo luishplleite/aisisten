@@ -1,0 +1,2638 @@
+================================================================================
+          DOCUMENTAÇÃO COMPLETA - INTEGRAÇÃO OPENAI API
+                    TimePulse AI - Sistema de Gestão
+================================================================================
+
+📋 ÍNDICE
+1. Visão Geral
+2. Configuração da API
+3. Modelo e Parâmetros
+4. Endpoints do Sistema
+5. Assistente Virtual Ana
+6. Assistente Administrativo
+7. Sistema MCP (Model Context Protocol)
+8. Prompts Personalizados
+9. Rate Limiting e Segurança
+10. Troubleshooting
+
+================================================================================
+1. VISÃO GERAL
+================================================================================
+
+O TimePulse AI utiliza a API OpenAI para alimentar seus assistentes virtuais
+inteligentes que interagem com clientes e administradores.
+
+COMPONENTES PRINCIPAIS:
+- Ana - Assistente Virtual para clientes (atendimento, pedidos, cardápio)
+- Assistente Administrativo (gerenciamento, análises, suporte)
+- Sistema MCP - Integração com banco de dados para respostas contextuais
+
+MODELO UTILIZADO: GPT-5-mini
+PROVIDER: OpenAI API (https://api.openai.com/v1)
+
+CARACTERÍSTICAS:
+✓ Chat conversacional com memória de contexto
+✓ Raciocínio adaptável (reasoning_effort)
+✓ Integração com dados do restaurante
+✓ Criação automática de pedidos
+✓ Consulta de cardápio
+✓ Prompts personalizáveis por restaurante
+
+================================================================================
+2. CONFIGURAÇÃO DA API
+================================================================================
+
+2.1 VARIÁVEIS DE AMBIENTE
+---------------------------
+
+Variável Obrigatória:
+┌─────────────────────────────────────────────────────────────┐
+│ OPENAI_API_KEY                                              │
+│ Descrição: Chave de API da OpenAI                          │
+│ Formato: sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxx             │
+│ Segurança: NUNCA expor ao frontend                         │
+│ Local: Variável de ambiente do servidor                    │
+└─────────────────────────────────────────────────────────────┘
+
+Verificação da Chave:
+```javascript
+const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey) {
+    console.error('❌ OPENAI_API_KEY não configurada');
+    return res.status(500).json({ 
+        error: 'Configuração da OpenAI API não encontrada' 
+    });
+}
+```
+
+2.2 ARQUIVO DE CONFIGURAÇÃO
+-----------------------------
+
+Arquivo: api/config/openai
+
+Estrutura:
+```json
+{
+    "status": "secure_config",
+    "configured": false,
+    "environment": "production",
+    "note": "API keys are now managed via environment variables for security. Using OpenAI API for GPT-5-mini access",
+    "required_env_vars": ["OPENAI_API_KEY"],
+    "baseUrl": "https://api.openai.com/v1",
+    "features": {
+        "chat": true,
+        "completions": true,
+        "embeddings": true,
+        "images": false,
+        "audio": false,
+        "reasoning": true,
+        "tools": true,
+        "streaming": true
+    },
+    "models": {
+        "chat": "gpt-5-mini",
+        "completion": "gpt-5-mini",
+        "embedding": "text-embedding-ada-002"
+    },
+    "parameters": {
+        "reasoning_effort": "medium",
+        "max_completion_tokens": 4096,
+        "stream": false,
+        "response_format": {"type": "text"}
+    },
+    "reasoning_levels": {
+        "minimal": "Para instruções claras e diretas",
+        "low": "Para tarefas simples com raciocínio básico", 
+        "medium": "Equilíbrio entre qualidade e velocidade (padrão)",
+        "high": "Para análises complexas e raciocínio aprofundado"
+    },
+    "limits": {
+        "requests_per_minute": 60,
+        "tokens_per_minute": 40000
+    }
+}
+```
+
+2.3 ENDPOINT DE CONFIGURAÇÃO
+------------------------------
+
+Endpoint: GET /api/config/openai
+Autenticação: Não requerida (dados públicos sanitizados)
+Cache-Control: no-cache
+
+Response (server.js - linha 1494):
+```json
+{
+    "status": "ok",
+    "configured": true,
+    "environment": "production",
+    "baseUrl": "https://api.openai.com/v1",
+    "provider": "OpenAI API",
+    "model": "gpt-5-mini",
+    "features": {
+        "chat": true,
+        "completions": true,
+        "embeddings": true,
+        "images": false,
+        "audio": false,
+        "reasoning": true,
+        "tools": true,
+        "streaming": true
+    },
+    "models": {
+        "chat": "gpt-5-mini",
+        "completion": "gpt-5-mini",
+        "embedding": "text-embedding-ada-002"
+    },
+    "parameters": {
+        "reasoning_effort": "medium",
+        "max_completion_tokens": 4096,
+        "stream": false,
+        "response_format": {"type": "text"}
+    },
+    "reasoning_levels": {
+        "minimal": "Para instruções claras e diretas",
+        "low": "Para tarefas simples com raciocínio básico", 
+        "medium": "Equilíbrio entre qualidade e velocidade (padrão)",
+        "high": "Para análises complexas e raciocínio aprofundado"
+    },
+    "limits": {
+        "requests_per_minute": 60,
+        "tokens_per_minute": 40000
+    },
+    "timestamp": "2025-10-07T00:00:00.000Z"
+}
+```
+
+IMPORTANTE: A chave da API (OPENAI_API_KEY) NÃO é incluída na resposta
+por questões de segurança.
+
+================================================================================
+3. MODELO E PARÂMETROS
+================================================================================
+
+3.1 MODELO PRINCIPAL
+---------------------
+
+MODELO: gpt-5-mini
+PROVIDER: OpenAI
+ENDPOINT: https://api.openai.com/v1/chat/completions
+MÉTODO: POST
+
+CARACTERÍSTICAS DO GPT-5-MINI:
+- Raciocínio avançado (reasoning capabilities)
+- Suporte a tools/functions
+- Contexto de até 128k tokens
+- Respostas rápidas e eficientes
+- Custo-benefício otimizado
+
+3.2 PARÂMETROS PADRÃO
+----------------------
+
+```javascript
+{
+    model: 'gpt-5-mini',                    // SEMPRE gpt-5-mini
+    messages: [...],                         // Array de mensagens
+    max_completion_tokens: 4096,             // Máximo de tokens na resposta
+    temperature: 0.7,                        // Criatividade (0.0 a 2.0)
+    stream: false,                           // Sem streaming
+    reasoning_effort: 'medium'               // Nível de raciocínio
+}
+```
+
+PARÂMETROS DETALHADOS:
+
+┌──────────────────────────────────────────────────────────────────┐
+│ model (string) - OBRIGATÓRIO                                     │
+├──────────────────────────────────────────────────────────────────┤
+│ Valor fixo: "gpt-5-mini"                                         │
+│ Descrição: Modelo de linguagem a ser usado                      │
+│ Importante: NUNCA usar outro modelo                             │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ messages (array) - OBRIGATÓRIO                                   │
+├──────────────────────────────────────────────────────────────────┤
+│ Estrutura:                                                       │
+│ [                                                                │
+│   {                                                              │
+│     role: "system",                                              │
+│     content: "Você é Ana, assistente virtual..."                │
+│   },                                                             │
+│   {                                                              │
+│     role: "user",                                                │
+│     content: "Qual é o cardápio?"                                │
+│   },                                                             │
+│   {                                                              │
+│     role: "assistant",                                           │
+│     content: "Aqui está nosso cardápio..."                       │
+│   }                                                              │
+│ ]                                                                │
+│                                                                  │
+│ Roles disponíveis:                                               │
+│ - system: Instruções e contexto do assistente                   │
+│ - user: Mensagens do usuário                                    │
+│ - assistant: Respostas anteriores da IA                         │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ max_completion_tokens (integer) - OPCIONAL                       │
+├──────────────────────────────────────────────────────────────────┤
+│ Valor padrão: 4096                                               │
+│ Descrição: Número máximo de tokens na resposta                  │
+│ Range: 1 a 128000 (modelo suporta até 128k)                     │
+│ Uso típico: 4096 tokens ≈ 3000 palavras                         │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ temperature (float) - OPCIONAL                                   │
+├──────────────────────────────────────────────────────────────────┤
+│ Valor padrão: 0.7                                                │
+│ Range: 0.0 a 2.0                                                 │
+│ Descrição: Controla a criatividade/aleatoriedade                │
+│                                                                  │
+│ Valores recomendados:                                            │
+│ - 0.0 a 0.3: Respostas determinísticas e precisas               │
+│ - 0.4 a 0.7: Balanceado (padrão do sistema)                     │
+│ - 0.8 a 1.2: Criativo e variado                                 │
+│ - 1.3 a 2.0: Muito criativo (pode ser incoerente)               │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ stream (boolean) - OPCIONAL                                      │
+├──────────────────────────────────────────────────────────────────┤
+│ Valor padrão: false                                              │
+│ Descrição: Habilita streaming de respostas                      │
+│                                                                  │
+│ false: Aguarda resposta completa antes de retornar              │
+│ true: Envia resposta em chunks (atualmente desabilitado)        │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│ reasoning_effort (string) - ESPECÍFICO DO GPT-5-MINI             │
+├──────────────────────────────────────────────────────────────────┤
+│ Valor padrão: "medium"                                           │
+│ Valores possíveis:                                               │
+│                                                                  │
+│ "minimal" - Para instruções claras e diretas                     │
+│           - Respostas rápidas                                    │
+│           - Menor consumo de tokens                              │
+│                                                                  │
+│ "low"     - Para tarefas simples com raciocínio básico          │
+│           - Respostas diretas                                    │
+│           - Baixo consumo                                        │
+│                                                                  │
+│ "medium"  - Equilíbrio entre qualidade e velocidade (PADRÃO)    │
+│           - Uso geral                                            │
+│           - Melhor custo-benefício                               │
+│                                                                  │
+│ "high"    - Para análises complexas e raciocínio aprofundado    │
+│           - Respostas mais elaboradas                            │
+│           - Maior consumo de tokens                              │
+└──────────────────────────────────────────────────────────────────┘
+
+3.3 LIMITES DE USO
+-------------------
+
+Configurados no sistema:
+- requests_per_minute: 60
+- tokens_per_minute: 40000
+
+Rate Limiting (ver seção 9):
+- Clientes: 30 requests / 60 segundos
+- Administradores: Sem limite específico
+- Sistema MCP: Incluso nas requisições de chat
+
+================================================================================
+4. ENDPOINTS DO SISTEMA
+================================================================================
+
+4.1 ENDPOINT DE CHAT DO ASSISTENTE (CLIENTES)
+----------------------------------------------
+
+ENDPOINT: POST /api/assistant/chat
+Arquivo: server.js (linha 3839)
+Autenticação: authenticateEvolutionAPI
+Rate Limit: 30 requisições / 60 segundos
+
+REQUEST BODY:
+```json
+{
+    "messages": [
+        {
+            "role": "system",
+            "content": "Você é Ana, assistente virtual..."
+        },
+        {
+            "role": "user",
+            "content": "Qual é o cardápio de hoje?"
+        }
+    ],
+    "model": "gpt-5-mini",
+    "reasoning_effort": "medium",
+    "max_completion_tokens": 4096,
+    "temperature": 0.7,
+    "restaurant_id": "uuid-do-restaurante",
+    "session_id": "sessao-unica-do-cliente"
+}
+```
+
+RESPONSE (Sucesso):
+```json
+{
+    "response": "Olá! Aqui está nosso cardápio delicioso...",
+    "model_used": "gpt-5-mini",
+    "reasoning_effort": "medium",
+    "mcp_activated": false,
+    "mcp_data": null
+}
+```
+
+RESPONSE (Com MCP ativado):
+```json
+{
+    "response": "Com base nos dados do sistema, temos 15 produtos...",
+    "model_used": "gpt-5-mini",
+    "reasoning_effort": "medium",
+    "mcp_activated": true,
+    "mcp_data": {
+        "count": 15,
+        "data": [...]
+    }
+}
+```
+
+RESPONSE (Erro):
+```json
+{
+    "error": "Erro no processamento da IA",
+    "details": "..."
+}
+```
+
+FLUXO DE PROCESSAMENTO:
+
+1. Validação de autenticação e restaurant_id
+2. Verificação da OPENAI_API_KEY
+3. Detecção de palavras-chave MCP (opcional)
+4. Se MCP detectado:
+   - Executar consulta ao banco de dados
+   - Adicionar dados MCP ao contexto da mensagem
+5. Chamar OpenAI API:
+   ```javascript
+   const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+       method: 'POST',
+       headers: {
+           'Authorization': `Bearer ${apiKey}`,
+           'Content-Type': 'application/json'
+       },
+       body: JSON.stringify({
+           model: 'gpt-5-mini',
+           messages: messages,
+           max_completion_tokens: max_completion_tokens || 4096,
+           temperature: temperature || 0.7,
+           stream: false
+       })
+   });
+   ```
+6. Processar resposta da OpenAI
+7. Retornar ao cliente com metadados
+
+CÓDIGO COMPLETO (server.js - linha 3839-3949):
+```javascript
+app.post('/api/assistant/chat', authenticateEvolutionAPI, rateLimitEvolutionAPI(30, 60000), async (req, res) => {
+    try {
+        const { messages, model, reasoning_effort, max_completion_tokens, temperature, restaurant_id, session_id } = req.body;
+
+        // Verificar se o usuário tem acesso a este restaurante
+        if (restaurant_id && req.session.restaurantId !== restaurant_id) {
+            return res.status(403).json({
+                error: "Acesso não autorizado"
+            });
+        }
+        
+        if (!messages || !Array.isArray(messages)) {
+            return res.status(400).json({ error: 'Mensagens são obrigatórias' });
+        }
+
+        const apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ error: 'Configuração da OpenAI API não encontrada' });
+        }
+
+        // Integração MCP (ver seção 7)
+        let mcpData = null;
+        let mcpActivated = false;
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.role === 'user' && detectMCPKeywords(lastMessage.content)) {
+            // ... lógica MCP
+        }
+
+        // Chamar OpenAI API
+        const gptResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'gpt-5-mini',
+                messages: messages,
+                max_completion_tokens: max_completion_tokens || 4096,
+                temperature: temperature || 0.7,
+                stream: false
+            })
+        });
+
+        const data = await gptResponse.json();
+        const responseMessage = data.choices?.[0]?.message?.content || 'Desculpe, não consegui processar sua mensagem.';
+
+        res.json({
+            response: responseMessage,
+            model_used: 'gpt-5-mini',
+            reasoning_effort: reasoning_effort || 'medium',
+            mcp_activated: mcpActivated,
+            mcp_data: mcpActivated ? mcpData : null
+        });
+
+    } catch (error) {
+        console.error('❌ Erro no endpoint do assistente:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+```
+
+4.2 ENDPOINT DE CHAT ADMINISTRATIVO
+------------------------------------
+
+ENDPOINT: POST /api/admin/assistant/chat
+Arquivo: server.js (linha 2639)
+Autenticação: authenticateAdmin
+Rate Limit: Não especificado (administrativo)
+
+REQUEST BODY:
+```json
+{
+    "messages": [...],
+    "model": "gpt-5-mini",
+    "reasoning_effort": "medium",
+    "max_completion_tokens": 4096,
+    "temperature": 0.7,
+    "restaurant_id": "uuid-do-restaurante",
+    "session_id": "admin-12345"
+}
+```
+
+RESPONSE:
+```json
+{
+    "response": "Como administrador, você pode...",
+    "model_used": "gpt-5-mini",
+    "reasoning_effort": "medium",
+    "session_id": "admin-12345",
+    "admin_mode": true,
+    "usage": {
+        "prompt_tokens": 150,
+        "completion_tokens": 300,
+        "total_tokens": 450
+    },
+    "timestamp": "2025-10-07T00:00:00.000Z"
+}
+```
+
+DIFERENÇAS DO ENDPOINT DE CLIENTES:
+- Autenticação administrativa obrigatória
+- Retorna dados de usage (consumo de tokens)
+- Flag admin_mode: true
+- Sem integração MCP
+- Sem rate limiting agressivo
+
+CÓDIGO (server.js - linha 2639-2716):
+```javascript
+app.post('/api/admin/assistant/chat', authenticateAdmin, async (req, res) => {
+    try {
+        const { messages, model, reasoning_effort, max_completion_tokens, temperature, restaurant_id, session_id } = req.body;
+
+        const finalModel = 'gpt-5-mini'; // SEMPRE gpt-5-mini
+        const finalReasoningEffort = reasoning_effort || 'medium';
+        const finalMaxTokens = max_completion_tokens || 4096;
+        const finalSessionId = session_id || `admin-${Date.now()}`;
+
+        const apiKey = process.env.OPENAI_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({
+                error: 'OpenAI API não configurada'
+            });
+        }
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: finalModel,
+                messages: messages,
+                max_completion_tokens: finalMaxTokens,
+                stream: false
+            })
+        });
+
+        const data = await response.json();
+        const aiResponse = data.choices[0].message.content;
+
+        res.json({
+            response: aiResponse,
+            model_used: finalModel,
+            reasoning_effort: finalReasoningEffort,
+            session_id: finalSessionId,
+            admin_mode: true,
+            usage: data.usage || {},
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: error.message
+        });
+    }
+});
+```
+
+4.3 ENDPOINT DE STATUS/HEALTH
+------------------------------
+
+ENDPOINT: GET /api/health
+Arquivo: server.js (linha 1710)
+Autenticação: Não requerida
+
+Verifica conectividade com OpenAI:
+
+```javascript
+try {
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (openaiKey) {
+        const OpenAI = require('openai');
+        const openai = new OpenAI({ apiKey: openaiKey });
+        
+        // Listar modelos com timeout de 5 segundos
+        const modelsPromise = openai.models.list();
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('timeout')), 5000)
+        );
+        
+        await Promise.race([modelsPromise, timeoutPromise]);
+        services.openai = "connected";
+    } else {
+        services.openai = "not_configured";
+    }
+} catch (error) {
+    services.openai = error.message.includes('timeout') ? "timeout" : "error";
+}
+```
+
+RESPONSE:
+```json
+{
+    "status": "ok",
+    "services": {
+        "openai": "connected",
+        "supabase": "connected",
+        "evolution": "connected",
+        "mapbox": "connected"
+    }
+}
+```
+
+Status possíveis para OpenAI:
+- "connected": API funcionando normalmente
+- "not_configured": OPENAI_API_KEY não configurada
+- "timeout": Timeout na conexão
+- "error": Erro na conexão
+
+================================================================================
+5. ASSISTENTE VIRTUAL ANA (FRONTEND)
+================================================================================
+
+5.1 VISÃO GERAL
+----------------
+
+Arquivo: public/js/assistente.js (1421 linhas)
+Modelo: GPT-5-mini via OpenAI API
+Endpoint Backend: POST /api/assistant/chat
+
+DESCRIÇÃO:
+A classe AnaAssistant implementa um assistente virtual completo no frontend
+para atendimento de clientes de restaurantes. Integra chat conversacional,
+memória persistente, consulta a banco de dados (MCP), criação de pedidos e
+prompts personalizados.
+
+PRINCIPAIS FUNCIONALIDADES:
+✓ Chat conversacional com GPT-5-mini
+✓ Memória persistente de conversa (localStorage)
+✓ Integração MCP (Model Context Protocol) para consultas ao banco
+✓ Carregamento dinâmico de prompts personalizados
+✓ Criação automática de pedidos delivery
+✓ Consulta de cardápio em tempo real
+✓ Validação de dados do cliente
+✓ Prevenção XSS (Cross-Site Scripting)
+✓ Estados de conversa com máquina de estados
+
+5.2 CLASSE AnaAssistant
+------------------------
+
+Linha: 4-1374
+
+ESTRUTURA COMPLETA:
+```javascript
+class AnaAssistant {
+    constructor() {
+        // Dados principais
+        this.messages = [];                  // Histórico de mensagens
+        this.chatMemory = new Map();         // Memória de contexto (Map)
+        this.isTyping = false;               // Estado de digitação
+        this.restaurantData = null;          // Dados do restaurante (Supabase)
+        this.customerData = null;            // Dados do cliente (Supabase)
+        this.currentOrder = null;            // Pedido em andamento
+        this.sessionId = null;               // ID da sessão (persistente)
+        this.messageCount = 0;               // Contador de mensagens enviadas
+        this.ordersCreated = 0;              // Total de pedidos criados
+        this.customSystemPrompt = null;      // Prompt personalizado (cache)
+        this.systemPromptLoaded = false;     // Flag de carregamento do prompt
+        
+        // Configurações do assistente
+        this.config = {
+            assistantName: "Ana",
+            assistantRole: "Assistente Virtual",
+            tone: "calorosa, humanizada brasileira",
+            language: "pt-BR",
+            restaurantSchedule: "das 18:00 às 23:00"  // Padrão
+        };
+        
+        // Estados da conversa (state machine)
+        this.conversationState = {
+            stage: 'initial',                     // Estágio atual
+            waitingForAddressConfirmation: false, // Aguardando confirmação
+            waitingForPayment: false,             // Aguardando pagamento
+            currentProduct: null,                 // Produto sendo adicionado
+            selectedAdditionals: [],              // Adicionais selecionados
+            pendingOrder: null                    // Pedido pendente
+        };
+    }
+}
+```
+
+ESTÁGIOS POSSÍVEIS (conversationState.stage):
+- 'initial': Início da conversa
+- 'greeting': Saudação inicial
+- 'address_confirmation': Confirmando endereço
+- 'menu_inquiry': Consultando cardápio
+- 'product_selection': Selecionando produtos
+- 'additionals': Escolhendo adicionais
+- 'payment': Definindo forma de pagamento
+- 'finalization': Finalizando pedido
+
+5.3 INICIALIZAÇÃO
+------------------
+
+Método: async init()
+Linha: 38-78
+
+FLUXO DE INICIALIZAÇÃO:
+1. ✓ Verificar autenticação do usuário
+2. ✓ Carregar dados do restaurante (Supabase)
+3. ✓ Inicializar cliente Supabase
+4. ✓ Configurar event listeners (input, botões)
+5. ✓ Carregar prompt personalizado do servidor
+6. ✓ Carregar memória de chat (localStorage)
+7. ✓ Obter telefone do cliente e carregar dados
+8. ✓ Inicializar chat com mensagem de boas-vindas
+
+Código:
+```javascript
+async init() {
+    try {
+        console.log('🚀 Inicializando Ana - Assistente Virtual...');
+        
+        // 1. Verificar autenticação
+        if (!window.SECURE_INSTANCE_MANAGER?.isAuthenticated()) {
+            window.location.href = '../login.html';
+            return;
+        }
+
+        // 2. Carregar dados do restaurante
+        await this.loadRestaurantData();
+        
+        // 3. Inicializar Supabase
+        await this.initializeSupabase();
+        
+        // 4. Configurar interface
+        this.setupEventListeners();
+        
+        // 5. Carregar prompt personalizado
+        await this.loadCustomSystemPrompt();
+        
+        // 6. Verificar memória de chat existente
+        await this.loadChatMemory();
+        
+        // 7. Tentar obter telefone e carregar dados do cliente
+        const customerPhone = this.getCustomerPhoneFromContext();
+        if (customerPhone) {
+            await this.loadCustomerData(customerPhone);
+        }
+        
+        // 8. Inicializar chat
+        this.initializeChat();
+        
+        console.log('✅ Ana inicializada com sucesso');
+        
+    } catch (error) {
+        console.error('❌ Erro ao inicializar Ana:', error);
+        this.showError('Erro ao inicializar o assistente. Recarregue a página.');
+    }
+}
+```
+
+5.4 CARREGAMENTO DE DADOS DO RESTAURANTE
+-----------------------------------------
+
+Método: async loadRestaurantData()
+Linha: 84-115
+
+FUNÇÃO:
+Carrega dados completos do restaurante do Supabase e define o sessionId
+para persistência de memória.
+
+DADOS CARREGADOS:
+- ID do restaurante
+- Nome do restaurante
+- Telefone
+- Horários de funcionamento
+- Tipo de negócio
+
+SESSION ID:
+Formato: `{restaurant_id}_{user_email}` (caracteres especiais substituídos por _)
+Exemplo: `50b2dbcb-66bb-4969-92cf-493f03237e49_admin_timepulse_com`
+
+Código:
+```javascript
+async loadRestaurantData() {
+    try {
+        const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+        if (!instance?.restaurantId) {
+            throw new Error('Restaurant ID não encontrado');
+        }
+
+        const supabase = await window.secureConfig.getSupabaseClient();
+        const { data: restaurant, error } = await supabase
+            .from('restaurants')
+            .select('*')
+            .eq('id', instance.restaurantId)
+            .single();
+
+        if (error) throw error;
+        
+        this.restaurantData = restaurant;
+        
+        // Definir sessionId baseado no restaurante e usuário
+        this.sessionId = `${instance.restaurantId}_${instance.userEmail}`
+            .replace(/[^a-zA-Z0-9_]/g, '_');
+        
+        this.updateRestaurantUI();
+        
+        console.log('✅ Dados do restaurante carregados:', restaurant.name);
+        console.log('🔑 Session ID definido:', this.sessionId);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar dados do restaurante:', error);
+        throw error;
+    }
+}
+```
+
+5.5 SISTEMA DE MEMÓRIA DE CHAT
+-------------------------------
+
+A Ana utiliza um sistema de memória persistente baseado em Map + localStorage.
+
+ESTRUTURA DA MEMÓRIA:
+```javascript
+this.chatMemory = new Map([
+    ['nome', 'João Silva'],
+    ['phone', '+5513991234567'],
+    ['endereco', 'Rua das Flores, 123, Apto 45, Centro, Santos - SP'],
+    ['payment_method', 'PIX'],
+    ['delivery_fee', '8.00'],
+    ['data_confirmada', true],
+    ['session_id', '50b2dbcb_admin@timepulse.com'],
+    ['restaurant_id', '50b2dbcb-66bb-4969-92cf-493f03237e49'],
+    ['ultimo_pedido_id', 'abc-123-def-456'],
+    ['ultima_mensagem_user', 'Quero um X-Bacon'],
+    ['ultima_resposta_ana', 'Perfeito! Adicionei...']
+]);
+```
+
+MÉTODOS DE MEMÓRIA:
+
+1. Carregar memória (Linha 171-182):
+```javascript
+async loadChatMemory() {
+    try {
+        const savedMemory = localStorage.getItem(`ana_memory_${this.sessionId}`);
+        if (savedMemory) {
+            this.chatMemory = new Map(JSON.parse(savedMemory));
+            this.updateMemoryUI();
+        }
+    } catch (error) {
+        console.warn('Não foi possível carregar memória de chat:', error);
+    }
+}
+```
+
+2. Salvar memória (Linha 184-191):
+```javascript
+saveChatMemory() {
+    try {
+        localStorage.setItem(`ana_memory_${this.sessionId}`, 
+            JSON.stringify([...this.chatMemory]));
+    } catch (error) {
+        console.warn('Não foi possível salvar memória de chat:', error);
+    }
+}
+```
+
+3. Atualizar UI (Linha 193-222):
+Exibe a memória na interface de forma segura (com sanitização XSS).
+
+5.6 OBTENÇÃO E CARREGAMENTO DE DADOS DO CLIENTE
+------------------------------------------------
+
+OBTENÇÃO DO TELEFONE (Linha 224-259):
+
+Método: getCustomerPhoneFromContext()
+
+PRIORIDADE DE BUSCA:
+1. URL parameters (?phone=, ?telefone=, ?customer_phone=)
+2. Memória de chat (chatMemory.get('phone'))
+3. localStorage (`customer_phone_${restaurantId}`)
+4. null (solicita ao usuário)
+
+Código:
+```javascript
+getCustomerPhoneFromContext() {
+    try {
+        // 1. URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const phoneFromUrl = urlParams.get('phone') || 
+                            urlParams.get('telefone') || 
+                            urlParams.get('customer_phone');
+        
+        if (phoneFromUrl) {
+            console.log('📞 Telefone obtido da URL:', phoneFromUrl);
+            return this.normalizePhoneNumber(phoneFromUrl);
+        }
+        
+        // 2. Memória
+        const phoneFromMemory = this.chatMemory.get('phone');
+        if (phoneFromMemory) {
+            return this.normalizePhoneNumber(phoneFromMemory);
+        }
+        
+        // 3. localStorage
+        const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+        const storedPhone = localStorage.getItem(`customer_phone_${instance.restaurantId}`);
+        if (storedPhone) {
+            return this.normalizePhoneNumber(storedPhone);
+        }
+        
+        return null;
+        
+    } catch (error) {
+        console.warn('⚠️ Erro ao obter telefone do contexto:', error);
+        return null;
+    }
+}
+```
+
+NORMALIZAÇÃO DE TELEFONE (Linha 261-276):
+
+Método: normalizePhoneNumber(phone)
+
+REGRAS:
+- Remove caracteres não numéricos
+- Adiciona código do país (+55) se necessário
+- Formato final: +5513991234567
+
+CARREGAMENTO DE DADOS (Linha 278-311):
+
+Método: async loadCustomerData(phone)
+
+PROCESSO:
+1. Verifica se telefone foi fornecido
+2. Consulta via MCP (queryCustomerDataMCP)
+3. Tenta múltiplos formatos de telefone
+4. Salva dados em this.customerData
+5. Armazena telefone no localStorage
+
+5.7 SISTEMA DE PROMPTS PERSONALIZADOS
+--------------------------------------
+
+Método: async loadCustomSystemPrompt()
+Linha: 861-942
+
+PRIORIDADE DE CARREGAMENTO:
+1. Prompt baseado no tipo de negócio (lanchonete, pizzaria, etc.)
+2. Prompt personalizado específico do restaurante
+3. Prompt do localStorage
+4. Prompt padrão (hardcoded)
+
+ENDPOINT TIPO DE NEGÓCIO:
+GET /api/assistant/business-type-prompt?restaurant_id={id}
+
+ENDPOINT PERSONALIZADO:
+GET /api/assistant/system-prompt
+
+Código:
+```javascript
+async loadCustomSystemPrompt() {
+    if (this.systemPromptLoaded) {
+        return this.customSystemPrompt;
+    }
+    
+    try {
+        // PRIORIDADE 1: Tipo de negócio
+        if (this.restaurantData && this.restaurantData.id) {
+            const businessTypeResponse = await fetch(
+                `/api/assistant/business-type-prompt?restaurant_id=${this.restaurantData.id}`,
+                { method: 'GET', credentials: 'include' }
+            );
+            
+            if (businessTypeResponse.ok) {
+                const businessTypeData = await businessTypeResponse.json();
+                
+                if (businessTypeData.hasPrompt && businessTypeData.prompt) {
+                    this.customSystemPrompt = businessTypeData.prompt;
+                    this.systemPromptLoaded = true;
+                    console.log(`✅ Prompt tipo de negócio: ${businessTypeData.businessType}`);
+                    return this.customSystemPrompt;
+                }
+            }
+        }
+        
+        // PRIORIDADE 2: Prompt específico
+        const response = await fetch('/api/assistant/system-prompt', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.hasCustomPrompt && data.prompt) {
+                this.customSystemPrompt = data.prompt;
+                this.systemPromptLoaded = true;
+                console.log('✅ Prompt personalizado carregado!');
+                return this.customSystemPrompt;
+            }
+        }
+        
+    } catch (error) {
+        console.warn('⚠️ Erro ao carregar prompt:', error);
+    }
+    
+    // PRIORIDADE 3: localStorage
+    try {
+        const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+        const localPrompt = localStorage.getItem(`custom_prompt_${instance.restaurantId}`);
+        
+        if (localPrompt) {
+            this.customSystemPrompt = localPrompt;
+            console.log('✅ Prompt do localStorage!');
+        }
+    } catch (localError) {
+        console.warn('⚠️ Erro ao acessar localStorage:', localError);
+    }
+    
+    this.systemPromptLoaded = true;
+    return this.customSystemPrompt;
+}
+```
+
+5.8 PROCESSAMENTO DE MENSAGENS
+-------------------------------
+
+Método: async processMessage(userMessage)
+Linha: 616-674
+
+FLUXO COMPLETO:
+1. ✓ Verificar se cliente precisa confirmar dados
+2. ✓ Verificar se está atualizando dados
+3. ✓ Extrair informações da mensagem (telefone, nome, endereço)
+4. ✓ Verificar e ativar MCP se necessário
+5. ✓ Construir contexto para GPT-5-mini
+6. ✓ Chamar GPT-5-mini via backend
+7. ✓ Processar resposta (criar pedido, consultar cardápio)
+8. ✓ Atualizar memória de chat
+
+Código:
+```javascript
+async processMessage(userMessage) {
+    try {
+        // 1. Confirmar dados do cliente (se necessário)
+        if (this.customerData && this.chatMemory.get('data_confirmada') === false) {
+            const confirmation = this.checkDataConfirmation(userMessage);
+            if (confirmation !== null) {
+                if (confirmation) {
+                    this.chatMemory.set('data_confirmada', true);
+                    this.saveChatMemory();
+                    return 'Perfeito! 🎉 Dados confirmados! Agora me conta...';
+                } else {
+                    // Iniciar atualização
+                    this.chatMemory.set('updating_customer_data', true);
+                    this.customerData = null;
+                    return 'Sem problemas! 😊 Vamos atualizar seus dados...';
+                }
+            }
+        }
+
+        // 2. Atualizar dados (se em processo)
+        if (this.chatMemory.get('updating_customer_data') === true) {
+            const updateResult = await this.processCustomerDataUpdate(userMessage);
+            if (updateResult) {
+                return updateResult;
+            }
+        }
+        
+        // 3. Extrair informações
+        this.extractInfoFromMessage(userMessage);
+        
+        // 4. Verificar MCP
+        const mcpResponse = await this.checkAndActivateMCP(userMessage);
+        if (mcpResponse) {
+            this.updateChatMemory(userMessage, mcpResponse);
+            return mcpResponse;
+        }
+        
+        // 5. Construir contexto
+        const context = this.buildContext(userMessage);
+        
+        // 6. Chamar GPT-5-mini
+        const response = await this.callGPT5Mini(context);
+        
+        // 7. Processar resposta
+        const processedResponse = await this.processGPTResponse(response, userMessage);
+        
+        // 8. Atualizar memória
+        this.updateChatMemory(userMessage, processedResponse);
+        
+        return processedResponse;
+        
+    } catch (error) {
+        console.error('❌ Erro ao processar mensagem:', error);
+        return 'Desculpe, tive um problema técnico. Pode tentar novamente?';
+    }
+}
+```
+
+5.9 INTEGRAÇÃO MCP (MODEL CONTEXT PROTOCOL)
+--------------------------------------------
+
+Método: async checkAndActivateMCP(userMessage)
+Linha: 750-828
+
+FUNÇÃO:
+Detecta palavras-chave na mensagem do usuário e ativa consultas ao banco de
+dados via MCP para fornecer respostas baseadas em dados reais.
+
+PALAVRAS-CHAVE MCP:
+```javascript
+const mcpKeywords = [
+    'mcp', 'database', 'banco de dados', 'consulta', 'query', 
+    'tabela', 'dados', 'sql', 'supabase', 'buscar dados', 
+    'verificar banco', 'consultar base', 'dados do sistema',
+    'restaurante', 'restaurant', 'pedido', 'order', 'cliente', 'customer',
+    'produto', 'product', 'entregador', 'deliverer', 'delivery',
+    'cupom', 'coupon', 'desconto', 'notificacao', 'notification',
+    'log', 'atividade', 'activity', 'chat', 'conversa', 'message',
+    'prompt', 'prompit', 'administrador', 'admin', 'usuario', 'user',
+    'tipo negocio', 'business type', 'relatorio', 'report', 'estatistica',
+    // Palavras para criação de pedidos
+    'criar pedido', 'novo pedido', 'fazer pedido', 'create order', 'new order',
+    'pedido delivery', 'pedido balcao', 'balcão', 'counter order', 'delivery order',
+    'finalizar pedido', 'processar pedido', 'salvar pedido', 'complete order'
+];
+```
+
+PROCESSO:
+1. Normalizar mensagem (lowercase)
+2. Verificar se contém palavra-chave
+3. Se SIM:
+   a. Obter token CSRF (GET /api/csrf-token)
+   b. Chamar endpoint MCP (POST /api/mcp/activate)
+   c. Retornar resposta com dados do banco
+4. Se NÃO: retornar null (continuar processamento normal)
+
+ENDPOINT MCP:
+POST /api/mcp/activate
+
+PAYLOAD:
+```json
+{
+    "message": "consultar pedidos",
+    "restaurantId": "50b2dbcb-66bb-4969-92cf-493f03237e49"
+}
+```
+
+RESPONSE (MCP Ativado):
+```json
+{
+    "mcpActivated": true,
+    "response": "Encontrei 15 pedidos no sistema. Os mais recentes são...",
+    "data": {
+        "count": 15,
+        "items": [...]
+    }
+}
+```
+
+Código:
+```javascript
+async checkAndActivateMCP(userMessage) {
+    try {
+        const mcpKeywords = ['mcp', 'database', 'pedido', 'cliente', ...];
+        
+        const messageNormalized = userMessage.toLowerCase().trim();
+        const shouldActivateMCP = mcpKeywords.some(keyword => 
+            messageNormalized.includes(keyword)
+        );
+        
+        if (!shouldActivateMCP) {
+            return null; // Não ativar MCP
+        }
+        
+        console.log('🔧 Palavra-chave MCP detectada:', userMessage);
+        
+        // 1. Obter token CSRF
+        const csrfResponse = await fetch('/api/csrf-token', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (!csrfResponse.ok) {
+            console.warn('⚠️ Não foi possível obter token CSRF');
+            return null;
+        }
+        
+        const csrfData = await csrfResponse.json();
+        
+        // 2. Chamar MCP
+        const response = await fetch('/api/mcp/activate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfData.csrfToken
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                message: userMessage,
+                restaurantId: this.restaurantData?.id
+            })
+        });
+        
+        if (!response.ok) {
+            console.warn('⚠️ Erro na chamada MCP');
+            return null;
+        }
+        
+        const mcpData = await response.json();
+        
+        if (mcpData.mcpActivated && mcpData.response) {
+            console.log('✅ MCP ativado com sucesso!');
+            
+            // Adicionar indicador visual
+            const mcpIndicator = '🔧 <strong>MCP Database Ativado</strong><br><br>';
+            
+            return mcpIndicator + mcpData.response;
+        }
+        
+        return null;
+        
+    } catch (error) {
+        console.warn('⚠️ Erro ao verificar MCP:', error);
+        return null; // Continuar sem MCP
+    }
+}
+```
+
+5.10 CONSTRUÇÃO DE CONTEXTO E CHAMADA AO GPT-5-MINI
+----------------------------------------------------
+
+CONSTRUÇÃO DE CONTEXTO (Linha 944-1087):
+
+Método: buildContext(userMessage)
+
+FUNÇÃO:
+Monta o contexto completo para enviar ao GPT-5-mini, incluindo:
+- System prompt (personalizado ou padrão)
+- Dados do restaurante
+- Memória da conversa
+- Histórico de mensagens (últimas 10)
+- Mensagem atual do usuário
+
+ESTRUTURA DO CONTEXTO:
+```javascript
+{
+    messages: [
+        {
+            role: "system",
+            content: `[PROMPT PERSONALIZADO]
+            
+DADOS DO RESTAURANTE (DINÂMICOS):
+- Nome: Frutidelis
+- ID: 50b2dbcb-66bb-4969-92cf-493f03237e49
+- Horário: das 18:00 às 23:00
+
+MEMÓRIA ATUAL DA CONVERSA:
+nome: João Silva
+phone: +5513991234567
+endereco: Rua das Flores, 123, Apto 45, Centro, Santos - SP
+payment_method: PIX
+delivery_fee: 8.00
+
+Estado da conversa: initial`
+        },
+        // Últimas 10 mensagens do histórico
+        {
+            role: "user",
+            content: "Oi"
+        },
+        {
+            role: "assistant",
+            content: "Olá! Como posso ajudar?"
+        },
+        // Mensagem atual
+        {
+            role: "user",
+            content: "Quero fazer um pedido"
+        }
+    ]
+}
+```
+
+CHAMADA AO GPT-5-MINI (Linha 1089-1119):
+
+Método: async callGPT5Mini(context)
+
+ENDPOINT BACKEND: POST /api/assistant/chat
+
+PAYLOAD:
+```json
+{
+    "messages": [...],
+    "model": "gpt-5-mini",
+    "reasoning_effort": "medium",
+    "max_completion_tokens": 4096,
+    "temperature": 0.7,
+    "restaurant_id": "50b2dbcb-66bb-4969-92cf-493f03237e49",
+    "session_id": "50b2dbcb_admin_timepulse_com"
+}
+```
+
+Código:
+```javascript
+async callGPT5Mini(context) {
+    try {
+        const response = await fetch('/api/assistant/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                messages: context.messages,
+                model: 'gpt-5-mini',                    // SEMPRE gpt-5-mini
+                reasoning_effort: 'medium',             // Padrão: medium
+                max_completion_tokens: 4096,            // Máximo de tokens
+                temperature: 0.7,                       // Criatividade
+                restaurant_id: this.restaurantData.id,
+                session_id: this.sessionId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erro na API: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.response || data.message || 'Desculpe, não consegui processar.';
+        
+    } catch (error) {
+        console.error('❌ Erro ao chamar GPT-5-mini:', error);
+        throw error;
+    }
+}
+```
+
+5.11 CRIAÇÃO DE PEDIDOS
+-----------------------
+
+Método: async createOrder()
+Linha: 1214-1351
+
+FUNÇÃO:
+Cria um pedido completo no banco de dados (Supabase) com todos os dados
+coletados durante a conversa.
+
+VALIDAÇÕES OBRIGATÓRIAS:
+✓ Nome do Cliente
+✓ Telefone
+✓ Endereço de Entrega (completo)
+✓ Forma de Pagamento
+✓ Pelo menos 1 item no pedido
+
+ESTRUTURA DO PEDIDO:
+```javascript
+const orderData = {
+    restaurant_id: this.restaurantData.id,
+    customer_name: customerName,
+    customer_phone: customerPhone,
+    delivery_address: customerAddress,
+    zip_code: zipCode,
+    delivery_fee: deliveryFee,              // Padrão: R$ 8,00
+    payment_method: paymentMethod,          // money/card/pix/voucher
+    cash_received: cashReceived,            // Se payment_method = money
+    subtotal: subtotal,                     // Soma dos itens
+    total_amount: totalAmount,              // subtotal + delivery_fee
+    order_type: 'delivery',
+    status: 'novo',                         // SEMPRE "novo"
+    notes: `Pedido criado via Ana - Assistente Virtual\nSession ID: ${this.sessionId}`,
+    created_at: new Date().toISOString()
+};
+```
+
+FLUXO:
+1. Extrair dados da memória (chatMemory)
+2. Validar campos obrigatórios
+3. Calcular subtotal dos itens
+4. Calcular total (subtotal + taxa de entrega)
+5. Inserir pedido na tabela 'orders'
+6. Inserir itens na tabela 'order_items'
+7. Atualizar memória com ID do pedido
+8. Limpar pedido atual
+
+Código:
+```javascript
+async createOrder() {
+    try {
+        // 1. Extrair dados da memória
+        const customerName = this.chatMemory.get('nome') || 'Cliente';
+        const customerPhone = this.chatMemory.get('phone') || '';
+        const customerAddress = this.chatMemory.get('endereco') || '';
+        const paymentMethod = this.chatMemory.get('payment_method') || 'PIX';
+        const deliveryFee = parseFloat(this.chatMemory.get('delivery_fee') || '8.00');
+        const cashReceived = this.chatMemory.get('cash_received') ? 
+            parseFloat(this.chatMemory.get('cash_received')) : null;
+        
+        // 2. Validações
+        const missingFields = [];
+        
+        if (!customerName || customerName === 'Cliente') {
+            missingFields.push('Nome do Cliente');
+        }
+        
+        if (!customerPhone) {
+            missingFields.push('Telefone');
+        }
+        
+        if (!customerAddress) {
+            missingFields.push('Endereço de Entrega');
+        }
+        
+        if (!paymentMethod) {
+            missingFields.push('Forma de Pagamento');
+        }
+        
+        if (!this.currentOrder?.items || this.currentOrder.items.length === 0) {
+            missingFields.push('Pelo menos 1 item no pedido');
+        }
+        
+        if (missingFields.length > 0) {
+            throw new Error(`Campos faltando: ${missingFields.join(', ')}`);
+        }
+
+        // 3. Calcular valores
+        const subtotal = this.currentOrder.items.reduce((sum, item) => {
+            return sum + ((item.price || 0) * (item.quantity || 1));
+        }, 0);
+        
+        const totalAmount = subtotal + deliveryFee;
+
+        // 4. Criar pedido
+        const orderData = {
+            restaurant_id: this.restaurantData.id,
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            delivery_address: customerAddress,
+            delivery_fee: deliveryFee,
+            payment_method: paymentMethod,
+            cash_received: cashReceived,
+            subtotal: subtotal,
+            total_amount: totalAmount,
+            order_type: 'delivery',
+            status: 'novo',                          // STATUS OBRIGATÓRIO
+            notes: `Pedido criado via Ana\nSession: ${this.sessionId}`,
+            created_at: new Date().toISOString()
+        };
+
+        const { data: order, error: orderError } = await this.supabase
+            .from('orders')
+            .insert([orderData])
+            .select()
+            .single();
+
+        if (orderError) throw orderError;
+
+        // 5. Criar itens do pedido
+        if (this.currentOrder.items && this.currentOrder.items.length > 0) {
+            const orderItems = this.currentOrder.items.map(item => ({
+                order_id: order.id,
+                product_name: item.name,
+                quantity: item.quantity || 1,
+                unit_price: item.price || 0,
+                total_price: (item.price || 0) * (item.quantity || 1),
+                notes: item.notes || '',
+                additionals: item.additionals || []
+            }));
+
+            const { error: itemsError } = await this.supabase
+                .from('order_items')
+                .insert(orderItems);
+
+            if (itemsError) {
+                // Rollback: remover pedido
+                await this.supabase.from('orders').delete().eq('id', order.id);
+                throw itemsError;
+            }
+        }
+
+        console.log('✅ Pedido criado:', {
+            id: order.id,
+            status: 'novo',
+            total: totalAmount
+        });
+        
+        // 6. Atualizar memória
+        this.chatMemory.set('ultimo_pedido_id', order.id);
+        this.chatMemory.set('ultimo_pedido_status', 'novo');
+        this.chatMemory.set('ultimo_pedido_total', totalAmount);
+        this.saveChatMemory();
+        
+        // 7. Limpar pedido atual
+        this.currentOrder = null;
+        
+        return order;
+        
+    } catch (error) {
+        console.error('❌ Erro ao criar pedido:', error);
+        throw error;
+    }
+}
+```
+
+5.12 CONSULTA DE CARDÁPIO
+--------------------------
+
+Método: async getRestaurantMenu()
+Linha: 1151-1177
+
+FUNÇÃO:
+Busca produtos ativos do restaurante no Supabase com suas categorias.
+
+QUERY:
+```javascript
+const { data: products, error } = await this.supabase
+    .from('products')
+    .select(`
+        id,
+        name,
+        description,
+        price,
+        category_id,
+        product_categories (
+            name
+        )
+    `)
+    .eq('restaurant_id', this.restaurantData.id)
+    .eq('active', true)
+    .order('category_id')
+    .order('name');
+```
+
+FORMATAÇÃO (Linha 1179-1212):
+
+Método: formatMenuResponse(products)
+
+RESULTADO:
+```
+Aqui está nosso cardápio delicioso! 😋
+
+🍽️ **Lanches**
+
+• **X-Bacon** - R$ 18,00
+  Hambúrguer, bacon, queijo e salada
+
+• **X-Salada** - R$ 15,00
+  Hambúrguer, queijo, alface e tomate
+
+🍽️ **Bebidas**
+
+• **Coca-Cola 350ml** - R$ 5,00
+  Refrigerante gelado
+
+Qual desses te deixou com água na boca? 😊
+```
+
+5.13 PREVENÇÃO XSS E SEGURANÇA
+-------------------------------
+
+A Ana implementa múltiplas camadas de proteção contra XSS:
+
+1. SANITIZAÇÃO BÁSICA (Linha 453-461):
+```javascript
+sanitizeForDisplay(text) {
+    if (!text) return text;
+    
+    const div = document.createElement('div');
+    div.textContent = text;  // textContent escapa automaticamente
+    return div.innerHTML;
+}
+```
+
+2. ESCAPE HTML COMPLETO (Linha 464-479):
+```javascript
+escapeHTML(text) {
+    if (!text) return '';
+    
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+    };
+    
+    return String(text).replace(/[&<>"'\/]/g, function (s) {
+        return map[s];
+    });
+}
+```
+
+3. FORMATAÇÃO DE MENSAGENS (Linha 544-586):
+- Escapa TODO o conteúdo antes de exibir
+- Processa formatação especial (pedidos, pagamentos)
+- Nunca insere HTML não sanitizado
+
+5.14 EVENT LISTENERS E UI
+--------------------------
+
+CONFIGURAÇÃO DE EVENTOS (Linha 141-169):
+
+Método: setupEventListeners()
+
+EVENTOS CONFIGURADOS:
+1. Auto-resize do textarea (input)
+2. Enviar mensagem com Enter (keypress)
+3. Botão de enviar (click)
+4. Habilitar inputs após inicialização
+
+FUNÇÕES GLOBAIS (Linha 1377-1402):
+
+1. clearChat(): Limpa conversa completa
+2. selectPaymentMethod(method): Seleciona forma de pagamento
+
+INICIALIZAÇÃO AUTOMÁTICA (Linha 1405-1421):
+```javascript
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        window.ana = new AnaAssistant();
+        await window.ana.init();
+    } catch (error) {
+        console.error('❌ Erro ao inicializar Ana:', error);
+        // Exibir mensagem de erro
+    }
+});
+
+// Exportar para uso global
+window.AnaAssistant = AnaAssistant;
+```
+
+5.15 RESUMO DO FLUXO COMPLETO
+------------------------------
+
+FLUXO DE UMA MENSAGEM COMPLETA:
+
+1. Usuário digita mensagem → sendMessage()
+2. Adicionar mensagem à UI
+3. Mostrar indicador "digitando..."
+4. processMessage():
+   a. Verificar confirmação de dados do cliente
+   b. Verificar atualização de dados
+   c. Extrair informações (telefone, nome, endereço)
+   d. Verificar ativação MCP
+      - Se ativado: retornar resposta do banco
+   e. Construir contexto (prompt + memória + histórico)
+   f. Chamar GPT-5-mini via /api/assistant/chat
+   g. Processar resposta:
+      - Criar pedido se necessário
+      - Consultar cardápio se solicitado
+   h. Atualizar memória
+5. Ocultar indicador "digitando..."
+6. Exibir resposta da Ana
+7. Salvar memória em localStorage
+
+ENDPOINTS UTILIZADOS:
+- POST /api/assistant/chat (GPT-5-mini)
+- POST /api/mcp/activate (Consultas ao banco)
+- GET /api/assistant/system-prompt (Prompt personalizado)
+- GET /api/assistant/business-type-prompt (Prompt por tipo de negócio)
+- GET /api/csrf-token (Token CSRF para MCP)
+
+TABELAS SUPABASE:
+- restaurants (dados do restaurante)
+- customers (dados do cliente)
+- products (cardápio)
+- product_categories (categorias)
+- orders (pedidos)
+- order_items (itens do pedido)
+
+================================================================================
+
+5.OLD BACKUP - INICIALIZAÇÃO (IGNORAR)
+------------------
+
+Método: async init()
+Linha: 38
+
+Fluxo:
+1. Verificar autenticação
+2. Carregar dados do restaurante
+3. Inicializar Supabase
+4. Configurar event listeners
+5. Carregar prompt personalizado
+6. Carregar memória de chat
+7. Carregar dados do cliente (se disponível)
+8. Inicializar chat
+
+Código:
+```javascript
+async init() {
+    try {
+        console.log('🚀 Inicializando Ana - Assistente Virtual...');
+        
+        // Verificar autenticação
+        if (!window.SECURE_INSTANCE_MANAGER?.isAuthenticated()) {
+            window.location.href = '../login.html';
+            return;
+        }
+
+        // Carregar dados do restaurante
+        await this.loadRestaurantData();
+        
+        // Carregar configuração do Supabase
+        await this.initializeSupabase();
+        
+        // Configurar interface
+        this.setupEventListeners();
+        
+        // Carregar prompt personalizado (se existir)
+        await this.loadCustomSystemPrompt();
+        
+        // Verificar memória de chat existente
+        await this.loadChatMemory();
+        
+        // Tentar obter telefone do cliente e carregar dados
+        const customerPhone = this.getCustomerPhoneFromContext();
+        if (customerPhone) {
+            await this.loadCustomerData(customerPhone);
+        }
+        
+        // Inicializar chat
+        this.initializeChat();
+        
+        console.log('✅ Ana inicializada com sucesso');
+        
+    } catch (error) {
+        console.error('❌ Erro ao inicializar Ana:', error);
+        this.showError('Erro ao inicializar o assistente. Recarregue a página.');
+    }
+}
+```
+
+5.3 ENVIO DE MENSAGENS
+-----------------------
+
+Método: async sendMessage()
+Linha: 481
+
+Fluxo:
+1. Validar mensagem e estado
+2. Adicionar mensagem do usuário à interface
+3. Mostrar indicador de "digitando"
+4. Processar mensagem:
+   - Verificar ativação MCP
+   - Construir contexto
+   - Chamar GPT-5-mini
+   - Processar resposta
+5. Atualizar memória
+6. Exibir resposta
+
+Código:
+```javascript
+async sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message || this.isTyping) return;
+
+    // Adicionar mensagem do usuário
+    this.addMessage('user', message);
+    messageInput.value = '';
+    messageInput.style.height = 'auto';
+    
+    // Indicador de digitação
+    this.isTyping = true;
+    this.showTypingIndicator();
+    
+    try {
+        // Processar mensagem
+        const response = await this.processMessage(message);
+        
+        // Adicionar resposta
+        this.addMessage('assistant', response);
+        this.messageCount++;
+        
+    } catch (error) {
+        console.error('❌ Erro ao processar mensagem:', error);
+        this.addMessage('assistant', 'Desculpe, tive um problema. Por favor, tente novamente.');
+    } finally {
+        this.isTyping = false;
+        this.hideTypingIndicator();
+        messageInput.focus();
+    }
+}
+```
+
+5.4 CHAMADA À API OPENAI
+-------------------------
+
+Método: async callGPT5Mini(context)
+Linha: 1020
+
+REQUEST:
+```javascript
+const response = await fetch('/api/assistant/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({
+        messages: context.messages,
+        model: 'gpt-5-mini',
+        reasoning_effort: 'medium',
+        max_completion_tokens: 4096,
+        temperature: 0.7,
+        restaurant_id: this.restaurantData.id,
+        session_id: this.sessionId
+    })
+});
+```
+
+RESPONSE HANDLING:
+```javascript
+if (!response.ok) {
+    throw new Error(`Erro na API: ${response.status}`);
+}
+
+const data = await response.json();
+return data.response || data.message || 'Desculpe, não consegui processar sua mensagem.';
+```
+
+5.5 CONSTRUÇÃO DE CONTEXTO
+---------------------------
+
+Método: buildContext(userMessage)
+Linha: 940
+
+O contexto inclui:
+1. Prompt do sistema (personalizado ou padrão)
+2. Últimas 10 mensagens da conversa
+3. Dados do restaurante
+4. Dados do cliente (se disponível)
+5. Memória de chat
+6. Estado da conversa
+
+Exemplo de System Prompt:
+```
+Você é Ana, assistente virtual calorosa e humanizada para o restaurante [Nome].
+
+Seu papel:
+- Atender clientes com gentileza
+- Tirar dúvidas sobre o cardápio
+- Ajudar a fazer pedidos
+- Confirmar endereços de entrega
+
+Dados do restaurante:
+- Nome: [Nome]
+- Telefone: [Telefone]
+- Horário: [Horário]
+- Endereço: [Endereço]
+
+Cliente atual:
+- Nome: [Nome]
+- Telefone: [Telefone]
+- Endereço: [Endereço]
+
+Memória da conversa:
+[Dados da memória]
+
+Estado da conversa: [stage]
+```
+
+5.6 PROCESSAMENTO DE RESPOSTAS
+-------------------------------
+
+Método: async processGPTResponse(response, userMessage)
+Linha: 1052
+
+AÇÕES ESPECIAIS DETECTADAS:
+
+1. FINALIZAR PEDIDO:
+   - Detecta: 'action":"finalizar' ou 'finalizar pedido'
+   - Ação: Chama createOrder()
+   - Incrementa contador de pedidos
+
+2. CONSULTAR CARDÁPIO:
+   - Detecta: 'consulta_sistema' ou palavras 'cardápio'/'menu'
+   - Ação: Chama getRestaurantMenu()
+   - Formata resposta com produtos
+
+Código:
+```javascript
+async processGPTResponse(response, userMessage) {
+    // Verificar se precisa criar pedido
+    if (response.includes('action":"finalizar') || response.includes('finalizar pedido')) {
+        try {
+            await this.createOrder();
+            this.ordersCreated++;
+            document.getElementById('ordersCount').textContent = this.ordersCreated;
+        } catch (error) {
+            console.error('❌ Erro ao criar pedido:', error);
+            return response + '\n\nOps! Tive um problema ao processar seu pedido. Nosso suporte entrará em contato.';
+        }
+    }
+    
+    // Verificar se precisa consultar cardápio
+    if (response.includes('consulta_sistema') || userMessage.toLowerCase().includes('cardápio') || userMessage.toLowerCase().includes('menu')) {
+        try {
+            const menu = await this.getRestaurantMenu();
+            if (menu) {
+                return this.formatMenuResponse(menu);
+            }
+        } catch (error) {
+            console.error('❌ Erro ao buscar cardápio:', error);
+        }
+    }
+    
+    return response;
+}
+```
+
+5.7 MEMÓRIA DE CHAT
+--------------------
+
+A Ana mantém memória persistente usando localStorage.
+
+SALVAMENTO:
+```javascript
+saveChatMemory() {
+    try {
+        localStorage.setItem(`ana_memory_${this.sessionId}`, 
+            JSON.stringify([...this.chatMemory]));
+    } catch (error) {
+        console.warn('Não foi possível salvar memória de chat:', error);
+    }
+}
+```
+
+CARREGAMENTO:
+```javascript
+async loadChatMemory() {
+    try {
+        const savedMemory = localStorage.getItem(`ana_memory_${this.sessionId}`);
+        if (savedMemory) {
+            this.chatMemory = new Map(JSON.parse(savedMemory));
+            this.updateMemoryUI();
+        }
+    } catch (error) {
+        console.warn('Não foi possível carregar memória de chat:', error);
+    }
+}
+```
+
+DADOS ARMAZENADOS NA MEMÓRIA:
+- nome_cliente
+- telefone_cliente
+- endereco_entrega
+- produto_interesse
+- forma_pagamento
+- ultimo_pedido_id
+- estado_conversa
+
+================================================================================
+6. ASSISTENTE ADMINISTRATIVO
+================================================================================
+
+O assistente administrativo usa o mesmo modelo GPT-5-mini mas com
+endpoint e autenticação separados.
+
+DIFERENÇAS:
+✓ Autenticação administrativa (authenticateAdmin)
+✓ Acesso a dados privilegiados
+✓ Sem rate limiting agressivo
+✓ Retorna métricas de uso (usage)
+✓ Sem integração MCP
+✓ Flag admin_mode: true
+
+ENDPOINT: POST /api/admin/assistant/chat
+Ver seção 4.2 para detalhes completos
+
+================================================================================
+7. SISTEMA MCP (MODEL CONTEXT PROTOCOL)
+================================================================================
+
+O MCP (Model Context Protocol) é um sistema que permite à IA acessar dados
+do banco de dados em tempo real para fornecer respostas precisas.
+
+7.1 DETECÇÃO DE PALAVRAS-CHAVE
+--------------------------------
+
+Função: detectMCPKeywords(message)
+Linha: 5076 (server.js)
+
+PALAVRAS-CHAVE MCP:
+- mcp, database, banco de dados
+- consulta, query, tabela, dados, sql
+- supabase, buscar dados, verificar banco
+- consultar base, dados do sistema
+- restaurante, restaurant, pedido, order
+- cliente, customer, produto, product
+- entregador, deliverer, delivery
+- cupom, coupon, desconto
+- notificacao, notification
+- log, atividade, activity
+- chat, conversa, message
+- prompt, prompit
+- administrador, admin, usuario, user
+- tipo negocio, business type
+- relatorio, report, estatistica
+- criar pedido, novo pedido, fazer pedido
+- pedido delivery, pedido balcao
+- finalizar pedido, processar pedido
+
+Código:
+```javascript
+function detectMCPKeywords(message) {
+    const mcpKeywords = [
+        'mcp', 'database', 'banco de dados', 'consulta', 'query', 
+        'tabela', 'dados', 'sql', 'supabase', 'buscar dados', 
+        'verificar banco', 'consultar base', 'dados do sistema',
+        'restaurante', 'restaurant', 'pedido', 'order', 'cliente', 'customer',
+        'produto', 'product', 'entregador', 'deliverer', 'delivery',
+        'cupom', 'coupon', 'desconto', 'notificacao', 'notification',
+        'log', 'atividade', 'activity', 'chat', 'conversa', 'message',
+        'prompt', 'prompit', 'administrador', 'admin', 'usuario', 'user',
+        'tipo negocio', 'business type', 'relatorio', 'report', 'estatistica',
+        'criar pedido', 'novo pedido', 'fazer pedido', 'create order', 'new order',
+        'pedido delivery', 'pedido balcao', 'balcão', 'counter order', 'delivery order',
+        'finalizar pedido', 'processar pedido', 'salvar pedido', 'complete order'
+    ];
+    
+    const messageNormalized = message.toLowerCase().trim();
+    return mcpKeywords.some(keyword => messageNormalized.includes(keyword));
+}
+```
+
+7.2 EXECUÇÃO DE CONSULTAS MCP
+-------------------------------
+
+Função: async executeSupabaseQuery(command, params)
+Linha: 5098 (server.js)
+
+COMANDOS SUPORTADOS:
+
+┌─────────────────────────────────────────────────────────────────┐
+│ list_tables                                                     │
+│ Lista todas as tabelas do banco de dados                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ restaurants_data                                                │
+│ Retorna dados do restaurante específico                        │
+│ Parâmetros: restaurant_id                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ orders_data                                                     │
+│ Retorna pedidos do restaurante                                 │
+│ Parâmetros: restaurant_id                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ customers_data                                                  │
+│ Retorna clientes do restaurante                                │
+│ Parâmetros: restaurant_id                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ products_data                                                   │
+│ Retorna produtos do restaurante                                │
+│ Parâmetros: restaurant_id                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ deliverers_data                                                 │
+│ Retorna entregadores do restaurante                            │
+│ Parâmetros: restaurant_id                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ coupons_data                                                    │
+│ Retorna cupons do restaurante                                  │
+│ Parâmetros: restaurant_id                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ create_delivery_order                                           │
+│ Cria um pedido de delivery                                      │
+│ Parâmetros: restaurant_id, customer_name, customer_phone,       │
+│             delivery_address, items[], total_amount, etc.       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ create_counter_order                                            │
+│ Cria um pedido de balcão                                        │
+│ Parâmetros: restaurant_id, customer_name, items[], etc.         │
+└─────────────────────────────────────────────────────────────────┘
+
+7.3 INTEGRAÇÃO COM GPT-5-MINI
+-------------------------------
+
+Quando palavras-chave MCP são detectadas (linha 3868 server.js):
+
+1. Determinar comando baseado na mensagem:
+```javascript
+let queryCommand = 'list_tables';
+const msg = lastMessage.content.toLowerCase();
+
+if (msg.includes('restaurante') || msg.includes('restaurant')) {
+    queryCommand = 'restaurants_data';
+} else if (msg.includes('pedido') || msg.includes('order')) {
+    queryCommand = 'orders_data';
+} else if (msg.includes('cliente') || msg.includes('customer')) {
+    queryCommand = 'customers_data';
+} // ... etc
+```
+
+2. Executar consulta MCP:
+```javascript
+mcpData = await executeSupabaseQuery(queryCommand, { restaurant_id: restaurant_id });
+mcpActivated = true;
+```
+
+3. Adicionar dados ao contexto:
+```javascript
+if (mcpData) {
+    const mcpContext = `\n\n📊 DADOS DO SISTEMA MCP:
+${typeof mcpData === 'string' ? mcpData : JSON.stringify(mcpData, null, 2)}
+
+Use esses dados para responder à pergunta do usuário de forma precisa e útil.`;
+    
+    // Modificar a última mensagem para incluir o contexto MCP
+    messages[messages.length - 1].content += mcpContext;
+    console.log('✅ Dados MCP adicionados ao contexto do assistente');
+}
+```
+
+4. Retornar resposta com flag mcp_activated:
+```javascript
+res.json({
+    response: responseMessage,
+    model_used: 'gpt-5-mini',
+    reasoning_effort: reasoning_effort || 'medium',
+    mcp_activated: true,
+    mcp_data: mcpData
+});
+```
+
+EXEMPLO DE USO:
+
+Usuário: "Quantos pedidos temos hoje?"
+
+1. Sistema detecta palavra-chave "pedidos"
+2. Comando MCP: 'orders_data'
+3. Consulta banco de dados
+4. Retorna: { count: 45, data: [...] }
+5. Adiciona ao prompt: "📊 DADOS DO SISTEMA MCP: { count: 45, data: [...] }"
+6. GPT-5-mini responde: "Hoje temos 45 pedidos no sistema!"
+
+================================================================================
+8. PROMPTS PERSONALIZADOS
+================================================================================
+
+O sistema permite que cada restaurante tenha seu próprio prompt personalizado
+para adaptar o comportamento da Ana.
+
+8.1 TABELA DO BANCO DE DADOS
+------------------------------
+
+Tabela: ai_system_prompts
+
+Estrutura:
+```sql
+CREATE TABLE ai_system_prompts (
+    id UUID PRIMARY KEY,
+    restaurant_id UUID REFERENCES restaurants(id),
+    prompt_text TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+8.2 ENDPOINT DE CARREGAMENTO (CLIENTE)
+---------------------------------------
+
+ENDPOINT: GET /api/assistant/system-prompt
+Autenticação: authenticateEvolutionAPI
+Rate Limit: 30 requisições / 60 segundos
+
+Query Params:
+- restaurant_id: UUID do restaurante
+
+Response (com prompt personalizado):
+```json
+{
+    "hasCustomPrompt": true,
+    "prompt": {
+        "id": "uuid",
+        "restaurant_id": "uuid",
+        "prompt_text": "Você é Ana, assistente do Restaurante XYZ...",
+        "is_active": true,
+        "created_at": "2025-10-07T00:00:00.000Z",
+        "updated_at": "2025-10-07T00:00:00.000Z"
+    }
+}
+```
+
+Response (sem prompt personalizado):
+```json
+{
+    "hasCustomPrompt": false,
+    "prompt": null
+}
+```
+
+8.3 ENDPOINT ADMINISTRATIVO
+-----------------------------
+
+ENDPOINT: GET /api/admin/system-prompt
+Autenticação: authenticateAdmin
+
+Query Params:
+- restaurant_id: UUID do restaurante (obrigatório)
+
+ENDPOINT: POST /api/admin/system-prompt
+Autenticação: authenticateAdmin
+Rate Limit: 5 requisições / 60 segundos
+CSRF Protection: Sim
+
+Body:
+```json
+{
+    "restaurant_id": "uuid",
+    "prompt_text": "Você é Ana, assistente virtual..."
+}
+```
+
+Response:
+```json
+{
+    "success": true,
+    "message": "Prompt personalizado salvo com sucesso",
+    "prompt": {
+        "id": "uuid",
+        "restaurant_id": "uuid",
+        "prompt_text": "...",
+        "is_active": true,
+        "created_at": "...",
+        "updated_at": "..."
+    }
+}
+```
+
+8.4 USO NO FRONTEND
+--------------------
+
+Método: async loadCustomSystemPrompt()
+Arquivo: public/js/assistente.js
+Linha: 790
+
+Código:
+```javascript
+async loadCustomSystemPrompt() {
+    if (this.systemPromptLoaded) return;
+    
+    try {
+        const response = await fetch(`/api/assistant/system-prompt?restaurant_id=${this.restaurantData.id}`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            console.log('⚠️ Nenhum prompt personalizado encontrado, usando prompt padrão');
+            this.systemPromptLoaded = true;
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.hasCustomPrompt && data.prompt?.prompt_text) {
+            this.customSystemPrompt = data.prompt.prompt_text;
+            console.log('✅ Prompt personalizado carregado para', this.restaurantData.name);
+        } else {
+            console.log('📝 Usando prompt padrão do sistema');
+        }
+        
+        this.systemPromptLoaded = true;
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar prompt personalizado:', error);
+        this.systemPromptLoaded = true;
+    }
+}
+```
+
+PROMPT PADRÃO (caso não haja personalizado):
+```
+Você é Ana, assistente virtual calorosa e humanizada para o restaurante [Nome].
+
+Seu papel é atender clientes com gentileza, tirar dúvidas sobre o cardápio,
+ajudar a fazer pedidos e confirmar endereços de entrega.
+
+Características:
+- Sempre gentil e atenciosa
+- Use emojis moderadamente
+- Seja objetiva mas amigável
+- Confirme sempre os dados importantes
+- Ajude o cliente a escolher produtos
+
+Lembre-se: você está representando o restaurante, então mantenha sempre
+um atendimento de excelência!
+```
+
+================================================================================
+9. RATE LIMITING E SEGURANÇA
+================================================================================
+
+9.1 RATE LIMITING
+------------------
+
+Middleware: rateLimitEvolutionAPI(maxRequests, windowMs)
+
+CONFIGURAÇÕES:
+
+Endpoint: /api/assistant/chat
+- Limite: 30 requisições
+- Janela: 60000ms (60 segundos)
+- Por IP ou sessão
+
+Endpoint: /api/assistant/menu/:restaurantId
+- Limite: 30 requisições
+- Janela: 60000ms (60 segundos)
+
+Endpoint: /api/assistant/create-order
+- Limite: 10 requisições
+- Janela: 60000ms (60 segundos)
+
+Endpoint: /api/assistant/product-info
+- Limite: 30 requisições
+- Janela: 60000ms (60 segundos)
+
+Endpoint: /api/assistant/system-prompt (GET)
+- Limite: 30 requisições
+- Janela: 60000ms (60 segundos)
+
+Endpoint: /api/assistant/system-prompt (POST)
+- Limite: 5 requisições
+- Janela: 60000ms (60 segundos)
+
+9.2 AUTENTICAÇÃO
+-----------------
+
+CLIENTES:
+- Middleware: authenticateEvolutionAPI
+- Validação de sessão
+- Verificação de restaurant_id
+- Proteção contra acesso não autorizado
+
+ADMINISTRADORES:
+- Middleware: authenticateAdmin
+- Autenticação administrativa
+- Permissões elevadas
+- Acesso a endpoints privilegiados
+
+9.3 PROTEÇÃO CSRF
+------------------
+
+Endpoints protegidos:
+- POST /api/assistant/system-prompt
+- POST /api/admin/system-prompt
+
+Middleware: csrfProtection
+
+Token CSRF obtido em:
+- GET /api/admin/csrf-token
+
+9.4 SEGURANÇA DA API KEY
+-------------------------
+
+NUNCA EXPOR:
+```javascript
+// ❌ ERRADO - Expor a chave
+res.json({
+    apiKey: process.env.OPENAI_API_KEY  // NUNCA FAZER ISSO
+});
+
+// ✅ CORRETO - Manter no servidor
+const apiKey = process.env.OPENAI_API_KEY;
+// Usar apenas no backend
+```
+
+VALIDAÇÃO:
+```javascript
+const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey) {
+    console.error('❌ OPENAI_API_KEY não configurada');
+    return res.status(500).json({ 
+        error: 'Configuração da OpenAI API não encontrada' 
+    });
+}
+```
+
+ARMAZENAMENTO:
+- Variável de ambiente (process.env)
+- Secrets do Replit
+- NUNCA em código ou frontend
+
+================================================================================
+10. TROUBLESHOOTING
+================================================================================
+
+10.1 PROBLEMAS COMUNS
+----------------------
+
+PROBLEMA: "OPENAI_API_KEY não configurada"
+CAUSA: Variável de ambiente não definida
+SOLUÇÃO:
+1. Verificar Secrets no Replit
+2. Adicionar OPENAI_API_KEY com valor válido
+3. Reiniciar servidor
+
+PROBLEMA: "Erro na OpenAI API: 401"
+CAUSA: API key inválida ou expirada
+SOLUÇÃO:
+1. Verificar validade da chave em platform.openai.com
+2. Gerar nova chave se necessário
+3. Atualizar secret OPENAI_API_KEY
+
+PROBLEMA: "Erro na OpenAI API: 429"
+CAUSA: Rate limit da OpenAI excedido
+SOLUÇÃO:
+1. Aguardar reset do limite
+2. Verificar uso em platform.openai.com
+3. Considerar upgrade de plano
+
+PROBLEMA: "Timeout na conexão com OpenAI"
+CAUSA: Rede instável ou API temporariamente indisponível
+SOLUÇÃO:
+1. Verificar status em status.openai.com
+2. Tentar novamente
+3. Implementar retry logic
+
+PROBLEMA: "Ana não responde"
+CAUSA: Diversos fatores
+DEBUG:
+1. Verificar console do navegador
+2. Verificar logs do servidor
+3. Testar endpoint /api/health
+4. Verificar se OPENAI_API_KEY está configurada
+5. Testar chamada direta à API
+
+PROBLEMA: "Resposta em inglês ao invés de português"
+CAUSA: Prompt do sistema não está em português
+SOLUÇÃO:
+1. Verificar prompt personalizado
+2. Garantir que está em pt-BR
+3. Adicionar instrução explícita: "Responda SEMPRE em português brasileiro"
+
+PROBLEMA: "MCP não está ativando"
+CAUSA: Palavras-chave não detectadas
+SOLUÇÃO:
+1. Usar palavras-chave específicas (ver seção 7.1)
+2. Exemplo: "Mostre os dados dos pedidos"
+3. Verificar logs: "🔧 Palavras-chave MCP detectadas"
+
+PROBLEMA: "Prompt personalizado não carrega"
+CAUSA: Erro na consulta ao banco ou prompt inativo
+SOLUÇÃO:
+1. Verificar tabela ai_system_prompts
+2. Garantir is_active = true
+3. Verificar restaurant_id correto
+4. Verificar logs do servidor
+
+10.2 LOGS E DEBUGGING
+----------------------
+
+LOGS IMPORTANTES:
+
+Inicialização:
+- "🔧 Servindo GPT-5-mini config via OpenAI API"
+- "✅ Ana inicializada com sucesso"
+
+Processamento:
+- "🤖 Ana processando mensagem para restaurante {id}"
+- "🔧 Palavras-chave MCP detectadas, executando consulta..."
+- "✅ Ana respondeu para {session_id}"
+
+Erros:
+- "❌ OPENAI_API_KEY não configurada"
+- "❌ Erro na OpenAI API:"
+- "❌ Erro no endpoint do assistente:"
+
+VERIFICAR NO CONSOLE:
+```javascript
+// Status da configuração
+console.log('Mapbox Token:', window.MAPBOX_ACCESS_TOKEN);
+console.log('Supabase Client:', supabase);
+
+// Estado da Ana
+console.log('Ana Messages:', ana.messages);
+console.log('Ana Memory:', ana.chatMemory);
+console.log('Restaurant Data:', ana.restaurantData);
+
+// Testar endpoint
+fetch('/api/config/openai')
+    .then(r => r.json())
+    .then(console.log);
+```
+
+10.3 HEALTH CHECK
+------------------
+
+VERIFICAR STATUS:
+```bash
+curl http://localhost:5000/api/health
+```
+
+Response esperada:
+```json
+{
+    "status": "ok",
+    "services": {
+        "openai": "connected",
+        "supabase": "connected",
+        "evolution": "connected",
+        "mapbox": "connected"
+    }
+}
+```
+
+Se openai != "connected":
+- "not_configured": Adicionar OPENAI_API_KEY
+- "timeout": Problema de rede
+- "error": Verificar validade da chave
+
+10.4 TESTE DE INTEGRAÇÃO
+--------------------------
+
+TESTE MANUAL (cURL):
+```bash
+# Obter CSRF token (se necessário)
+curl -X GET http://localhost:5000/api/admin/csrf-token \
+  -H "Cookie: session=..." \
+  -c cookies.txt
+
+# Testar chat
+curl -X POST http://localhost:5000/api/assistant/chat \
+  -H "Content-Type: application/json" \
+  -H "Cookie: session=..." \
+  -d '{
+    "messages": [
+      {
+        "role": "system",
+        "content": "Você é Ana, assistente virtual."
+      },
+      {
+        "role": "user",
+        "content": "Olá!"
+      }
+    ],
+    "model": "gpt-5-mini",
+    "restaurant_id": "uuid-do-restaurante",
+    "session_id": "test-123"
+  }'
+```
+
+TESTE VIA JAVASCRIPT (Console):
+```javascript
+// No console do navegador
+fetch('/api/assistant/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify({
+        messages: [
+            { role: 'system', content: 'Você é Ana.' },
+            { role: 'user', content: 'Olá!' }
+        ],
+        model: 'gpt-5-mini',
+        restaurant_id: 'uuid',
+        session_id: 'test'
+    })
+})
+.then(r => r.json())
+.then(console.log);
+```
+
+================================================================================
+RESUMO EXECUTIVO
+================================================================================
+
+MODELO: GPT-5-mini
+PROVIDER: OpenAI (https://api.openai.com/v1)
+CHAVE: OPENAI_API_KEY (variável de ambiente)
+
+ENDPOINTS PRINCIPAIS:
+✓ POST /api/assistant/chat (clientes)
+✓ POST /api/admin/assistant/chat (administradores)
+✓ GET /api/config/openai (configuração pública)
+✓ GET /api/health (status)
+
+ASSISTENTES:
+✓ Ana - Assistente Virtual (clientes)
+✓ Assistente Administrativo (gestão)
+
+RECURSOS ESPECIAIS:
+✓ MCP - Model Context Protocol (acesso a dados)
+✓ Prompts personalizados por restaurante
+✓ Memória de conversa persistente
+✓ Rate limiting configurável
+✓ Integração com Supabase
+
+PARÂMETROS TÍPICOS:
+- model: 'gpt-5-mini'
+- max_completion_tokens: 4096
+- temperature: 0.7
+- reasoning_effort: 'medium'
+- stream: false
+
+SEGURANÇA:
+✓ API key protegida no servidor
+✓ Autenticação obrigatória
+✓ Rate limiting ativo
+✓ CSRF protection em endpoints de escrita
+✓ Validação de restaurant_id
+
+RATE LIMITS:
+- Chat: 30 req/min
+- Criação de pedidos: 10 req/min
+- Salvamento de prompts: 5 req/min
+
+================================================================================
+FIM DA DOCUMENTAÇÃO
+================================================================================
+
+Última atualização: 07/10/2025
+Versão do sistema: TimePulse AI 1.0.0
+Modelo: GPT-5-mini
+Desenvolvido por: TimePulse Team
+
+Para suporte adicional, consulte:
+- Documentação OpenAI: https://platform.openai.com/docs
+- Status da API: https://status.openai.com
+- Dashboard: https://platform.openai.com/account/usage

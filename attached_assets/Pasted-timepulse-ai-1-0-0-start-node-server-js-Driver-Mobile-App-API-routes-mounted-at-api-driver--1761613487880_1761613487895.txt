@@ -1,0 +1,41 @@
+timepulse-ai@1.0.0 start
+node server.js
+
+🚗 Driver Mobile App API routes mounted at /api/driver/*
+🔧 Driver password setup endpoint mounted (admin-only)
+✅ Supabase Admin Client initialized for JWT verification
+🛡️ Endpoints administrativos adicionais configurados
+⚙️ Endpoints de configuração de assinatura configurados
+🛒 Endpoints de checkout transparente configurados
+🔒 Endpoint de bloqueio dinâmico configurado
+⏱️ [SUBSCRIPTION CHECK] Sistema de verificação automática configurado (a cada 6 horas)
+✅ Servidor TimePulse AI rodando em http://0.0.0.0:5000
+Servidor iniciado em: 10/28/2025, 12:54:43 AM
+📊 Ambiente: development
+🔒 Modo de segurança: Desenvolvimento
+🛡️ Sistema administrativo: Endpoints /api/admin/* disponíveis
+💳 Sistema de assinaturas: Endpoints /api/asaas/* disponíveis
+🔧 Sistema MCP: Endpoints /api/mcp/* disponíveis
+📅 Sistema de verificação de assinaturas: Ativo (a cada 6 horas)
+🚀 [SUBSCRIPTION CHECK] Executando primeira verificação de assinaturas...
+🔍 [SUBSCRIPTION CHECK] Iniciando verificação de assinaturas vencidas...
+📅 [SUBSCRIPTION CHECK] Data atual (America/Sao_Paulo): 2025-10-27T21:55:43.000Z
+📋 [SUBSCRIPTION CHECK] Verificando 2 restaurante(s) com assinatura ativa
+📊 Frutidelis: vencimento 14/11/2025, diferença: -19 dias
+✅ Frutidelis: Ativo, vence em 19 dia(s)
+📊 TATA Lanches: vencimento 14/11/2025, diferença: -18 dias
+✅ TATA Lanches: Ativo, vence em 18 dia(s)
+✅ [SUBSCRIPTION CHECK] Verificação concluída: 0 assinatura(s) expirada(s)
+❌ Erro ao salvar credenciais: {a: /driver.html
+code: '42501',
+details: null,
+hint: null,
+message: 'new row violates row-level security policy for table "driver_credentials"'
+}
+
+2025-10-27 21:59:14.88
+cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+2025-10-27 21:59:29.13
+cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+
+analizar o logs e corrigir o erro no driver.html

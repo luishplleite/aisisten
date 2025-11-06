@@ -1,0 +1,22 @@
+ Configuração básica carregada
+injected.js:27 🍪 Aplicando configuração de cookies para ambiente Replit
+injected.js:27 ✅ Configuração segura inicializada
+injected.js:27 ✅ Sistema seguro inicializado com sucesso
+cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760805416006%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10  POST https://ingest.app.coframe.com/ingest/v2/batched_events/68c9ad4d4cddb58cf3a1f93d/ net::ERR_BLOCKED_BY_CLIENT
+ne @ cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760805416006%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10
+ee @ cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760805416006%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10
+(anonymous) @ cf.js?config=%257B%2522projectId%2522%253A%252268c9ad4d4cddb58cf3a1f93d%2522%252C%2522startTime%2522%253A1760805416006%252C%2522timeoutMs%2522%253A1000%252C%2522currentUrl%2522%253A%2522https%253A%252F%252Freplit.com%252F%7E%2522%252C%2522trackingOnly%2522%253Atrue%257D:10
+n @ _app-fc14f1c3cbc28537.js:28Understand this error
+injected.js:204  GET https://xgqbfwxfbrgmiwjhikru.supabase.co/rest/v1/subcontas_asass?select=*&email=eq.pereiraleiteluis%40gmail.com&cpfCnpj=eq.70507678834 net::ERR_NAME_NOT_RESOLVED
+apply @ injected.js:204
+(anonymous) @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+o @ supabase-js@2:7
+Promise.then
+l @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+a @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+then @ supabase-js@2:7Understand this error
+injected.js:27 Erro no login: Error: Email ou CPF/CNPJ incorretos
+    at HTMLFormElement.<anonymous> (loginrevenda.html:348:27)

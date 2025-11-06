@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Evolution API - TimePulse AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #28a745;
+        }
+
+        .test-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .info-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #28a745;
+            font-family: monospace;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-create {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-create:hover {
+            background: #218838;
+        }
+
+        .btn-create:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .response-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .response-section.show {
+            display: block;
+        }
+
+        .response-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .response-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🔌 Teste Evolution API</h1>
+            <p>Teste de integração com WhatsApp Evolution API</p>
+        </div>
+
+        <div id="authSection">
+            <div class="alert alert-warning">
+                ⚠️ Verificando autenticação...
+            </div>
+        </div>
+
+        <div id="mainContent" style="display: none;">
+            <!-- Informações de Conexão -->
+            <div class="info-section">
+                <h3>📊 Informações da Instância</h3>
+                <div class="info-item">
+                    <span class="info-label">Status de Autenticação:</span>
+                    <span class="status-badge status-connected" id="authStatus">✅ Conectado</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nome do Restaurante:</span>
+                    <span class="info-value" id="restaurantName">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">ID do Restaurante:</span>
+                    <span class="info-value" id="restaurantId">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email do Usuário:</span>
+                    <span class="info-value" id="userEmail">Carregando...</span>
+                </div>
+            </div>
+
+            <!-- Configuração Evolution API -->
+            <div class="info-section">
+                <h3>🔗 Configuração Evolution API</h3>
+                <div class="info-item">
+                    <span class="info-label">URL do Servidor:</span>
+                    <span class="info-value" id="evolutionUrl">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">API Key:</span>
+                    <span class="info-value" id="evolutionKey">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Nome da Instância:</span>
+                    <span class="info-value" id="instanceName">Carregando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status da Instância:</span>
+                    <span class="info-value" id="instanceStatus">Verificando...</span>
+                </div>
+            </div>
+
+            <!-- Botão Criar Instância -->
+            <button class="btn-create" id="createInstanceBtn" onclick="createEvolutionInstance()">
+                🚀 Criar Instância no Evolution
+            </button>
+
+            <!-- Botão Gerar QR Code (para instâncias existentes) -->
+            <button class="btn-create" id="generateQRBtn" onclick="generateQRCode()" style="display: none; background: #007bff;">
+                📱 Gerar QR Code para Conectar
+            </button>
+
+            <!-- Loader -->
+            <div class="loader" id="loader"></div>
+
+            <!-- QR Code Section -->
+            <div class="response-section" id="qrcodeSection" style="display: none;">
+                <div class="response-title">📱 QR Code para Conectar WhatsApp:</div>
+                <div style="text-align: center; padding: 20px;">
+                    <img id="qrcodeImage" src="" alt="QR Code" style="max-width: 300px; border: 2px solid #28a745; border-radius: 10px; background: white; padding: 10px;">
+                    <p style="margin-top: 15px; color: #28a745; font-weight: bold;">📲 Escaneie este QR Code com o WhatsApp</p>
+                    <p style="color: #6c757d; font-size: 14px;">Abra o WhatsApp > Menu (3 pontos) > Aparelhos conectados > Conectar um aparelho</p>
+                </div>
+            </div>
+
+            <!-- Resposta da API -->
+            <div class="response-section" id="responseSection">
+                <div class="response-title">📥 Resposta da API:</div>
+                <div class="response-content" id="responseContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <script>
+        let evolutionConfig = {};
+        let restaurantData = {};
+
+        // Função auxiliar para normalizar nome da instância
+        function normalizeInstanceName(instanceName) {
+            if (!instanceName) return 'restaurante';
+            
+            // Converter para minúsculas
+            let normalized = instanceName.toLowerCase();
+            
+            // Corrigir erro de digitação comum "restaruante" -> "restaurante"
+            normalized = normalized.replace(/restaruante/g, 'restaurante');
+            
+            // Limpar caracteres especiais
+            normalized = normalized.replace(/[^a-z0-9_]/g, '_');
+            
+            return normalized;
+        }
+
+        // Verificar autenticação ao carregar
+        async function checkAuth() {
+            try {
+                // Verificar se está autenticado
+                const isAuth = window.SECURE_INSTANCE_MANAGER.isAuthenticated();
+                
+                if (!isAuth) {
+                    document.getElementById('authSection').innerHTML = `
+                        <div class="alert alert-error">
+                            ❌ Você não está autenticado. <a href="login.html">Fazer login</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Obter dados da instância
+                const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+                
+                if (!instance || !instance.restaurantId) {
+                    document.getElementById('authSection').innerHTML = `
+                        <div class="alert alert-error">
+                            ❌ Dados do restaurante não encontrados. <a href="login.html">Fazer login novamente</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Atualizar UI com dados da instância
+                document.getElementById('restaurantName').textContent = instance.instanceName || 'Não definido';
+                document.getElementById('restaurantId').textContent = instance.restaurantId || 'Não definido';
+                document.getElementById('userEmail').textContent = instance.userEmail || 'Não definido';
+
+                // Carregar configuração do Evolution da API
+                await loadEvolutionConfig();
+
+                // Mostrar conteúdo principal
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Erro ao verificar autenticação:', error);
+                document.getElementById('authSection').innerHTML = `
+                    <div class="alert alert-error">
+                        ❌ Erro ao verificar autenticação: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Carregar configuração do Evolution da API
+        async function loadEvolutionConfig() {
+            try {
+                const response = await fetch('/api/config/evolution', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar configuração: ${response.status}`);
+                }
+
+                evolutionConfig = await response.json();
+                
+                // Atualizar UI com configuração
+                document.getElementById('evolutionUrl').textContent = evolutionConfig.baseUrl || 'Não configurado';
+                document.getElementById('evolutionKey').textContent = evolutionConfig.apiKey ? '****' + evolutionConfig.apiKey.slice(-4) : 'Não configurado';
+                
+                // Gerar nome da instância baseado no restaurante (apenas o nome)
+                const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+                const instanceName = normalizeInstanceName(instance.instanceName);
+                
+                document.getElementById('instanceName').textContent = instanceName;
+
+                console.log('✅ Configuração Evolution carregada:', evolutionConfig);
+                console.log('✅ Nome da instância normalizado:', instanceName);
+
+                // Verificar se a instância já existe
+                await checkInstanceExists(instanceName);
+
+            } catch (error) {
+                console.error('Erro ao carregar configuração Evolution:', error);
+                document.getElementById('evolutionUrl').textContent = 'Erro ao carregar';
+                document.getElementById('evolutionKey').textContent = 'Erro ao carregar';
+                
+                // Mostrar alerta
+                const mainContent = document.getElementById('mainContent');
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error';
+                alert.textContent = `❌ Erro ao carregar configuração Evolution: ${error.message}`;
+                mainContent.insertBefore(alert, mainContent.firstChild);
+            }
+        }
+
+        // Verificar se a instância já existe
+        async function checkInstanceExists(instanceName) {
+            try {
+                console.log(`🔍 Verificando se instância "${instanceName}" existe...`);
+
+                // Fazer requisição via nosso backend para verificar a instância
+                const response = await fetch(`/api/evolution/check-instance/${instanceName}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                
+                const statusElement = document.getElementById('instanceStatus');
+                const createBtn = document.getElementById('createInstanceBtn');
+
+                if (result.exists) {
+                    // Instância existe - ocultar botão de criar e mostrar botão de QR
+                    console.log('✅ Instância já existe:', result.data);
+                    statusElement.innerHTML = '<span class="status-badge status-connected">✅ Criada</span>';
+                    createBtn.style.display = 'none';
+                    
+                    // Mostrar botão de gerar QR code
+                    document.getElementById('generateQRBtn').style.display = 'block';
+                    
+                    // Mostrar alerta de sucesso
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success';
+                    alert.innerHTML = `✅ Instância "${instanceName}" já está criada no Evolution!<br><small>Clique no botão abaixo para gerar o QR Code e conectar o WhatsApp.</small>`;
+                    document.getElementById('mainContent').insertBefore(alert, document.getElementById('mainContent').firstChild);
+                } else {
+                    // Instância não existe - mostrar botão
+                    console.log('⚠️ Instância não existe');
+                    statusElement.innerHTML = '<span class="status-badge status-disconnected">❌ Não criada</span>';
+                    createBtn.style.display = 'block';
+                    
+                    // Mostrar alerta informativo
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-warning';
+                    alert.innerHTML = `⚠️ Instância "${instanceName}" não encontrada no Evolution.<br><small>Clique no botão abaixo para criar a instância.</small>`;
+                    document.getElementById('mainContent').insertBefore(alert, document.getElementById('mainContent').firstChild);
+                }
+
+            } catch (error) {
+                console.error('❌ Erro ao verificar instância:', error);
+                document.getElementById('instanceStatus').innerHTML = '<span class="status-badge status-disconnected">❌ Erro</span>';
+                
+                // Em caso de erro, mostrar o botão (permite tentar criar)
+                document.getElementById('createInstanceBtn').style.display = 'block';
+            }
+        }
+
+        // Criar instância no Evolution
+        async function createEvolutionInstance() {
+            try {
+                const createBtn = document.getElementById('createInstanceBtn');
+                const loader = document.getElementById('loader');
+                const responseSection = document.getElementById('responseSection');
+                const responseContent = document.getElementById('responseContent');
+
+                // Desabilitar botão e mostrar loader
+                createBtn.disabled = true;
+                createBtn.textContent = '⏳ Criando instância...';
+                loader.classList.add('show');
+                responseSection.classList.remove('show');
+
+                // Obter dados da instância
+                const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+                const instanceName = normalizeInstanceName(instance.instanceName);
+
+                // Preparar dados para criar instância (formato correto da Evolution API)
+                const requestBody = {
+                    instanceName: instanceName,
+                    integration: 'WHATSAPP-BAILEYS',
+                    qrcode: true,
+                    webhook: {
+                        url: 'https://n8n.timepulseai.com.br/webhook/7398cf3b-43ae-4d12-9f0b-443e3b66dfd1',
+                        byEvents: true,
+                        events: [
+                            'APPLICATION_STARTUP',
+                            'MESSAGES_UPDATE',
+                            'MESSAGES_UPSERT',
+                            'PRESENCE_UPDATE',
+                            'QRCODE_UPDATED'
+                        ]
+                    }
+                };
+
+                console.log('📤 Enviando requisição para criar instância:', requestBody);
+
+                // Fazer requisição via nosso backend (para proteger API key)
+                const response = await fetch('/api/evolution/create-instance', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+
+                // Esconder loader
+                loader.classList.remove('show');
+
+                // Mostrar resposta
+                responseSection.classList.add('show');
+                
+                if (response.ok) {
+                    createBtn.textContent = '✅ Instância criada com sucesso!';
+                    createBtn.style.background = '#28a745';
+                    responseContent.style.color = '#155724';
+                    responseContent.textContent = JSON.stringify(result, null, 2);
+                    
+                    // Verificar se há QR code na resposta
+                    const qrcodeSection = document.getElementById('qrcodeSection');
+                    const qrcodeImage = document.getElementById('qrcodeImage');
+                    
+                    console.log('🔍 Estrutura da resposta completa:', result);
+                    console.log('🔍 Verificando campos de QR Code...');
+                    console.log('  - result.qrcode:', result.qrcode);
+                    console.log('  - result.qrcode?.base64:', result.qrcode?.base64);
+                    console.log('  - result.base64:', result.base64);
+                    console.log('  - result.pairingCode:', result.pairingCode);
+                    console.log('  - result.code:', result.code);
+                    
+                    let qrCodeSrc = null;
+                    
+                    // Tentar vários formatos possíveis
+                    if (result.qrcode && result.qrcode.base64) {
+                        qrCodeSrc = result.qrcode.base64;
+                        console.log('✅ QR Code encontrado em result.qrcode.base64');
+                    } else if (result.qrcode && result.qrcode.code) {
+                        qrCodeSrc = result.qrcode.code;
+                        console.log('✅ QR Code encontrado em result.qrcode.code');
+                    } else if (result.base64) {
+                        qrCodeSrc = result.base64;
+                        console.log('✅ QR Code encontrado em result.base64');
+                    } else if (result.pairingCode) {
+                        qrCodeSrc = result.pairingCode;
+                        console.log('✅ QR Code encontrado em result.pairingCode');
+                    } else if (result.code) {
+                        qrCodeSrc = result.code;
+                        console.log('✅ QR Code encontrado em result.code');
+                    }
+                    
+                    if (qrCodeSrc) {
+                        // Garantir que o base64 tem o prefixo correto
+                        if (!qrCodeSrc.startsWith('data:image')) {
+                            qrCodeSrc = 'data:image/png;base64,' + qrCodeSrc;
+                            console.log('🔧 Prefixo data:image adicionado ao base64');
+                        }
+                        
+                        qrcodeImage.src = qrCodeSrc;
+                        qrcodeSection.classList.add('show');
+                        console.log('✅ QR Code exibido com sucesso!');
+                        console.log('📏 Tamanho do base64:', qrCodeSrc.length, 'caracteres');
+                    } else {
+                        console.log('❌ QR Code não encontrado em nenhum campo conhecido');
+                        console.log('📋 Campos disponíveis na resposta:', Object.keys(result));
+                    }
+                    
+                    // Ocultar botão após criar com sucesso
+                    setTimeout(() => {
+                        createBtn.style.display = 'none';
+                    }, 3000);
+                    
+                    // Atualizar status
+                    document.getElementById('instanceStatus').innerHTML = '<span class="status-badge status-connected">✅ Criada</span>';
+                    
+                    // Mostrar alerta de sucesso
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success';
+                    alert.textContent = `✅ Instância "${instanceName}" criada com sucesso!`;
+                    document.getElementById('mainContent').insertBefore(alert, document.getElementById('mainContent').firstChild);
+                    
+                    setTimeout(() => alert.remove(), 5000);
+                } else {
+                    throw new Error(result.error || 'Erro ao criar instância');
+                }
+
+            } catch (error) {
+                console.error('❌ Erro ao criar instância:', error);
+                
+                const createBtn = document.getElementById('createInstanceBtn');
+                const loader = document.getElementById('loader');
+                const responseSection = document.getElementById('responseSection');
+                const responseContent = document.getElementById('responseContent');
+
+                // Esconder loader
+                loader.classList.remove('show');
+
+                // Mostrar erro
+                createBtn.textContent = '❌ Erro ao criar instância';
+                createBtn.style.background = '#dc3545';
+                
+                responseSection.classList.add('show');
+                responseContent.style.color = '#721c24';
+                
+                // Tentar mostrar detalhes do erro
+                let errorMessage = `Erro: ${error.message}\n\n`;
+                if (error.details) {
+                    errorMessage += `Detalhes:\n${JSON.stringify(error.details, null, 2)}`;
+                }
+                responseContent.textContent = errorMessage;
+
+                // Reabilitar botão após 3 segundos
+                setTimeout(() => {
+                    createBtn.disabled = false;
+                    createBtn.textContent = '🚀 Criar Instância no Evolution';
+                    createBtn.style.background = '#28a745';
+                }, 3000);
+
+                // Mostrar alerta de erro
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error';
+                alert.innerHTML = `❌ Erro ao criar instância: ${error.message || 'Erro desconhecido'}<br><small>Verifique se as credenciais da Evolution API estão corretas</small>`;
+                document.getElementById('mainContent').insertBefore(alert, document.getElementById('mainContent').firstChild);
+                
+                setTimeout(() => alert.remove(), 8000);
+            }
+        }
+
+        // Gerar QR Code para instância existente
+        async function generateQRCode() {
+            try {
+                const generateBtn = document.getElementById('generateQRBtn');
+                const loader = document.getElementById('loader');
+                const responseSection = document.getElementById('responseSection');
+                const responseContent = document.getElementById('responseContent');
+                const qrcodeSection = document.getElementById('qrcodeSection');
+                const qrcodeImage = document.getElementById('qrcodeImage');
+
+                // Desabilitar botão e mostrar loader
+                generateBtn.disabled = true;
+                generateBtn.textContent = '⏳ Gerando QR Code...';
+                loader.classList.add('show');
+                qrcodeSection.classList.remove('show');
+                responseSection.classList.remove('show');
+
+                // Obter dados da instância
+                const instance = window.SECURE_INSTANCE_MANAGER.getInstance();
+                const instanceName = normalizeInstanceName(instance.instanceName);
+
+                console.log('📱 Gerando QR Code para instância:', instanceName);
+
+                // Fazer requisição via nosso backend
+                const response = await fetch(`/api/evolution/instance/connect/${instanceName}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                // Esconder loader
+                loader.classList.remove('show');
+
+                if (response.ok) {
+                    generateBtn.textContent = '✅ QR Code gerado!';
+                    generateBtn.style.background = '#28a745';
+                    
+                    // Mostrar resposta JSON
+                    responseSection.classList.add('show');
+                    responseContent.style.color = '#155724';
+                    responseContent.textContent = JSON.stringify(result, null, 2);
+                    
+                    // Verificar se há QR code na resposta
+                    console.log('🔍 Estrutura da resposta completa (generateQRCode):', result);
+                    console.log('🔍 Verificando campos de QR Code...');
+                    
+                    let qrCodeSrc = null;
+                    
+                    // Tentar vários formatos possíveis
+                    if (result.qrcode && result.qrcode.base64) {
+                        qrCodeSrc = result.qrcode.base64;
+                        console.log('✅ QR Code encontrado em result.qrcode.base64');
+                    } else if (result.qrcode && result.qrcode.code) {
+                        qrCodeSrc = result.qrcode.code;
+                        console.log('✅ QR Code encontrado em result.qrcode.code');
+                    } else if (result.base64) {
+                        qrCodeSrc = result.base64;
+                        console.log('✅ QR Code encontrado em result.base64');
+                    } else if (result.pairingCode) {
+                        qrCodeSrc = result.pairingCode;
+                        console.log('✅ QR Code encontrado em result.pairingCode');
+                    } else if (result.code) {
+                        qrCodeSrc = result.code;
+                        console.log('✅ QR Code encontrado em result.code');
+                    }
+                    
+                    if (qrCodeSrc) {
+                        // Garantir que o base64 tem o prefixo correto
+                        if (!qrCodeSrc.startsWith('data:image')) {
+                            qrCodeSrc = 'data:image/png;base64,' + qrCodeSrc;
+                            console.log('🔧 Prefixo data:image adicionado ao base64');
+                        }
+                        
+                        console.log('📸 Definindo src da imagem...');
+                        qrcodeImage.src = qrCodeSrc;
+                        console.log('📸 src definido:', qrcodeImage.src.substring(0, 100) + '...');
+                        
+                        console.log('👁️ Mostrando seção QR Code...');
+                        qrcodeSection.classList.add('show');
+                        qrcodeSection.style.display = 'block';
+                        
+                        console.log('✅ Classes da seção:', qrcodeSection.className);
+                        console.log('✅ Display da seção:', qrcodeSection.style.display);
+                        console.log('✅ QR Code exibido com sucesso!');
+                    } else {
+                        console.log('❌ QR Code não encontrado na resposta');
+                        console.log('📋 Campos disponíveis:', Object.keys(result));
+                        
+                        // Mostrar alerta se não houver QR code
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-warning';
+                        alert.textContent = '⚠️ WhatsApp pode já estar conectado. Verifique o status da conexão.';
+                        document.getElementById('mainContent').insertBefore(alert, document.getElementById('mainContent').firstChild);
+                        setTimeout(() => alert.remove(), 5000);
+                    }
+                    
+                    // Reabilitar botão após 3 segundos
+                    setTimeout(() => {
+                        generateBtn.disabled = false;
+                        generateBtn.textContent = '📱 Gerar QR Code para Conectar';
+                        generateBtn.style.background = '#007bff';
+                    }, 3000);
+
+                } else {
+                    throw new Error(result.error || 'Erro ao gerar QR Code');
+                }
+
+            } catch (error) {
+                console.error('❌ Erro ao gerar QR Code:', error);
+                
+                const generateBtn = document.getElementById('generateQRBtn');
+                const loader = document.getElementById('loader');
+                const responseSection = document.getElementById('responseSection');
+                const responseContent = document.getElementById('responseContent');
+
+                // Esconder loader
+                loader.classList.remove('show');
+
+                // Mostrar erro
+                generateBtn.textContent = '❌ Erro ao gerar QR Code';
+                generateBtn.style.background = '#dc3545';
+                
+                responseSection.classList.add('show');
+                responseContent.style.color = '#721c24';
+                responseContent.textContent = `Erro: ${error.message}`;
+
+                // Reabilitar botão após 3 segundos
+                setTimeout(() => {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = '📱 Gerar QR Code para Conectar';
+                    generateBtn.style.background = '#007bff';
+                }, 3000);
+
+                // Mostrar alerta de erro
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error';
+                alert.textContent = `❌ Erro ao gerar QR Code: ${error.message}`;
+                document.getElementById('mainContent').insertBefore(alert, document.getElementById('mainContent').firstChild);
+                setTimeout(() => alert.remove(), 8000);
+            }
+        }
+
+        // Verificar autenticação ao carregar a página
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>

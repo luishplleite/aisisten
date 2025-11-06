@@ -1,0 +1,117 @@
+# Relatório de Configurações de Navegação Mapbox: Rotas Multiponto e Localização em Tempo Real
+
+**Autor:** Manus AI
+**Data:** 4 de Novembro de 2025
+
+Este relatório técnico detalha as configurações de navegação do Mapbox, com foco na utilização de endpoints JSON para o cálculo de rotas com múltiplos pontos de parada (A, B, C...) e na implementação de rastreamento de localização em tempo real do dispositivo.
+
+---
+
+## 1. Rotas Multiponto (A, B, C...) com a Mapbox Directions API
+
+A funcionalidade de cálculo de rotas com múltiplos pontos de parada é implementada através da **Mapbox Directions API**. Esta API permite calcular a rota mais eficiente entre uma sequência de coordenadas, que representam os pontos A, B, C, e assim por diante.
+
+### 1.1. Endpoint e Parâmetros Chave
+
+O endpoint principal para a recuperação de direções é:
+
+`GET https://api.mapbox.com/directions/v5/{profile}/{coordinates}`
+
+| Parâmetro | Tipo | Descrição | Configuração para Rotas Multiponto |
+| :--- | :--- | :--- | :--- |
+| **`{profile}`** | `string` | O perfil de roteamento (ex: `mapbox/driving`, `mapbox/walking`). | Escolher o perfil adequado ao tipo de veículo/movimentação. |
+| **`{coordinates}`** | `string` | Lista de coordenadas `{longitude},{latitude}` separadas por ponto e vírgula. | **Obrigatório.** Deve conter a sequência de pontos A;B;C... (ex: `lonA,latA;lonB,latB;lonC,latC`). Suporta até 25 coordenadas. |
+| `waypoints` | `string` | (Opcional) Lista de índices (base zero) das coordenadas que devem ser tratadas como paradas. | Para rotas A-B-C, todos os pontos são waypoints por padrão. Use para especificar pontos de passagem sem parada (`via points`). |
+| `steps` | `boolean` | (Opcional) Se `true`, retorna instruções detalhadas passo a passo. | Recomendado para obter as instruções de navegação completas. |
+
+**Exemplo de Requisição (A → B → C):**
+
+```
+https://api.mapbox.com/directions/v5/mapbox/driving/-73.989,40.733;-73.980,40.750;-73.970,40.760?access_token=YOUR_ACCESS_TOKEN
+```
+
+### 1.2. Estrutura do JSON de Resposta
+
+A resposta da Directions API é um objeto JSON que contém o array `routes`. Para rotas multiponto, a chave mais importante é o array `legs` (pernas) dentro de cada objeto `route`.
+
+| Chave JSON | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `routes` | `array` | Contém um ou mais objetos de rota (incluindo alternativas, se solicitadas). |
+| `routes[i].legs` | `array` | Uma lista de segmentos de rota. **Cada "perna" representa o trajeto entre dois waypoints consecutivos** (ex: A para B, B para C). |
+| `routes[i].legs[j].steps` | `array` | Instruções detalhadas de curva a curva (`turn-by-turn`) para a perna. |
+| `routes[i].geometry` | `object` | A geometria da rota completa, codificada em Polyline, que pode ser desenhada no mapa. |
+| `waypoints` | `array` | Uma lista de objetos que representam os waypoints resolvidos (incluindo o ponto de origem e destino). |
+
+**Análise para A, B, C...:**
+
+Se a requisição tiver `N` coordenadas (A, B, C, D...), o array `legs` na resposta terá `N-1` objetos, correspondendo aos trajetos A→B, B→C, C→D, e assim por diante.
+
+---
+
+## 2. Localização em Tempo Real do Dispositivo
+
+O rastreamento de localização em tempo real não é fornecido por um endpoint JSON de API de serviço web do Mapbox, mas sim por uma implementação no lado do cliente (dispositivo) que utiliza o formato **GeoJSON** para representar e atualizar a posição no mapa.
+
+A abordagem padrão envolve:
+
+1.  **Captura da Localização:** O dispositivo (smartphone, tablet, etc.) utiliza seus sensores de GPS para obter as coordenadas de localização.
+2.  **Formato GeoJSON:** A localização é formatada como um objeto GeoJSON do tipo `Point`.
+3.  **Atualização do Mapa:** O mapa (usando Mapbox GL JS para web ou SDKs de Navegação para mobile) é atualizado com o novo GeoJSON em intervalos regulares.
+
+### 2.1. Estrutura GeoJSON para Localização
+
+O formato GeoJSON é um padrão para codificar estruturas de dados geográficos usando JSON. Uma localização em tempo real é tipicamente representada por um objeto `Feature` contido em um `FeatureCollection`.
+
+```json
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -73.989, // Longitude
+          40.733  // Latitude
+        ]
+      },
+      "properties": {
+        "id": "dispositivo_123",
+        "timestamp": 1635955200,
+        "velocidade": 15.5
+      }
+    }
+  ]
+}
+```
+
+### 2.2. Implementação de Atualização em Tempo Real
+
+A atualização contínua no mapa é realizada através de uma fonte de dados (Source) do Mapbox GL JS, que é periodicamente atualizada com novos dados GeoJSON.
+
+| Componente Mapbox | Função |
+| :--- | :--- |
+| **`mapboxgl.GeoJSONSource`** | Define a fonte de dados que será desenhada no mapa. |
+| **`setData(new_geojson)`** | Método utilizado para atualizar a geometria da fonte de dados com a nova localização. |
+| **`setInterval()`** | Função JavaScript (ou equivalente no SDK) que chama a função de captura/envio de localização e o método `setData()` a cada X milissegundos. |
+
+**Fluxo de Dados (Exemplo Web):**
+
+1.  O dispositivo obtém a localização (via `navigator.geolocation.watchPosition` ou API customizada).
+2.  A cada 2 segundos (exemplo), um `fetch` é feito para um servidor que armazena a localização do dispositivo, ou a localização é enviada diretamente para o mapa.
+3.  O mapa recebe o novo GeoJSON e executa `map.getSource('device-location').setData(newGeoJSON)`.
+
+---
+
+## 3. Conclusão e Referências
+
+As configurações de navegação do Mapbox são divididas em duas áreas principais:
+
+1.  **Cálculo de Rotas (A, B, C...)**: Utiliza a **Directions API** com o parâmetro `coordinates` como uma lista de pontos separados por ponto e vírgula. A estrutura JSON de resposta utiliza o array `legs` para separar os segmentos entre cada ponto.
+2.  **Localização em Tempo Real**: É uma implementação do lado do cliente que usa o formato **GeoJSON** (`Point` feature) para representar a posição e o método `setData()` de uma `GeoJSONSource` para atualizar o mapa de forma contínua.
+
+### Referências
+
+[1] Mapbox Directions API. *Mapbox Documentation*. Disponível em: [https://docs.mapbox.com/api/navigation/directions/](https://docs.mapbox.com/api/navigation/directions/)
+[2] Add live realtime data. *Mapbox GL JS Examples*. Disponível em: [https://docs.mapbox.com/mapbox-gl-js/example/live-geojson/](https://docs.mapbox.com/mapbox-gl-js/example/live-geojson/)
+[3] GeoJSON Specification. *GeoJSON*. Disponível em: [https://geojson.org/](https://geojson.org/)

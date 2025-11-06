@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Entregadores - TimePulse AI</title>
+    <meta name="description" content="Gerencie entregadores, histórico de entregas e pagamentos">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-color: #dee2e6;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            display: inline-block;
+            width: 1.2rem;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            color: #333;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .page-title i {
+            margin-right: 1rem;
+            color: var(--primary-color);
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #6c757d;
+        }
+
+        .page-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card.online .icon { color: var(--success-color); }
+        .stat-card.offline .icon { color: var(--secondary-color); }
+        .stat-card.busy .icon { color: var(--warning-color); }
+        .stat-card.total .icon { color: var(--info-color); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .deliverers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .deliverer-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .deliverer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .deliverer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .deliverer-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .deliverer-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active { background: #d4edda; color: #155724; }
+        .status-busy { background: #fff3cd; color: #856404; }
+        .status-inactive { background: #f8d7da; color: #721c24; }
+        .status-unavailable { background: #e2e3e5; color: #383d41; }
+
+        .deliverer-info {
+            margin: 1rem 0;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .info-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        .deliverer-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-text {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        .deliverer-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background-color: #f8f9fa;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: #6c757d;
+        }
+
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .status-online {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 12px;
+            height: 12px;
+            background: var(--success-color);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .status-offline {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 12px;
+            height: 12px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .toggle-status {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.875rem;
+            text-decoration: underline;
+        }
+
+        .toggle-status:hover {
+            color: var(--primary-dark);
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+            
+            .deliverers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link active">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" onclick="signOut()">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">
+                        <i class="fas fa-motorcycle"></i>
+                        Gestão de Entregadores
+                    </h1>
+                    <p class="page-subtitle">Gerencie seus entregadores, histórico e pagamentos</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="openDelivererModal()">
+                        <i class="fas fa-plus"></i>
+                        Novo Entregador
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card online">
+                    <div class="icon">
+                        <i class="fas fa-motorcycle"></i>
+                    </div>
+                    <div class="stat-value" id="onlineDeliverersCount">0</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat-card offline">
+                    <div class="icon">
+                        <i class="fas fa-pause-circle"></i>
+                    </div>
+                    <div class="stat-value" id="offlineDeliverersCount">0</div>
+                    <div class="stat-label">Offline</div>
+                </div>
+                <div class="stat-card busy">
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value" id="busyDeliverersCount">0</div>
+                    <div class="stat-label">Ocupados</div>
+                </div>
+                <div class="stat-card total">
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value" id="totalDeliverersCount">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('deliverers')">
+                    <i class="fas fa-motorcycle"></i>
+                    Entregadores
+                </button>
+                <button class="tab" onclick="showTab('history')">
+                    <i class="fas fa-history"></i>
+                    Histórico de Entregas
+                </button>
+                <button class="tab" onclick="showTab('reports')">
+                    <i class="fas fa-chart-bar"></i>
+                    Relatórios
+                </button>
+            </div>
+
+            <!-- Deliverers Tab -->
+            <div id="deliverers-tab" class="tab-content active">
+                <div class="filters">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select class="form-control" id="statusFilter" onchange="filterDeliverers()">
+                                <option value="">Todos</option>
+                                <option value="active">Online</option>
+                                <option value="busy">Ocupado</option>
+                                <option value="inactive">Offline</option>
+                                <option value="unavailable">Indisponível</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="searchFilter" placeholder="Nome do entregador..." onkeyup="filterDeliverers()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="deliverersContainer">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Carregando entregadores...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content">
+                <div class="filters">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label class="form-label">Entregador</label>
+                            <select class="form-control" id="delivererHistoryFilter" onchange="loadDeliveryHistory()">
+                                <option value="">Todos os entregadores</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data Inicial</label>
+                            <input type="date" class="form-control" id="startDateFilter" onchange="loadDeliveryHistory()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data Final</label>
+                            <input type="date" class="form-control" id="endDateFilter" onchange="loadDeliveryHistory()">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="historyContainer">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Carregando histórico...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Relatório de Fechamento do Dia
+                    </h2>
+                </div>
+
+                <div class="filters">
+                    <div class="filters-grid">
+                        <div class="form-group">
+                            <label class="form-label">Data</label>
+                            <input type="date" class="form-control" id="reportDate" onchange="generateDailyReport()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Entregador</label>
+                            <select class="form-control" id="reportDelivererFilter" onchange="generateDailyReport()">
+                                <option value="">Todos os entregadores</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status de Pagamento</label>
+                            <select class="form-control" id="paymentStatusFilter" onchange="generateDailyReport()">
+                                <option value="pending">Apenas Pendentes</option>
+                                <option value="paid">Apenas Pagos</option>
+                                <option value="all">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary" onclick="generateDailyReport()">
+                                <i class="fas fa-sync"></i>
+                                Atualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reportsContainer">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Carregando relatórios...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Deliverer Modal -->
+    <div id="delivererModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Novo Entregador</h3>
+                <button class="modal-close" onclick="closeDelivererModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="delivererForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Nome *</label>
+                            <input type="text" class="form-control" id="delivererName" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CPF</label>
+                            <input type="text" class="form-control" id="delivererCpf" placeholder="000.000.000-00">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Telefone *</label>
+                            <input type="tel" class="form-control" id="delivererPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="delivererEmail">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Placa da Moto</label>
+                            <input type="text" class="form-control" id="motorcyclePlate" placeholder="ABC-1234">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Modelo da Moto</label>
+                            <input type="text" class="form-control" id="motorcycleModel">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Ano da Moto</label>
+                            <input type="number" class="form-control" id="motorcycleYear" min="1980" max="2030">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-control" id="delivererType" required>
+                                <option value="own">Próprio</option>
+                                <option value="third-party">Terceirizado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Paga</label>
+                            <input type="number" class="form-control" id="delivererSalary" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Taxa por Entrega</label>
+                            <input type="number" class="form-control" id="delivererCommission" step="0.01" min="0" max="100">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="delivererId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDelivererModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveDeliverer()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Dar Baixa no Pagamento</h3>
+                <button class="modal-close" onclick="closePaymentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Confirmar o pagamento de <strong id="paymentAmount">R$ 0,00</strong> para <strong id="paymentDeliverer"></strong>?</p>
+                <div class="form-group">
+                    <label class="form-label">Observações</label>
+                    <textarea class="form-control" id="paymentNotes" rows="3" placeholder="Observações sobre o pagamento..."></textarea>
+                </div>
+                <input type="hidden" id="paymentId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePaymentModal()">Cancelar</button>
+                <button class="btn btn-success" onclick="confirmPayment()">Confirmar Pagamento</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SISTEMA SIMPLIFICADO DE INSTÂNCIA =====
+        function getInstanceData() {
+            try {
+                const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    try {
+                        const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                        const tokenData = JSON.parse(cookieValue);
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing cookie:', e);
+                    }
+                }
+                
+                const localStorageData = localStorage.getItem('timepulse_instance_token');
+                if (localStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(localStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing localStorage:', e);
+                    }
+                }
+                
+                const sessionStorageData = sessionStorage.getItem('timepulse_instance_token');
+                if (sessionStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(sessionStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing sessionStorage:', e);
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('getInstanceData error:', error);
+                return null;
+            }
+        }
+
+        function isAuthenticated() {
+            const instanceData = getInstanceData();
+            return instanceData && instanceData.instanceId && instanceData.restaurantId;
+        }
+
+        function requireAuth() {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            document.cookie = 'timepulse_instance_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            window.location.href = 'login.html';
+        }
+
+        // Global variables
+        let supabase;
+        let currentInstance;
+        let deliverers = [];
+        let deliveryHistory = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize secure configuration system
+                await window.secureConfig.init();
+                
+                // Get Supabase client from secure system
+                supabase = await window.secureSupabase.getClient();
+                
+                if (!supabase) {
+                    throw new Error('Erro ao inicializar Supabase');
+                }
+                
+                // Check authentication using local functions
+                if (!isAuthenticated()) {
+                    console.warn('Usuário não autenticado, redirecionando...');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                currentInstance = getInstanceData();
+                console.log('Dados da instância:', currentInstance);
+                
+                if (!currentInstance || !currentInstance.instanceId) {
+                    console.warn('Instância não encontrada, redirecionando...');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Verify we have restaurant ID
+                if (!currentInstance.restaurantId) {
+                    console.warn('Restaurant ID não encontrado, usando instanceId como fallback');
+                    currentInstance.restaurantId = currentInstance.instanceId;
+                }
+
+                // Display restaurant name
+                const restaurantNameEl = document.getElementById('restaurantName');
+                if (restaurantNameEl) {
+                    restaurantNameEl.textContent = currentInstance.instanceName || 'Restaurante';
+                }
+
+                // Set today's date for report
+                const reportDateEl = document.getElementById('reportDate');
+                if (reportDateEl) {
+                    reportDateEl.valueAsDate = new Date();
+                }
+
+                // Load initial data
+                await loadDeliverers();
+                await loadStats();
+                updateReportDelivererOptions();
+
+                console.log('Página inicializada com sucesso');
+
+            } catch (error) {
+                console.error('Erro ao inicializar:', error);
+                
+                // More detailed error message
+                let errorMessage = 'Erro ao carregar a página.';
+                if (error.message.includes('Configuração')) {
+                    errorMessage = 'Erro na configuração do sistema.';
+                } else if (error.message.includes('Supabase')) {
+                    errorMessage = 'Erro ao conectar com o banco de dados.';
+                }
+                
+                const container = document.querySelector('.main-content');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Erro ao Carregar</h3>
+                            <p>${errorMessage}</p>
+                            <p>Detalhes: ${error.message}</p>
+                            <button class="btn btn-primary" onclick="location.reload()">
+                                <i class="fas fa-sync"></i>
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    alert(errorMessage + ' Tente novamente.');
+                }
+            }
+        });
+
+        // Load deliverers
+        async function loadDeliverers() {
+            try {
+                if (!supabase) {
+                    throw new Error('Conexão com banco não estabelecida');
+                }
+
+                if (!currentInstance || !currentInstance.restaurantId) {
+                    throw new Error('Informações do restaurante não encontradas');
+                }
+
+                const { data, error } = await supabase
+                    .from('deliverers')
+                    .select('*')
+                    .eq('restaurant_id', currentInstance.restaurantId)
+                    .order('name');
+
+                if (error) throw error;
+
+                deliverers = data || [];
+                displayDeliverers(deliverers);
+                updateDelivererOptions();
+                updateReportDelivererOptions();
+
+                console.log(`${deliverers.length} entregadores carregados`);
+
+            } catch (error) {
+                console.error('Erro ao carregar entregadores:', error);
+                const container = document.getElementById('deliverersContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Erro ao carregar entregadores</h3>
+                            <p>${error.message}</p>
+                            <button class="btn btn-primary" onclick="loadDeliverers()">
+                                <i class="fas fa-sync"></i>
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Display deliverers
+        function displayDeliverers(deliverersList) {
+            const container = document.getElementById('deliverersContainer');
+            
+            if (!deliverersList || deliverersList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-motorcycle"></i>
+                        <h3>Nenhum entregador cadastrado</h3>
+                        <p>Cadastre seu primeiro entregador para começar</p>
+                        <button class="btn btn-primary" onclick="openDelivererModal()">
+                            <i class="fas fa-plus"></i>
+                            Cadastrar Entregador
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const deliverersHtml = deliverersList.map(deliverer => `
+                <div class="deliverer-card">
+                    <div class="${deliverer.status === 'active' ? 'status-online' : 'status-offline'}"></div>
+                    
+                    <div class="deliverer-header">
+                        <div>
+                            <div class="deliverer-name">${deliverer.name}</div>
+                        </div>
+                        <div class="deliverer-status status-${deliverer.status}">
+                            ${getStatusLabel(deliverer.status)}
+                        </div>
+                    </div>
+
+                    <div class="deliverer-info">
+                        ${deliverer.phone ? `
+                            <div class="info-item">
+                                <i class="fas fa-phone"></i>
+                                <span>${deliverer.phone}</span>
+                            </div>
+                        ` : ''}
+                        ${deliverer.motorcycle_plate ? `
+                            <div class="info-item">
+                                <i class="fas fa-motorcycle"></i>
+                                <span>${deliverer.motorcycle_plate} - ${deliverer.motorcycle_model || 'N/I'}</span>
+                            </div>
+                        ` : ''}
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>${deliverer.type === 'own' ? 'Próprio' : 'Terceirizado'}</span>
+                        </div>
+                    </div>
+
+                    <div class="deliverer-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">${deliverer.total_deliveries || 0}</div>
+                            <div class="stat-text">Entregas</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">R$ ${(deliverer.balance || 0).toFixed(2)}</div>
+                            <div class="stat-text">Saldo</div>
+                        </div>
+                    </div>
+
+                    <div class="deliverer-actions">
+                        ${deliverer.status === 'active' ? `
+                            <button class="btn btn-sm btn-warning" onclick="toggleDelivererStatus('${deliverer.id}', '${deliverer.status}')">
+                                <i class="fas fa-pause"></i>
+                                Desativar
+                            </button>
+                        ` : `
+                            <button class="btn btn-sm btn-success" onclick="toggleDelivererStatus('${deliverer.id}', '${deliverer.status}')">
+                                <i class="fas fa-play"></i>
+                                Ativar
+                            </button>
+                        `}
+                        <button class="btn btn-sm btn-primary" onclick="editDeliverer('${deliverer.id}')">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewDelivererHistory('${deliverer.id}')">
+                            <i class="fas fa-history"></i>
+                            Histórico
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `<div class="deliverers-grid">${deliverersHtml}</div>`;
+        }
+
+        // Get status label
+        function getStatusLabel(status) {
+            const labels = {
+                'active': 'Online',
+                'busy': 'Ocupado',
+                'inactive': 'Offline',
+                'unavailable': 'Indisponível'
+            };
+            return labels[status] || status;
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const stats = {
+                    online: deliverers.filter(d => d.status === 'active').length,
+                    offline: deliverers.filter(d => d.status === 'inactive').length,
+                    busy: deliverers.filter(d => d.status === 'busy').length,
+                    total: deliverers.length
+                };
+
+                document.getElementById('onlineDeliverersCount').textContent = stats.online;
+                document.getElementById('offlineDeliverersCount').textContent = stats.offline;
+                document.getElementById('busyDeliverersCount').textContent = stats.busy;
+                document.getElementById('totalDeliverersCount').textContent = stats.total;
+
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Toggle deliverer status
+        async function toggleDelivererStatus(delivererId, currentStatus) {
+            try {
+                const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+                
+                const { error } = await supabase
+                    .from('deliverers')
+                    .update({ 
+                        status: newStatus,
+                        last_seen: new Date().toISOString()
+                    })
+                    .eq('id', delivererId);
+
+                if (error) throw error;
+
+                await loadDeliverers();
+                await loadStats();
+
+            } catch (error) {
+                console.error('Erro ao alterar status:', error);
+                alert('Erro ao alterar status do entregador');
+            }
+        }
+
+        // Filter deliverers
+        function filterDeliverers() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+            let filtered = deliverers;
+
+            if (statusFilter) {
+                filtered = filtered.filter(d => d.status === statusFilter);
+            }
+
+            if (searchFilter) {
+                filtered = filtered.filter(d => 
+                    d.name.toLowerCase().includes(searchFilter) ||
+                    (d.phone && d.phone.includes(searchFilter))
+                );
+            }
+
+            displayDeliverers(filtered);
+        }
+
+        // Open deliverer modal
+        function openDelivererModal(delivererId = null) {
+            const modal = document.getElementById('delivererModal');
+            const form = document.getElementById('delivererForm');
+            
+            if (delivererId) {
+                const deliverer = deliverers.find(d => d.id === delivererId);
+                if (deliverer) {
+                    document.getElementById('modalTitle').textContent = 'Editar Entregador';
+                    document.getElementById('delivererName').value = deliverer.name || '';
+                    document.getElementById('delivererCpf').value = deliverer.cpf || '';
+                    document.getElementById('delivererPhone').value = deliverer.phone || '';
+                    document.getElementById('delivererEmail').value = deliverer.email || '';
+                    document.getElementById('motorcyclePlate').value = deliverer.motorcycle_plate || '';
+                    document.getElementById('motorcycleModel').value = deliverer.motorcycle_model || '';
+                    document.getElementById('motorcycleYear').value = deliverer.motorcycle_year || '';
+                    document.getElementById('delivererType').value = deliverer.type || 'own';
+                    document.getElementById('delivererSalary').value = deliverer.salary || '';
+                    document.getElementById('delivererCommission').value = deliverer.commission || '';
+                    document.getElementById('delivererId').value = deliverer.id;
+                }
+            } else {
+                document.getElementById('modalTitle').textContent = 'Novo Entregador';
+                form.reset();
+                document.getElementById('delivererId').value = '';
+            }
+            
+            modal.classList.add('show');
+        }
+
+        // Close deliverer modal
+        function closeDelivererModal() {
+            document.getElementById('delivererModal').classList.remove('show');
+        }
+
+        // Save deliverer
+        async function saveDeliverer() {
+            try {
+                const form = document.getElementById('delivererForm');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const delivererId = document.getElementById('delivererId').value;
+                const delivererData = {
+                    restaurant_id: currentInstance.restaurantId,
+                    name: document.getElementById('delivererName').value,
+                    cpf: document.getElementById('delivererCpf').value || null,
+                    phone: document.getElementById('delivererPhone').value,
+                    email: document.getElementById('delivererEmail').value || null,
+                    motorcycle_plate: document.getElementById('motorcyclePlate').value || null,
+                    motorcycle_model: document.getElementById('motorcycleModel').value || null,
+                    motorcycle_year: document.getElementById('motorcycleYear').value || null,
+                    type: document.getElementById('delivererType').value,
+                    salary: parseFloat(document.getElementById('delivererSalary').value) || null,
+                    commission: parseFloat(document.getElementById('delivererCommission').value) || null,
+                    updated_at: new Date().toISOString()
+                };
+
+                let result;
+                if (delivererId) {
+                    result = await supabase
+                        .from('deliverers')
+                        .update(delivererData)
+                        .eq('id', delivererId);
+                } else {
+                    delivererData.status = 'inactive';
+                    delivererData.balance = 0;
+                    delivererData.total_deliveries = 0;
+                    delivererData.rating = 5.0;
+                    result = await supabase
+                        .from('deliverers')
+                        .insert([delivererData]);
+                }
+
+                if (result.error) throw result.error;
+
+                closeDelivererModal();
+                await loadDeliverers();
+                await loadStats();
+
+            } catch (error) {
+                console.error('Erro ao salvar entregador:', error);
+                alert('Erro ao salvar entregador: ' + error.message);
+            }
+        }
+
+        // Edit deliverer
+        function editDeliverer(delivererId) {
+            openDelivererModal(delivererId);
+        }
+
+        // View deliverer history
+        function viewDelivererHistory(delivererId) {
+            document.getElementById('delivererHistoryFilter').value = delivererId;
+            showTab('history');
+            loadDeliveryHistory();
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Show selected tab
+            document.querySelector(`button[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Load data if needed
+            if (tabName === 'history') {
+                loadDeliveryHistory();
+            } else if (tabName === 'reports') {
+                generateDailyReport();
+            }
+        }
+
+        // Load delivery history
+        async function loadDeliveryHistory() {
+            try {
+                const container = document.getElementById('historyContainer');
+                container.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Carregando histórico...</p>
+                    </div>
+                `;
+
+                let query = supabase
+                    .from('orders')
+                    .select(`
+                        id,
+                        customer_name,
+                        delivery_fee,
+                        total,
+                        delivered_at,
+                        created_at,
+                        deliverer_id
+                    `)
+                    .eq('restaurant_id', currentInstance.restaurantId)
+                    .eq('status', 'entregue')
+                    .not('deliverer_id', 'is', null)
+                    .order('delivered_at', { ascending: false });
+
+                const delivererId = document.getElementById('delivererHistoryFilter').value;
+                if (delivererId) {
+                    query = query.eq('deliverer_id', delivererId);
+                }
+
+                const startDate = document.getElementById('startDateFilter').value;
+                if (startDate) {
+                    query = query.gte('delivered_at', startDate);
+                }
+
+                const endDate = document.getElementById('endDateFilter').value;
+                if (endDate) {
+                    query = query.lte('delivered_at', endDate + 'T23:59:59');
+                }
+
+                const { data: orders, error } = await query;
+
+                if (error) throw error;
+
+                // Get unique deliverer IDs from orders
+                const delivererIds = [...new Set(orders.map(order => order.deliverer_id))];
+                
+                // Get deliverer names
+                let delivererNames = {};
+                if (delivererIds.length > 0) {
+                    const { data: delivererData, error: delivererError } = await supabase
+                        .from('deliverers')
+                        .select('id, name')
+                        .in('id', delivererIds);
+                    
+                    if (delivererError) {
+                        console.warn('Erro ao carregar nomes dos entregadores:', delivererError);
+                    } else {
+                        delivererNames = delivererData.reduce((acc, d) => {
+                            acc[d.id] = d.name;
+                            return acc;
+                        }, {});
+                    }
+                }
+
+                // Add deliverer names to orders
+                deliveryHistory = orders.map(order => ({
+                    ...order,
+                    deliverer_name: delivererNames[order.deliverer_id] || 'N/I'
+                }));
+
+                displayDeliveryHistory(deliveryHistory);
+
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+                document.getElementById('historyContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Erro ao carregar histórico</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display delivery history
+        function displayDeliveryHistory(history) {
+            const container = document.getElementById('historyContainer');
+
+            if (!history || history.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <h3>Nenhuma entrega encontrada</h3>
+                        <p>Não há entregas no período selecionado</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const historyHtml = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Pedido</th>
+                                <th>Entregador</th>
+                                <th>Cliente</th>
+                                <th>Taxa</th>
+                                <th>Total</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${history.map(order => `
+                                <tr>
+                                    <td>#${order.id.slice(-8)}</td>
+                                    <td>${order.deliverer_name}</td>
+                                    <td>${order.customer_name}</td>
+                                    <td>R$ ${(order.delivery_fee || 0).toFixed(2)}</td>
+                                    <td>R$ ${(order.total || 0).toFixed(2)}</td>
+                                    <td>${formatDateTime(order.delivered_at || order.created_at)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = historyHtml;
+        }
+
+        // Generate daily report
+        async function generateDailyReport() {
+            try {
+                const container = document.getElementById('reportsContainer');
+                container.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Gerando relatório...</p>
+                    </div>
+                `;
+
+                const reportDate = document.getElementById('reportDate').value;
+                const selectedDelivererId = document.getElementById('reportDelivererFilter').value;
+                
+                if (!reportDate) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar"></i>
+                            <h3>Selecione uma data</h3>
+                            <p>Escolha uma data para gerar o relatório</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                console.log('Gerando relatório para a data:', reportDate, 'Entregador:', selectedDelivererId || 'Todos');
+
+
+                // Use a data selecionada para criar o range do dia
+                const startDate = reportDate + 'T00:00:00.000Z';
+                const endDate = reportDate + 'T23:59:59.999Z';
+
+                console.log('Filtro de data:', { startDate, endDate });
+
+                // Buscar pedidos com filtros aplicados
+                let query = supabase
+                    .from('orders')
+                    .select(`
+                        id,
+                        deliverer_id,
+                        delivery_fee,
+                        total,
+                        delivered_at,
+                        created_at
+                    `)
+                    .eq('restaurant_id', currentInstance.restaurantId)
+                    .eq('status', 'entregue')
+                    .not('deliverer_id', 'is', null)
+                    .gte('delivered_at', startDate)
+                    .lte('delivered_at', endDate);
+
+                // Filtrar por entregador se selecionado
+                if (selectedDelivererId) {
+                    query = query.eq('deliverer_id', selectedDelivererId);
+                }
+
+                const { data: orders, error } = await query;
+
+                if (error) throw error;
+
+                console.log('Pedidos filtrados:', orders?.length || 0);
+
+                // Se não encontrou na delivered_at, tenta na created_at
+                let ordersFiltered = orders || [];
+                if (!ordersFiltered.length) {
+                    console.log('Tentando filtrar por created_at...');
+                    let queryByCreated = supabase
+                        .from('orders')
+                        .select(`
+                            id,
+                            deliverer_id,
+                            delivery_fee,
+                            total,
+                            delivered_at,
+                            created_at
+                        `)
+                        .eq('restaurant_id', currentInstance.restaurantId)
+                        .eq('status', 'entregue')
+                        .not('deliverer_id', 'is', null)
+                        .gte('created_at', startDate)
+                        .lte('created_at', endDate);
+
+                    if (selectedDelivererId) {
+                        queryByCreated = queryByCreated.eq('deliverer_id', selectedDelivererId);
+                    }
+
+                    const { data: ordersByCreated, error: createdError } = await queryByCreated;
+
+                    if (!createdError) {
+                        ordersFiltered = ordersByCreated || [];
+                        console.log('Pedidos encontrados por created_at:', ordersFiltered.length);
+                    }
+                }
+
+                // Get unique deliverer IDs from orders
+                const delivererIds = [...new Set(ordersFiltered.map(order => order.deliverer_id))];
+                
+                // Get deliverer data with all necessary fields for payment calculation
+                let delivererData = {};
+                if (delivererIds.length > 0) {
+                    console.log('Buscando dados dos entregadores para IDs:', delivererIds);
+                    console.log('Restaurant ID:', currentInstance.restaurantId);
+                    
+                    const { data: deliverersFromDB, error: delivererError } = await supabase
+                        .from('deliverers')
+                        .select('*')  // Buscar todos os campos para debug
+                        .eq('restaurant_id', currentInstance.restaurantId)
+                        .in('id', delivererIds);
+                    
+                    if (delivererError) {
+                        console.error('Erro ao carregar dados dos entregadores:', delivererError);
+                    } else {
+                        console.log('DADOS BRUTOS dos entregadores da base de dados:', deliverersFromDB);
+                        
+                        delivererData = deliverersFromDB.reduce((acc, d) => {
+                            console.log(`Dados RAW do entregador ${d.name}:`, {
+                                'commission (raw)': d.commission,
+                                'salary (raw)': d.salary,
+                                'commission type': typeof d.commission,
+                                'salary type': typeof d.salary
+                            });
+                            
+                            // Garantir que os valores são números para os cálculos
+                            // Se os valores estão null no banco, usar 0
+                            const commission = d.commission !== null && d.commission !== undefined ? parseFloat(d.commission) : 0;
+                            const salary = d.salary !== null && d.salary !== undefined ? parseFloat(d.salary) : 0;
+                            
+                            acc[d.id] = {
+                                id: d.id,
+                                name: d.name,
+                                commission: commission,  // Taxa por entrega
+                                salary: salary          // Valor fixo mensal/diário
+                            };
+                            
+                            console.log(`Entregador ${d.name} - VALORES PROCESSADOS:`, {
+                                'Taxa Entrega (commission)': commission,
+                                'Paga (salary)': salary,
+                                'Resultado final': acc[d.id]
+                            });
+                            
+                            return acc;
+                        }, {});
+                    }
+                }
+
+                console.log('Dados dos entregadores processados:', delivererData);
+
+                // Add deliverer data to orders
+                const ordersWithDeliverers = ordersFiltered.map(order => ({
+                    ...order,
+                    deliverers: delivererData[order.deliverer_id] || { 
+                        id: order.deliverer_id,
+                        name: 'N/I', 
+                        commission: 0, 
+                        salary: 0 
+                    }
+                }));
+
+                console.log('Pedidos com dados dos entregadores:', ordersWithDeliverers);
+
+                const report = await generateReportData(ordersWithDeliverers || [], reportDate);
+                displayDailyReport(report, reportDate);
+
+            } catch (error) {
+                console.error('Erro ao gerar relatório:', error);
+                document.getElementById('reportsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Erro ao gerar relatório</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Generate report data
+        async function generateReportData(orders, reportDate) {
+            console.log('Gerando dados do relatório com', orders.length, 'pedidos');
+            
+            // Primeiro, obter todos os pedidos já pagos (registrados na delivery_baixa_dia)
+            const allPaidOrderIds = await getAllPaidOrderIds(reportDate);
+            console.log('Pedidos já pagos na data:', allPaidOrderIds);
+            
+            // Filtrar apenas os pedidos que NÃO foram pagos ainda
+            const unpaidOrders = orders.filter(order => !allPaidOrderIds.includes(order.id));
+            console.log(`Filtrados ${unpaidOrders.length} pedidos não pagos de ${orders.length} total`);
+            
+            const delivererStats = {};
+            let totalDeliveries = 0;
+            let totalDeliveryFees = 0;
+            let totalOrderValue = 0;
+
+            // Processar apenas os pedidos não pagos
+            unpaidOrders.forEach(order => {
+                if (order.deliverers) {
+                    const delivererId = order.deliverers.id;
+                    
+                    console.log('Processando pedido NÃO PAGO para entregador:', {
+                        id: delivererId,
+                        name: order.deliverers.name,
+                        orderId: order.id,
+                        commission: order.deliverers.commission,
+                        salary: order.deliverers.salary
+                    });
+                    
+                    if (!delivererStats[delivererId]) {
+                        delivererStats[delivererId] = {
+                            id: delivererId,
+                            name: order.deliverers.name,
+                            commission: parseFloat(order.deliverers.commission) || 0, // Taxa por Entrega
+                            salary: parseFloat(order.deliverers.salary) || 0, // Paga
+                            deliveries: 0,
+                            deliveryFees: 0,
+                            totalValue: 0,
+                            earnings: 0,
+                            paid: false,
+                            orderIds: [] // Array para armazenar IDs dos pedidos PENDENTES
+                        };
+                        
+                        console.log('Criando stats para entregador (APENAS PEDIDOS PENDENTES):', delivererStats[delivererId]);
+                    }
+
+                    delivererStats[delivererId].deliveries++;
+                    delivererStats[delivererId].deliveryFees += order.delivery_fee || 0;
+                    delivererStats[delivererId].totalValue += order.total || 0;
+                    delivererStats[delivererId].orderIds.push(order.id); // Apenas pedidos pendentes
+                }
+
+                totalDeliveries++;
+                totalDeliveryFees += order.delivery_fee || 0;
+                totalOrderValue += order.total || 0;
+            });
+
+            // Calculate earnings for each deliverer (apenas para pedidos não pagos)
+            for (const deliverer of Object.values(delivererStats)) {
+                // Ganho = (Taxa Entrega × Entregas PENDENTES) + Paga (se houver entregas)
+                const taxaEntrega = parseFloat(deliverer.commission) || 0;
+                const paga = parseFloat(deliverer.salary) || 0;
+                const entregas = parseInt(deliverer.deliveries) || 0;
+                
+                // Fórmula: Taxa Entrega × Entregas PENDENTES + Paga (somente se há entregas)
+                deliverer.earnings = entregas > 0 ? (taxaEntrega * entregas) + paga : 0;
+                
+                // Todos os orders neste ponto são pendentes (não pagos)
+                deliverer.pendingOrderIds = deliverer.orderIds;
+                deliverer.ordersPagas = [];
+                deliverer.paidOrders = [];
+                deliverer.status = entregas > 0 ? 'Pendente' : 'Pago';
+                deliverer.canPay = entregas > 0;
+                deliverer.hasMixedStatus = false;
+                deliverer.paid = entregas === 0; // Marcar como pago se não há entregas pendentes
+                
+                console.log(`NOVO LANÇAMENTO - Ganho para ${deliverer.name}:`, {
+                    'Taxa Entrega (commission)': taxaEntrega,
+                    'Número de Entregas PENDENTES': entregas,
+                    'Paga (salary)': paga,
+                    'Cálculo': entregas > 0 ? `(${taxaEntrega} × ${entregas}) + ${paga} = ${deliverer.earnings.toFixed(2)}` : 'Sem entregas pendentes = 0.00',
+                    'Ganho Total': deliverer.earnings,
+                    'Status': deliverer.status,
+                    'Orders Pendentes': deliverer.pendingOrderIds.length
+                });
+            }
+
+            console.log('Stats finais dos entregadores:', delivererStats);
+
+            return {
+                deliverers: Object.values(delivererStats),
+                summary: {
+                    totalDeliveries,
+                    totalDeliveryFees,
+                    totalOrderValue,
+                    totalEarnings: Object.values(delivererStats).reduce((sum, d) => sum + d.earnings, 0)
+                }
+            };
+        }
+
+        // Display daily report
+        function displayDailyReport(report, date) {
+            const container = document.getElementById('reportsContainer');
+            const paymentStatusFilter = document.getElementById('paymentStatusFilter').value;
+            
+            // Filtrar entregadores baseado no status de pagamento
+            let filteredDeliverers = [...report.deliverers];
+            
+            if (paymentStatusFilter === 'pending') {
+                filteredDeliverers = report.deliverers.filter(d => d.status === 'Pendente' || !d.paid);
+            } else if (paymentStatusFilter === 'paid') {
+                filteredDeliverers = report.deliverers.filter(d => d.status === 'Pago' || d.paid);
+            }
+            // 'all' mostra todos, não precisa filtrar
+
+            if (filteredDeliverers.length === 0) {
+                const statusText = paymentStatusFilter === 'pending' ? 'pendentes' : 
+                                 paymentStatusFilter === 'paid' ? 'pagos' : 'com entregas';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>Nenhum entregador ${statusText}</h3>
+                        <p>Não foram encontrados entregadores ${statusText} em ${formatDate(date)}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Usar os entregadores filtrados no lugar dos originais
+            const filteredReport = {
+                ...report,
+                deliverers: filteredDeliverers
+            };
+
+            // Verificar se há entregadores sem valores configurados
+            const entregadoresSemConfig = filteredDeliverers.filter(d => d.commission === 0 && d.salary === 0);
+            let alertaConfiguracao = '';
+            
+            if (entregadoresSemConfig.length > 0) {
+                alertaConfiguracao = `
+                    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; color: #856404;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Atenção: Valores não configurados</strong>
+                        </div>
+                        <p style="margin: 0;">Os seguintes entregadores não têm valores de <strong>Taxa por Entrega</strong> ou <strong>Paga</strong> configurados:</p>
+                        <ul style="margin: 0.5rem 0;">
+                            ${entregadoresSemConfig.map(d => `<li><strong>${d.name}</strong></li>`).join('')}
+                        </ul>
+                        <p style="margin: 0; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> 
+                            Para configurar, clique em <strong>Editar</strong> na aba Entregadores e defina os valores de <strong>Salário</strong> e <strong>Comissão</strong>.
+                        </p>
+                    </div>
+                `;
+            }
+
+            const reportHtml = `
+                ${alertaConfiguracao}
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Entregador</th>
+                                <th>Entregas</th>
+                                <th>Paga (Fixa)</th>
+                                <th>Taxa por Entrega</th>
+                                <th>Ganho Total</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredDeliverers.map(deliverer => {
+                                const entregas = deliverer.deliveries || 0;
+                                const taxaEntrega = deliverer.commission || 0;
+                                const paga = deliverer.salary || 0;
+                                const calculoTaxa = taxaEntrega * entregas;
+                                const ganhoTotal = deliverer.earnings || 0;
+                                
+                                return `
+                                <tr>
+                                    <td><strong>${deliverer.name}</strong></td>
+                                    <td><span class="stat-number" style="font-size: 1.1rem; color: var(--primary-color);">${entregas}</span></td>
+                                    <td>R$ ${paga.toFixed(2)}</td>
+                                    <td>${taxaEntrega > 0 ? `R$ ${taxaEntrega.toFixed(2)}` : `<span style="color: #dc3545;">Não configurado</span>`}
+                                        <small style="color: #6c757d;">(${entregas}x = R$ ${calculoTaxa.toFixed(2)})</small>
+                                    </td>
+                                    <td><strong style="color: ${ganhoTotal > 0 ? 'var(--success-color)' : '#dc3545'};">R$ ${ganhoTotal.toFixed(2)}</strong>
+                                        <br><small style="color: #6c757d;">R$ ${calculoTaxa.toFixed(2)} + R$ ${paga.toFixed(2)}</small>
+                                        ${ganhoTotal === 0 ? '<br><small style="color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Configure os valores</small>' : ''}
+                                    </td>
+                                    <td>
+                                        <span class="deliverer-status ${deliverer.status === 'Pago' ? 'status-active' : 'status-busy'}">
+                                            ${deliverer.status || 'Pendente'}
+                                        </span>
+                                        ${deliverer.hasMixedStatus ? `<br><small style="color: #6c757d;">Parcial</small>` : ''}
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                            ${ganhoTotal === 0 ? `
+                                                <button class="btn btn-sm btn-primary" onclick="editDeliverer('${deliverer.id}')" title="Configurar valores">
+                                                    <i class="fas fa-edit"></i>
+                                                    Configurar
+                                                </button>
+                                            ` : ''}
+                                            ${deliverer.canPay && ganhoTotal > 0 ? `
+                                                <button class="btn btn-sm btn-warning" onclick="markReportAsPaid('${deliverer.id}', '${deliverer.name.replace(/'/g, "\\'")}', ${ganhoTotal}, ${JSON.stringify(deliverer.pendingOrderIds).replace(/"/g, '&quot;')})" title="Marcar como pago">
+                                                    <i class="fas fa-check"></i>
+                                                    Dar Baixa
+                                                </button>
+                                            ` : ''}
+                                            ${deliverer.status === 'Pago' ? `
+                                                <span class="text-success" style="display: flex; align-items: center; gap: 0.25rem;">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    Pago
+                                                </span>
+                                            ` : ''}
+                                        </div>
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = reportHtml;
+        }
+
+        // Mark as paid
+        function markAsPaid(delivererName, amount) {
+            if (confirm(`Confirmar pagamento de R$ ${amount.toFixed(2)} para ${delivererName}?`)) {
+                alert('Pagamento confirmado!');
+                // Here you would update the database to mark as paid
+                generateDailyReport(); // Refresh the report
+            }
+        }
+
+        // Update deliverer options for filters
+        function updateDelivererOptions() {
+            const select = document.getElementById('delivererHistoryFilter');
+            select.innerHTML = '<option value="">Todos os entregadores</option>';
+            
+            deliverers.forEach(deliverer => {
+                select.innerHTML += `<option value="${deliverer.id}">${deliverer.name}</option>`;
+            });
+        }
+
+        // Update deliverer options for reports
+        function updateReportDelivererOptions() {
+            const select = document.getElementById('reportDelivererFilter');
+            if (select) {
+                select.innerHTML = '<option value="">Todos os entregadores</option>';
+                
+                deliverers.forEach(deliverer => {
+                    select.innerHTML += `<option value="${deliverer.id}">${deliverer.name}</option>`;
+                });
+            }
+        }
+
+        // Mark report payment as paid
+        async function markReportAsPaid(delivererId, delivererName, amount, orderIds) {
+            if (!confirm(`Confirmar pagamento de R$ ${amount.toFixed(2)} para ${delivererName}?`)) {
+                return;
+            }
+
+            try {
+                const reportDate = document.getElementById('reportDate').value;
+                
+                console.log('Processando pagamento:', {
+                    delivererId,
+                    delivererName,
+                    amount,
+                    orderIds,
+                    date: reportDate
+                });
+
+                // 1. Buscar dados atuais do entregador
+                const { data: delivererData, error: delivererError } = await supabase
+                    .from('deliverers')
+                    .select('balance')
+                    .eq('id', delivererId)
+                    .single();
+
+                if (delivererError) {
+                    throw new Error('Erro ao buscar dados do entregador: ' + delivererError.message);
+                }
+
+                const currentBalance = parseFloat(delivererData.balance) || 0;
+                const newBalance = currentBalance + amount;
+
+                console.log('Atualizando balance:', {
+                    currentBalance,
+                    amount,
+                    newBalance
+                });
+
+                // 2. Atualizar o balance do entregador
+                const { error: updateError } = await supabase
+                    .from('deliverers')
+                    .update({ 
+                        balance: newBalance,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', delivererId);
+
+                if (updateError) {
+                    throw new Error('Erro ao atualizar balance: ' + updateError.message);
+                }
+
+                // 3. Registrar os order IDs na tabela delivery_baixa_dia
+                // Isto marca as ordens como pagas, permitindo que o entregador 
+                // inicie um novo turno com lançamento limpo
+                const baixaRecords = orderIds.map(orderId => ({
+                    restaurant_id: currentInstance.restaurantId,
+                    deliverer_id: delivererId,
+                    order_id: orderId,
+                    data_baixa: reportDate,
+                    valor_pago: amount / orderIds.length, // Dividir valor por número de orders
+                    status: 'Pago',
+                    created_at: new Date().toISOString()
+                }));
+
+                const { error: insertError } = await supabase
+                    .from('delivery_baixa_dia')
+                    .insert(baixaRecords);
+
+                if (insertError) {
+                    console.warn('Erro ao inserir na delivery_baixa_dia:', insertError);
+                    // Continuar mesmo se a tabela não existir ainda
+                }
+
+                alert(`✅ Pagamento de R$ ${amount.toFixed(2)} confirmado para ${delivererName}!\n\n💰 Balance atualizado: R$ ${currentBalance.toFixed(2)} → R$ ${newBalance.toFixed(2)}\n📦 ${orderIds.length} pedidos marcados como pagos\n\n🚀 O entregador pode iniciar um novo turno com lançamento limpo.`);
+                
+                // Recarregar dados
+                await loadDeliverers();
+                await loadStats();
+                generateDailyReport();
+
+            } catch (error) {
+                console.error('Erro ao processar pagamento:', error);
+                alert('Erro ao processar pagamento: ' + error.message);
+            }
+        }
+
+        // Obter TODOS os pedidos já pagos na data (para excluir do cálculo)
+        async function getAllPaidOrderIds(reportDate) {
+            try {
+                const { data, error } = await supabase
+                    .from('delivery_baixa_dia')
+                    .select('order_id')
+                    .eq('restaurant_id', currentInstance.restaurantId)
+                    .eq('data_baixa', reportDate);
+
+                if (error && !error.message.includes('does not exist')) {
+                    console.warn('Erro ao buscar pedidos pagos:', error);
+                    return [];
+                }
+
+                return data ? data.map(item => item.order_id) : [];
+            } catch (error) {
+                console.warn('Erro ao buscar pedidos pagos:', error);
+                return [];
+            }
+        }
+
+        // Verificar quais orders já foram pagas (função mantida para compatibilidade)
+        async function getOrdersPagas(orderIds) {
+            try {
+                if (!orderIds || orderIds.length === 0) return [];
+
+                const { data, error } = await supabase
+                    .from('delivery_baixa_dia')
+                    .select('order_id')
+                    .eq('restaurant_id', currentInstance.restaurantId)
+                    .in('order_id', orderIds);
+
+                if (error && !error.message.includes('does not exist')) {
+                    console.warn('Erro ao verificar orders pagas:', error);
+                    return [];
+                }
+
+                return data ? data.map(item => item.order_id) : [];
+            } catch (error) {
+                console.warn('Erro ao verificar orders pagas:', error);
+                return [];
+            }
+        }
+
+        // Verificar se entregador tem orders pagas na data
+        async function checkDelivererPaidOrders(delivererId, reportDate) {
+            try {
+                const { data, error } = await supabase
+                    .from('delivery_baixa_dia')
+                    .select('order_id, valor_pago')
+                    .eq('restaurant_id', currentInstance.restaurantId)
+                    .eq('deliverer_id', delivererId)
+                    .eq('data_baixa', reportDate);
+
+                if (error && !error.message.includes('does not exist')) {
+                    console.warn('Erro ao verificar pagamentos do entregador:', error);
+                    return [];
+                }
+
+                return data || [];
+            } catch (error) {
+                console.warn('Erro ao verificar pagamentos do entregador:', error);
+                return [];
+            }
+        }
+
+
+        // Open payment modal
+        function openPaymentModal(delivererId, delivererName, amount) {
+            document.getElementById('paymentAmount').textContent = `R$ ${amount.toFixed(2)}`;
+            document.getElementById('paymentDeliverer').textContent = delivererName;
+            document.getElementById('paymentId').value = delivererId;
+            document.getElementById('paymentNotes').value = '';
+            document.getElementById('paymentModal').classList.add('show');
+        }
+
+        // Close payment modal
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('show');
+        }
+
+        // Confirm payment
+        async function confirmPayment() {
+            try {
+                const delivererId = document.getElementById('paymentId').value;
+                const notes = document.getElementById('paymentNotes').value;
+
+                const { error } = await supabase
+                    .from('deliverers')
+                    .update({ 
+                        balance: 0,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', delivererId);
+
+                if (error) throw error;
+
+                closePaymentModal();
+                await loadDeliverers();
+                await loadStats();
+
+                alert('Pagamento confirmado com sucesso!');
+
+            } catch (error) {
+                console.error('Erro ao confirmar pagamento:', error);
+                alert('Erro ao confirmar pagamento: ' + error.message);
+            }
+        }
+
+        // Utility functions
+        function formatDateTime(dateString) {
+            if (!dateString) return 'N/I';
+            return new Date(dateString).toLocaleString('pt-BR');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/I';
+            return new Date(dateString).toLocaleDateString('pt-BR');
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        }
+
+        // Sign out function
+        async function signOut() {
+            // Usar modal padrão de confirmação
+            if (await showCustomConfirmation('Deseja realmente sair?', 'Sair')) {
+                try {
+                    // 1. PRIMEIRO: Fazer logout do Supabase
+                    if (window.supabase) {
+                        await window.supabase.auth.signOut();
+                        console.log('✅ Logout do Supabase realizado');
+                    }
+                    
+                    // 2. Limpar dados locais
+                    if (window.SECURE_INSTANCE_MANAGER) {
+                        window.SECURE_INSTANCE_MANAGER.logout();
+                    } else {
+                        // Fallback manual
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    }
+                } catch (error) {
+                    console.error('Erro durante logout:', error);
+                }
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Modal de confirmação padrão para todo o sistema
+        function showCustomConfirmation(message, title = 'Confirmação') {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                        <div class="modal" id="customConfirmationDialog" style="z-index: 16000; display:flex;">
+                            <div class="modal-content" style="max-width: 400px;">
+                                <div class="modal-header"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+                                <div class="modal-body" style="text-align: center; padding: 2rem;"><p>${message}</p></div>
+                                <div style="padding: 1.5rem; border-top: 1px solid #e9ecef; display: flex; justify-content: center; gap: 1rem;">
+                                    <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                                    <button class="btn btn-primary" id="confirmConfirmBtn">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const dialog = document.getElementById('customConfirmationDialog');
+                const close = () => { dialog.remove(); resolve(false); };
+                const confirm = () => { dialog.remove(); resolve(true); };
+                dialog.querySelector('.modal-close').onclick = close;
+                dialog.querySelector('#cancelConfirmBtn').onclick = close;
+                dialog.querySelector('#confirmConfirmBtn').onclick = confirm;
+            });
+        }
+    </script>
+
+    <script>
+    // Função para controlar o menu mobile
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
+
+    // Fechar menu ao clicar em um link (em mobile)
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

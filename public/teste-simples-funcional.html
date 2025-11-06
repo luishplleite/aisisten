@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimePulse AI - Teste Evolution API</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-outline {
+            background: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+        .debug-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .debug-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .debug-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fab fa-whatsapp"></i> Teste Evolution API</h1>
+            <p>Criar instância WhatsApp e gerar QR Code</p>
+
+            <!-- Status de Login -->
+            <div class="login-status">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-user-check"></i>
+                    <strong>Conectado como:</strong>
+                    <span id="connectedUserName">Carregando...</span>
+                </div>
+                <div style="margin-top: 10px;">
+                    <small>
+                        Restaurante: <span id="restaurantName">Carregando...</span>
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Debug Area -->
+            <div id="debugArea" style="margin-top: 20px; text-align: left;">
+                <h4>Debug Info:</h4>
+                <div id="debugLogs"></div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3><i class="fas fa-cog"></i> Configuração da Instância</h3>
+
+            <div class="form-group">
+                <label for="instanceName">Nome da Instância:</label>
+                <input type="text" id="instanceName" placeholder="Ex: restaurante-principal" required>
+                <small>Use apenas letras, números e hífens</small>
+            </div>
+
+            <div class="form-group">
+                <label for="webhookUrl">URL do Webhook:</label>
+                <input type="url" id="webhookUrl" value="https://n8n.timepulseai.com.br/webhook/7398cf3b-43ae-4d12-9f0b-443e3b66dfd1" required>
+                <small>URL para receber eventos do WhatsApp</small>
+            </div>
+
+            <div>
+                <button class="btn btn-primary" onclick="createInstance()">
+                    <i class="fas fa-plus"></i> Criar Instância
+                </button>
+                <button class="btn btn-secondary" onclick="checkInstanceStatus()">
+                    <i class="fas fa-sync"></i> Verificar Status
+                </button>
+                <button class="btn btn-outline" onclick="clearResults()">
+                    <i class="fas fa-trash"></i> Limpar
+                </button>
+            </div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div class="form-section">
+                <h3><i class="fas fa-qrcode"></i> QR Code para Conexão</h3>
+                <div id="statusMessages"></div>
+                <div id="qrCodeContainer" style="display: none;">
+                    <p><strong>Escaneie o QR Code com seu WhatsApp:</strong></p>
+                    <div id="qrCode" style="text-align: center; padding: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de debug visual
+        function debugLog(message, type = 'info') {
+            const debugDiv = document.getElementById('debugLogs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `debug-log ${type === 'success' ? 'debug-success' : type === 'error' ? 'debug-error' : ''}`;
+            logEntry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            debugDiv.appendChild(logEntry);
+        }
+
+        // Função para obter dados da instância
+        function getInstanceData() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const trimmed = cookie.trim();
+                if (trimmed.startsWith('timepulse_instance_token=')) {
+                    try {
+                        const value = trimmed.split('=')[1];
+                        const decoded = decodeURIComponent(value);
+                        return JSON.parse(decoded);
+                    } catch (e) {
+                        debugLog(`Erro ao parsear cookie: ${e.message}`, 'error');
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Função para carregar informações do restaurante
+        async function loadRestaurantInfo() {
+            debugLog('Iniciando carregamento de informações do restaurante...', 'info');
+            
+            try {
+                // 1. Obter dados da instância
+                const instanceData = getInstanceData();
+                if (!instanceData) {
+                    throw new Error('Dados de instância não encontrados');
+                }
+                
+                debugLog(`Dados da instância encontrados: ${instanceData.instanceName}`, 'success');
+                
+                const restaurantId = instanceData.restaurantId || instanceData.instanceId;
+                debugLog(`Restaurant ID: ${restaurantId}`, 'info');
+                
+                // 2. Carregar configuração Supabase
+                debugLog('Carregando configuração Supabase...', 'info');
+                const response = await fetch('/api/config/supabase', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const supabaseConfig = await response.json();
+                debugLog('Configuração Supabase carregada com sucesso', 'success');
+                
+                // 3. Criar cliente Supabase
+                if (!window.supabase) {
+                    throw new Error('Biblioteca Supabase não carregada');
+                }
+                
+                const client = window.supabase.createClient(
+                    supabaseConfig.supabaseUrl, 
+                    supabaseConfig.supabaseAnonKey
+                );
+                
+                debugLog('Cliente Supabase criado', 'success');
+                
+                // 4. Consultar banco
+                debugLog(`Consultando banco para restaurantId: ${restaurantId}`, 'info');
+                const { data: restaurant, error } = await client
+                    .from('restaurants')
+                    .select('*')
+                    .eq('id', restaurantId)
+                    .single();
+
+                if (error) {
+                    throw new Error(`Erro Supabase: ${error.message}`);
+                }
+                
+                if (!restaurant) {
+                    throw new Error('Restaurante não encontrado no banco');
+                }
+
+                debugLog(`Restaurante encontrado: ${restaurant.name}`, 'success');
+
+                // 5. Atualizar interface
+                const restaurantNameElement = document.getElementById('restaurantName');
+                if (restaurantNameElement) {
+                    restaurantNameElement.textContent = restaurant.name;
+                    debugLog(`Nome do restaurante atualizado: ${restaurant.name}`, 'success');
+                }
+                
+                const connectedUserElement = document.getElementById('connectedUserName');
+                if (connectedUserElement) {
+                    const userName = instanceData.userEmail || restaurant.name;
+                    connectedUserElement.textContent = userName;
+                    debugLog(`Usuário conectado atualizado: ${userName}`, 'success');
+                }
+
+                debugLog('Carregamento de informações do restaurante concluído com sucesso!', 'success');
+                
+            } catch (error) {
+                debugLog(`ERRO: ${error.message}`, 'error');
+                
+                // Mostrar erro na interface
+                const restaurantElement = document.getElementById('restaurantName');
+                const userElement = document.getElementById('connectedUserName');
+                
+                if (restaurantElement) {
+                    restaurantElement.textContent = 'Erro ao carregar';
+                    restaurantElement.style.color = '#f44336';
+                }
+                
+                if (userElement) {
+                    userElement.textContent = 'Erro na consulta';
+                    userElement.style.color = '#f44336';
+                }
+            }
+        }
+
+        // Funções básicas para Evolution API (placeholder)
+        async function createInstance() {
+            debugLog('Função createInstance() chamada', 'info');
+            alert('Função createInstance em desenvolvimento');
+        }
+
+        async function checkInstanceStatus() {
+            debugLog('Função checkInstanceStatus() chamada', 'info');
+            alert('Função checkInstanceStatus em desenvolvimento');
+        }
+
+        function clearResults() {
+            debugLog('Função clearResults() chamada', 'info');
+            document.getElementById('results').style.display = 'none';
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            debugLog('Página carregada! Iniciando sistema...', 'success');
+            
+            try {
+                await loadRestaurantInfo();
+            } catch (error) {
+                debugLog(`Erro durante inicialização: ${error.message}`, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

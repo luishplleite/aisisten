@@ -1,0 +1,80 @@
+Segue um relatório consolidado e organizado dos principais endpoints públicos da API Asaas (v3), com foco em operações comuns de checkout, cobranças, clientes, assinaturas, Pix, cartões, webhooks, contas e limites, incluindo caminhos base e notas de uso prático.[1]
+
+### Base e autenticação
+- Base de produção: https://api.asaas.com/v3 e sandbox: https://sandbox.asaas.com/api/v3, com autenticação via header de access token e suporte a paginação, idempotência e “Try It” no portal.[2][3][1]
+- A página “Comece por aqui”/“Getting started” referencia códigos HTTP, paginação, limites e console interativo para testar chamadas sem escrever código inicialmente.[4][2]
+
+### Clientes (Customers)
+- Listar clientes: GET /customers com filtros e paginação para recuperar a lista completa de clientes cadastrados.[5]
+- Criar cliente: POST /customers, retornando JSON com o id do cliente para ser usado em cobranças/assinaturas subsequentes.[6]
+- Recuperar/atualizar/deletar cliente: GET/PUT/DELETE /customers/{id}, seguindo o padrão REST de recursos do portal.[1]
+
+### Assinaturas (Subscriptions)
+- Criar assinatura: POST /subscriptions para recorrência; documentação guia também referencia a mesma rota.[7][8]
+- Listar assinaturas: GET /subscriptions com filtros por customer e paymentMethod, útil para relatórios de recorrência por carteira.[9]
+- Operações por id: GET/PUT/DELETE /subscriptions/{id} para leitura, alteração de parâmetros (valor, ciclo) e cancelamento programático.[1]
+
+### Cobranças/Pagamentos (Charges/Payments)
+- Criar cobrança avulsa: POST /payments para gerar uma cobrança única, que pode ser liquidada por cartão, boleto ou Pix conforme método configurado.[10][1]
+- Listar cobranças: GET /payments com filtros por status, customer, dateRange; base para relatórios financeiros e conciliação.[1]
+- Confirmar pagamento (sandbox): POST /payments/{id}/confirm-payment para simular liquidação em ambiente de testes.[11]
+- Pagar com cartão: endpoint de referência “Pay a charge with a credit card” para capturar com dados do cartão de forma transparente.[12]
+
+### Pix
+- Cobranças via Pix: guia para QR Code dinâmico e integrações de recebimento; integra com as cobranças existentes e fluxo de checkout.[13][14]
+- Checkout para Pix: instruções para criar sessão de checkout voltada a Pix, com QR dinâmico, expiração e identificação do produto/valor.[15]
+
+### Cartão de crédito
+- Credit Card Charges: documentação de pagamento com cartão via API, incluindo payload e tratamento de respostas, útil para checkout transparente com tokenização/captura imediata.[10]
+- Pagamento direto da cobrança com cartão: referência “Pay a charge with credit card”, apropriada quando já existe a cobrança e deseja-se liquidá-la com cartão.[12]
+
+### Checkout (Transparente e Link)
+- Asaas Checkout: visão geral de criação de sessão, seleção de métodos (cartão, Pix, boleto), e redirecionamentos de sucesso/cancelamento.[16]
+- Link/Redirecionamento: como gerar link da sessão e configurar URLs de retorno; pode-se pré-preencher dados do cliente para reduzir fricção.[17]
+- Checkout com split: suporte a split de pagamento entre contas Asaas diretamente na sessão de checkout.[18]
+
+### Webhooks e eventos
+- Boas práticas de idempotência: como implementar deduplicação usando IDs únicos de eventos para evitar processamento repetido.[19]
+- Eventos de pagamentos/assinaturas: disponíveis no portal com exemplos de payload; integrem com filas e reprocessamento por segurança.[1]
+
+### Limites, paginação e erros
+- Rate limits: documentação de limites por endpoint e como lidar com 429, backoff e paginação (limit/offset) na listagem.[20]
+- Códigos HTTP e paginação: coberto na seção de introdução/getting started para padronizar tratamento no cliente.[2]
+
+### Subcontas e verificação
+- Verificar documentos pendentes de subconta: endpoint específico com recomendação de aguardar ~15s após criar a subconta antes de consultar documentos.[21][22]
+
+### Observações práticas
+- URLs base confirmadas e cabeçalho access_token são padronizados para v3; bibliotecas e plugins oficiais usam esses padrões em produção.[3][23]
+- Para um inventário completo por recurso, use a referência do portal e navegue pelas seções Customers, Payments, Subscriptions, Pix, Webhooks, Split, Accounts e Utilities, onde cada recurso lista GET/POST/PUT/DELETE disponíveis.[2][1]
+
+Se precisar, é possível expandir este relatório em formato de tabela por recurso com campos, parâmetros, exemplos de payload e respostas de cada rota prioritária (customers, payments, subscriptions, pix, checkout, webhooks), pronto para colar na documentação do projeto.[1]
+
+[1](https://docs.asaas.com)
+[2](https://docs.asaas.com/reference/about-this-doc)
+[3](https://pkg.go.dev/github.com/mobilemindtec/go-payments/asaas)
+[4](https://docs.asaas.com/reference/atualizar-dados-comerciais)
+[5](https://docs.asaas.com/reference/listar-clientes)
+[6](https://docs.asaas.com/docs/criando-um-cliente)
+[7](https://docs.asaas.com/docs/creating-a-subscription)
+[8](https://docs.asaas.com/docs/criando-uma-assinatura)
+[9](https://docs.asaas.com/reference/list-subscriptions)
+[10](https://docs.asaas.com/docs/payments-via-credit-card)
+[11](https://docs.asaas.com/reference/confirm-payment)
+[12](https://docs.asaas.com/reference/pay-a-charge-with-credit-card)
+[13](https://docs.asaas.com/docs/cobrancas-via-pix)
+[14](https://docs.asaas.com/docs/pix)
+[15](https://docs.asaas.com/docs/checkout-para-pix)
+[16](https://docs.asaas.com/docs/asaas-checkout)
+[17](https://docs.asaas.com/docs/link-do-checkout-e-redirecionamento-do-cliente)
+[18](https://docs.asaas.com/docs/checkout-with-payment-split)
+[19](https://docs.asaas.com/docs/como-implementar-idempotencia-em-webhooks)
+[20](https://docs.asaas.com/reference/rate-e-quota-limit)
+[21](https://docs.asaas.com/reference/check-pending-documents)
+[22](https://docs.asaas.com/reference/verificar-documentos-pendentes)
+[23](https://br.wordpress.org/plugins/woo-asaas/)
+[24](https://docs.asaas.com/reference/comece-por-aqui)
+[25](https://docs.asaas.com/docs/visao-geral)
+[26](https://www.cisco.com/c/en/us/td/docs/security/asa/api/asa_rest_api.html)
+[27](https://asaasv3.docs.apiary.io)
+[28](https://www.asaas.com/desenvolvedores)

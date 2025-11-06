@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug TimePulse AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-log { background: #f0f0f0; padding: 10px; margin: 5px 0; border-left: 3px solid #007cba; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .info { border-left-color: #17a2b8; background: #d1ecf1; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug TimePulse AI</h1>
+    <div id="status">Status: Carregando...</div>
+    <div id="restaurantName">Restaurante: Aguardando...</div>
+    <div id="debugLog"></div>
+
+    <script>
+        function debugLog(message, type = 'info') {
+            const debugDiv = document.getElementById('debugLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `debug-log ${type}`;
+            logEntry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            debugDiv.appendChild(logEntry);
+            console.log(`[DEBUG] ${message}`);
+        }
+
+        debugLog('🚀 JavaScript iniciado!', 'success');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            debugLog('📅 DOMContentLoaded executado!', 'success');
+            
+            try {
+                debugLog('🔍 Iniciando verificação de cookies...');
+                
+                // Verificar cookies
+                const cookieString = document.cookie;
+                debugLog(`🍪 Cookie string: "${cookieString}"`, cookieString ? 'success' : 'error');
+                
+                if (!cookieString) {
+                    debugLog('❌ Nenhum cookie encontrado!', 'error');
+                    return;
+                }
+                
+                // Procurar pelo cookie de instância
+                const cookies = cookieString.split(';');
+                let instanceData = null;
+                
+                for (let cookie of cookies) {
+                    const trimmed = cookie.trim();
+                    debugLog(`🔍 Verificando cookie: ${trimmed.substring(0, 50)}...`);
+                    
+                    if (trimmed.startsWith('timepulse_instance_token=')) {
+                        try {
+                            const value = trimmed.split('=')[1];
+                            const decoded = decodeURIComponent(value);
+                            instanceData = JSON.parse(decoded);
+                            debugLog('✅ Cookie de instância encontrado e parseado!', 'success');
+                            break;
+                        } catch (e) {
+                            debugLog(`❌ Erro ao parsear cookie: ${e.message}`, 'error');
+                        }
+                    }
+                }
+                
+                if (instanceData) {
+                    debugLog(`📊 Dados da instância: ${JSON.stringify(instanceData, null, 2)}`, 'success');
+                    document.getElementById('status').textContent = `Status: ✅ Dados encontrados!`;
+                    document.getElementById('restaurantName').textContent = `Restaurante: ${instanceData.instanceName || 'N/A'}`;
+                    
+                    // Agora vamos testar a conexão com Supabase
+                    debugLog('🔌 Iniciando teste Supabase...');
+                    await testSupabase(instanceData);
+                } else {
+                    debugLog('❌ Nenhum dado de instância encontrado no cookie', 'error');
+                    document.getElementById('status').textContent = 'Status: ❌ Sem dados de instância';
+                }
+                
+            } catch (error) {
+                debugLog(`💥 Erro geral: ${error.message}`, 'error');
+                console.error('Erro detalhado:', error);
+            }
+        });
+        
+        async function testSupabase(instanceData) {
+            try {
+                debugLog('🔗 Obtendo configuração do Supabase...');
+                
+                const response = await fetch('/api/config/supabase', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+                
+                const config = await response.json();
+                debugLog('✅ Configuração Supabase obtida!', 'success');
+                debugLog(`📊 Config: URL=${config.supabaseUrl}, Key exists=${!!config.supabaseAnonKey}`);
+                
+                // Testar consulta ao banco
+                if (window.supabase) {
+                    debugLog('🔌 Criando cliente Supabase...');
+                    const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                    
+                    debugLog(`🔍 Consultando banco para restaurantId: ${instanceData.restaurantId}`);
+                    const { data, error } = await client
+                        .from('restaurants')
+                        .select('*')
+                        .eq('id', instanceData.restaurantId)
+                        .single();
+                    
+                    if (error) {
+                        debugLog(`❌ Erro Supabase: ${error.message}`, 'error');
+                    } else if (data) {
+                        debugLog(`✅ Restaurante encontrado: ${data.name}!`, 'success');
+                        document.getElementById('restaurantName').textContent = `Restaurante: ✅ ${data.name}`;
+                    } else {
+                        debugLog('❌ Restaurante não encontrado no banco', 'error');
+                    }
+                } else {
+                    debugLog('❌ Biblioteca Supabase não carregada', 'error');
+                }
+                
+            } catch (error) {
+                debugLog(`💥 Erro Supabase: ${error.message}`, 'error');
+            }
+        }
+    </script>
+    
+    <!-- Carregar Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

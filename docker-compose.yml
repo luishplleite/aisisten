@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  timepulse:
+    build: .
+    container_name: timepulse-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./public:/app/public:ro
+      - ./api:/app/api:ro
+    networks:
+      - timepulse-network
+
+networks:
+  timepulse-network:
+    driver: bridge

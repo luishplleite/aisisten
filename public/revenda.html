@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Revendedor - TimePulse AI</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <script>
+        // Inicializar Supabase Client com configurações do servidor
+        (async function() {
+            try {
+                const response = await fetch('/api/config/supabase');
+                const config = await response.json();
+                
+                if (!config.configured) {
+                    console.error('❌ Supabase não configurado:', config.error);
+                    return;
+                }
+                
+                if (window.supabase && window.supabase.createClient) {
+                    window.supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                    console.log('✅ Supabase Client inicializado com configurações do servidor');
+                }
+            } catch (error) {
+                console.error('❌ Erro ao inicializar Supabase:', error);
+            }
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            width: 300px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .admin-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #34495e;
+            text-align: center;
+        }
+
+        .admin-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ecf0f1;
+        }
+
+        .admin-subtitle {
+            color: #bdc3c7;
+            font-size: 0.9rem;
+        }
+
+        .admin-nav {
+            padding: 1rem 0;
+        }
+
+        .admin-nav-item {
+            display: block;
+            padding: 1rem 1.5rem;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+        }
+
+        .admin-nav-item:hover,
+        .admin-nav-item.active {
+            background: #34495e;
+            color: #3498db;
+            border-left-color: #3498db;
+        }
+
+        .admin-nav-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .admin-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+
+        .content-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .admin-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-card.revenue {
+            border-left-color: #27ae60;
+        }
+
+        .stat-card.commissions {
+            border-left-color: #f39c12;
+        }
+
+        .stat-card.restaurants {
+            border-left-color: #3498db;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.revenue {
+            background: #27ae60;
+        }
+
+        .stat-icon.commissions {
+            background: #f39c12;
+        }
+
+        .stat-icon.restaurants {
+            background: #3498db;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-logout {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #c0392b;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .welcome-card h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-card p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .data-table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table-header {
+            padding: 1.5rem 2rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem 2rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .status-badge.status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.status-trial {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.status-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-header">
+                <div class="admin-logo">
+                    <i class="fas fa-handshake"></i> TimePulse AI
+                </div>
+                <div class="admin-subtitle">Portal do Revendedor</div>
+            </div>
+
+            <nav class="admin-nav">
+                <a class="admin-nav-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="admin-nav-item" data-section="restaurantes">
+                    <i class="fas fa-store"></i> Meus Restaurantes
+                </a>
+                <a class="admin-nav-item" href="cadastro_restaurante_revenda.html">
+                    <i class="fas fa-plus-circle"></i> Cadastrar Restaurante
+                </a>
+                <a class="admin-nav-item" data-section="financeiro">
+                    <i class="fas fa-dollar-sign"></i> Financeiro
+                </a>
+                <a class="admin-nav-item" data-section="perfil">
+                    <i class="fas fa-user"></i> Meu Perfil
+                </a>
+                <a class="admin-nav-item btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </a>
+            </nav>
+        </aside>
+
+        <main class="admin-content">
+            <div class="content-header">
+                <h1 class="content-title" id="pageTitle">Dashboard</h1>
+                <div class="admin-user-info">
+                    <div class="user-avatar" id="userAvatar">R</div>
+                    <div>
+                        <div style="font-weight: 600; color: #2c3e50;" id="userName">Revendedor</div>
+                        <div style="font-size: 0.85rem; color: #7f8c8d;" id="userEmail">email@exemplo.com</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO DASHBOARD -->
+            <section id="dashboard" class="admin-section active">
+                <div class="welcome-card">
+                    <h2 id="welcomeMessage">Bem-vindo!</h2>
+                    <p>Gerencie seus restaurantes e acompanhe seus ganhos</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card revenue">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="totalBalance">R$ 0,00</div>
+                                <div class="stat-label">Saldo Disponível</div>
+                            </div>
+                            <div class="stat-icon revenue">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card commissions">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="totalCommissions">R$ 0,00</div>
+                                <div class="stat-label">Comissões do Mês</div>
+                            </div>
+                            <div class="stat-icon commissions">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card restaurants">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="totalRestaurants">0</div>
+                                <div class="stat-label">Restaurantes Ativos</div>
+                            </div>
+                            <div class="stat-icon restaurants">
+                                <i class="fas fa-store"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Últimas Movimentações</h3>
+                        <button class="btn btn-primary" onclick="loadBalance()">
+                            <i class="fas fa-sync-alt"></i> Atualizar Saldo
+                        </button>
+                    </div>
+                    <div id="movementsTable">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 1rem; color: #667eea;">Carregando movimentações...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO RESTAURANTES -->
+            <section id="restaurantes" class="admin-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Meus Restaurantes</h3>
+                        <a href="cadastro_restaurante_revenda.html" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Novo Restaurante
+                        </a>
+                    </div>
+                    <div id="restaurantsTable">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 1rem; color: #667eea;">Carregando restaurantes...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO FINANCEIRO -->
+            <section id="financeiro" class="admin-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Extrato Financeiro</h3>
+                        <button class="btn btn-primary" onclick="loadBalance()">
+                            <i class="fas fa-download"></i> Exportar PDF
+                        </button>
+                    </div>
+                    <div id="financialTable">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 1rem; color: #667eea;">Carregando extrato...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO PERFIL -->
+            <section id="perfil" class="admin-section">
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Meus Dados</h3>
+                    </div>
+                    <div style="padding: 2rem;">
+                        <div id="profileData">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                                <p style="margin-top: 1rem; color: #667eea;">Carregando dados...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let revendedorData = null;
+
+        function checkAuth() {
+            const authenticated = sessionStorage.getItem('revendedor_authenticated');
+            const storedData = localStorage.getItem('revendedor_data');
+            
+            if (!authenticated || !storedData) {
+                window.location.href = 'loginrevenda.html';
+                return false;
+            }
+
+            revendedorData = JSON.parse(storedData);
+            updateUserInfo();
+            return true;
+        }
+
+        function updateUserInfo() {
+            if (revendedorData) {
+                document.getElementById('userName').textContent = revendedorData.name || 'Revendedor';
+                document.getElementById('userEmail').textContent = revendedorData.email || '';
+                document.getElementById('welcomeMessage').textContent = `Olá, ${revendedorData.name?.split(' ')[0] || 'Revendedor'}!`;
+                
+                const initials = (revendedorData.name || 'R').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('userAvatar').textContent = initials;
+            }
+        }
+
+        async function loadBalance() {
+            if (!revendedorData || !revendedorData.id) return;
+
+            try {
+                const response = await fetch('https://n8n.timepulseai.com.br/webhook/consulta_saldo_revendedor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        revendedor_id: revendedorData.id,
+                        cpfCnpj: revendedorData.cpfCnpj
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao consultar saldo');
+                }
+
+                const data = await response.json();
+                
+                document.getElementById('totalBalance').textContent = 
+                    `R$ ${(data.saldo_disponivel || 0).toFixed(2).replace('.', ',')}`;
+                document.getElementById('totalCommissions').textContent = 
+                    `R$ ${(data.comissoes_mes || 0).toFixed(2).replace('.', ',')}`;
+                
+            } catch (error) {
+                console.error('Erro ao carregar saldo:', error);
+            }
+        }
+
+        async function loadRestaurants() {
+            if (!revendedorData || !revendedorData.id) return;
+
+            try {
+                console.log(`🔍 Carregando restaurantes do revendedor ID: ${revendedorData.id}`);
+                
+                const response = await fetch(`/api/revendedor/${revendedorData.id}/restaurants`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Erro ao carregar restaurantes');
+                }
+
+                const restaurants = result.restaurants || [];
+                console.log(`✅ ${restaurants.length} restaurantes carregados`);
+
+                // Atualizar contador no dashboard
+                document.getElementById('totalRestaurants').textContent = restaurants.length;
+
+                // Criar tabela de restaurantes
+                const tableHtml = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Dono</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                                <th>Status</th>
+                                <th>Data Cadastro</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${restaurants.length > 0 ? restaurants.map(r => {
+                                const statusClass = r.subscription_status === 'active' ? 'status-active' : 
+                                                   r.subscription_status === 'trial' ? 'status-trial' :
+                                                   r.subscription_status === 'expired' ? 'status-expired' : 'status-cancelled';
+                                const statusText = r.subscription_status === 'active' ? 'Ativo' :
+                                                  r.subscription_status === 'trial' ? 'Teste' :
+                                                  r.subscription_status === 'expired' ? 'Expirado' : 'Cancelado';
+                                const createdDate = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR') : 'N/A';
+                                
+                                return `
+                                    <tr>
+                                        <td>#${r.id.substring(0, 8)}</td>
+                                        <td><strong>${r.name || '-'}</strong></td>
+                                        <td>${r.owner_name || '-'}</td>
+                                        <td>${r.owner_email || '-'}</td>
+                                        <td>${r.owner_phone || '-'}</td>
+                                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                                        <td>${createdDate}</td>
+                                        <td class="action-buttons">
+                                            <button class="btn btn-sm btn-primary" onclick="viewRestaurant('${r.id}')" title="Visualizar">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-secondary" onclick="editRestaurant('${r.id}')" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteRestaurant('${r.id}')" title="Excluir">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('') : '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Nenhum restaurante cadastrado</td></tr>'}
+                        </tbody>
+                    </table>
+                `;
+
+                document.getElementById('restaurantsTable').innerHTML = tableHtml;
+
+                // Armazenar lista de restaurantes para uso nos modais
+                window.restaurantsList = restaurants;
+
+            } catch (error) {
+                console.error('❌ Erro ao carregar restaurantes:', error);
+                document.getElementById('restaurantsTable').innerHTML = 
+                    '<p style="padding: 2rem; text-align: center; color: #e74c3c;">Erro ao carregar restaurantes. Tente novamente.</p>';
+            }
+        }
+
+        async function viewRestaurant(id) {
+            const restaurant = window.restaurantsList?.find(r => r.id === id);
+            if (!restaurant) {
+                alert('Restaurante não encontrado!');
+                return;
+            }
+
+            // Exibir dados do restaurante em um alert por enquanto
+            alert(`
+Nome: ${restaurant.name || '-'}
+Dono: ${restaurant.owner_name || '-'}
+Email: ${restaurant.owner_email || '-'}
+Telefone: ${restaurant.owner_phone || '-'}
+CNPJ: ${restaurant.cnpj || '-'}
+Endereço: ${restaurant.address || '-'}
+Cidade: ${restaurant.city || '-'} - ${restaurant.state || '-'}
+CEP: ${restaurant.zip_code || '-'}
+Status: ${restaurant.subscription_status || '-'}
+Data de Cadastro: ${restaurant.created_at ? new Date(restaurant.created_at).toLocaleString('pt-BR') : '-'}
+            `.trim());
+        }
+
+        async function editRestaurant(id) {
+            const restaurant = window.restaurantsList?.find(r => r.id === id);
+            if (!restaurant) {
+                alert('Restaurante não encontrado!');
+                return;
+            }
+
+            alert(`Função de edição em desenvolvimento.\n\nRestaurante: ${restaurant.name}\nID: ${id}`);
+        }
+
+        async function deleteRestaurant(id) {
+            const restaurant = window.restaurantsList?.find(r => r.id === id);
+            if (!restaurant) {
+                alert('Restaurante não encontrado!');
+                return;
+            }
+
+            if (!confirm(`Tem certeza que deseja excluir o restaurante "${restaurant.name}"?\n\nEsta ação não pode ser desfeita!`)) {
+                return;
+            }
+
+            alert('Função de exclusão em desenvolvimento.');
+        }
+
+        function loadProfile() {
+            if (!revendedorData) return;
+
+            const profileHtml = `
+                <div style="max-width: 600px;">
+                    <div style="display: grid; gap: 1rem;">
+                        <div>
+                            <strong>Nome:</strong> ${revendedorData.name || '-'}
+                        </div>
+                        <div>
+                            <strong>Email:</strong> ${revendedorData.email || '-'}
+                        </div>
+                        <div>
+                            <strong>Telefone:</strong> ${revendedorData.phone || '-'}
+                        </div>
+                        <div>
+                            <strong>CPF/CNPJ:</strong> ${revendedorData.cpfCnpj || '-'}
+                        </div>
+                        <div>
+                            <strong>Endereço:</strong> ${revendedorData.address || '-'}, ${revendedorData.addressNumber || '-'}
+                        </div>
+                        <div>
+                            <strong>Cidade/Estado:</strong> ${revendedorData.city || '-'}/${revendedorData.state || '-'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('profileData').innerHTML = profileHtml;
+        }
+
+        function logout() {
+            if (confirm('Deseja realmente sair?')) {
+                localStorage.removeItem('revendedor_data');
+                localStorage.removeItem('revendedor_id');
+                sessionStorage.removeItem('revendedor_authenticated');
+                window.location.href = 'loginrevenda.html';
+            }
+        }
+
+        document.querySelectorAll('.admin-nav-item[data-section]').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sectionId = this.dataset.section;
+                
+                document.querySelectorAll('.admin-nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.admin-section').forEach(sec => sec.classList.remove('active'));
+                document.getElementById(sectionId).classList.add('active');
+                
+                const titles = {
+                    'dashboard': 'Dashboard',
+                    'restaurantes': 'Meus Restaurantes',
+                    'financeiro': 'Financeiro',
+                    'perfil': 'Meu Perfil'
+                };
+                document.getElementById('pageTitle').textContent = titles[sectionId] || 'Dashboard';
+                
+                if (sectionId === 'restaurantes') {
+                    loadRestaurants();
+                } else if (sectionId === 'perfil') {
+                    loadProfile();
+                }
+            });
+        });
+
+        if (checkAuth()) {
+            loadBalance();
+            loadRestaurants();
+        }
+    </script>
+</body>
+</html>

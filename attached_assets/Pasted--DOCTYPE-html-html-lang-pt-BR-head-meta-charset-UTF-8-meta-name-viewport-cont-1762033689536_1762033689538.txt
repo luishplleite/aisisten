@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TimePulse AI - Entregador</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Aplicativo de entrega para motoristas TimePulse AI">
+    <meta name="theme-color" content="#00B172">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TimePulse">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/img/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/img/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/img/icon-512x512.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/img/icon-512x512.png">
+    
+    <!-- Mapbox GL JS -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    
+    <!-- Mapbox Directions -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.0/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.0/mapbox-gl-directions.css" type="text/css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .driver-controls { position: absolute; top: 0; left: 0; right: 0; z-index: 1000; }
+        .driver-footer { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .btn-accept { background: linear-gradient(135deg, #00B172 0%, #2ECC71 100%); }
+        .btn-reject { background: linear-gradient(135deg, #E74C3C 0%, #D93025 100%); }
+        .pulsing-dot { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- ===================================================================== -->
+    <!-- MODAL BLOQUEANTE DE INSTALAÇÃO OBRIGATÓRIA DO PWA -->
+    <!-- ===================================================================== -->
+    <div id="mandatoryInstallModal" class="hidden fixed inset-0 bg-black bg-opacity-95 z-[9999] flex items-center justify-center p-4" style="backdrop-filter: blur(10px);">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center transform transition-all">
+            <!-- Ícone animado -->
+            <div class="relative mb-6">
+                <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mx-auto flex items-center justify-center animate-pulse">
+                    <i class="fas fa-mobile-alt text-white text-4xl"></i>
+                </div>
+                <div class="absolute -top-2 -right-2 left-0 mx-auto w-32">
+                    <div class="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                        OBRIGATÓRIO
+                    </div>
+                </div>
+            </div>
+
+            <!-- Título -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-3">
+                Instale o Aplicativo
+            </h2>
+            <p class="text-gray-600 mb-6">
+                Para usar o TimePulse AI, você precisa instalar o aplicativo na tela inicial do seu celular.
+            </p>
+
+            <!-- Instruções Android -->
+            <div id="androidInstructions" class="hidden text-left bg-gray-50 rounded-xl p-4 mb-6">
+                <h3 class="font-bold text-gray-800 mb-3 flex items-center">
+                    <i class="fab fa-android text-green-600 mr-2"></i>
+                    Como Instalar (Android/Chrome)
+                </h3>
+                <ol class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">1</span>
+                        <span>Toque nos <strong>3 pontos (⋮)</strong> no canto superior direito do navegador</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">2</span>
+                        <span>Procure e toque em <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar app"</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">3</span>
+                        <span>Confirme tocando em <strong>"Adicionar"</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">4</span>
+                        <span>O app será adicionado à sua tela inicial automaticamente</span>
+                    </li>
+                </ol>
+                
+                <div class="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                    <p class="text-xs text-blue-800">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <strong>Dica:</strong> Você também pode tentar o botão verde abaixo se ele estiver disponível
+                    </p>
+                </div>
+            </div>
+
+            <!-- Instruções iOS -->
+            <div id="iosInstructions" class="hidden text-left bg-gray-50 rounded-xl p-4 mb-6">
+                <h3 class="font-bold text-gray-800 mb-3 flex items-center">
+                    <i class="fab fa-apple text-gray-800 mr-2"></i>
+                    Como Instalar (iPhone/iPad)
+                </h3>
+                <ol class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">1</span>
+                        <span>Toque no botão <strong>Compartilhar</strong> 
+                            <i class="fas fa-share text-blue-500 mx-1"></i> 
+                            (na barra inferior ou superior)
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">2</span>
+                        <span>Role para baixo e toque em <strong>"Adicionar à Tela de Início"</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">3</span>
+                        <span>Toque em <strong>"Adicionar"</strong> no canto superior direito</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 flex-shrink-0 text-xs">4</span>
+                        <span>Feche esta aba e abra o app pela tela inicial</span>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Botão de Instalação Android/Chrome - SEMPRE VISÍVEL -->
+            <button id="installButton" class="hidden w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:scale-105 mb-3">
+                <i class="fas fa-download mr-2"></i>
+                <span id="installButtonText">Tentar Instalar Agora</span>
+            </button>
+
+            <!-- Informação adicional -->
+            <p class="text-xs text-gray-500 mt-4">
+                <i class="fas fa-shield-alt mr-1"></i>
+                Aplicativo seguro e otimizado para celular
+            </p>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-motorcycle text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Time Pulse AI</h1>
+                <p class="text-gray-600 mt-2">Entregador</p>
+            </div>
+            
+            <div id="loginForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                        <input type="tel" id="loginPhone" placeholder="(XX) XXXXX-XXXX" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha/PIN</label>
+                        <input type="password" id="loginPassword" placeholder="Digite sua senha" 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <button onclick="login()" class="w-full btn-accept text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Entrar
+                    </button>
+                </div>
+                <div class="mt-6 text-center">
+                    <button onclick="showRegister()" class="text-green-600 hover:text-green-700 font-medium">
+                        Criar conta
+                    </button>
+                </div>
+            </div>
+            
+            <div id="registerForm" class="hidden space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+                    <input type="text" id="regName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                    <input type="tel" id="regPhone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">CPF</label>
+                    <input type="text" id="regCPF" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Placa da Moto</label>
+                    <input type="text" id="regPlate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Senha (mínimo 6 caracteres)</label>
+                    <input type="password" id="regPassword" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                </div>
+                <button onclick="register()" class="w-full btn-accept text-white py-3 rounded-lg font-semibold">
+                    Criar Conta
+                </button>
+                <button onclick="showLogin()" class="w-full text-gray-600 hover:text-gray-800">
+                    Voltar para login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Driver Interface -->
+    <div id="driverInterface" class="hidden">
+        <!-- Header -->
+        <div class="driver-controls bg-white shadow-lg">
+            <div class="flex items-center justify-between p-4">
+                <div class="flex items-center space-x-3">
+                    <div id="statusIndicator" class="w-4 h-4 rounded-full bg-green-500 pulsing-dot"></div>
+                    <button onclick="toggleStatus()" id="statusBtn" class="font-semibold text-green-600">
+                        Online
+                    </button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showEarnings()" class="text-gray-700 hover:text-green-600">
+                        <i class="fas fa-wallet text-xl"></i>
+                    </button>
+                    <button onclick="logout()" class="text-gray-700 hover:text-red-600">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- Footer Info Card -->
+        <div id="infoCard" class="driver-footer bg-white rounded-t-3xl shadow-2xl p-6 hidden">
+            <div id="cardContent"></div>
+        </div>
+    </div>
+
+    <!-- New Order Modal -->
+    <div id="newOrderModal" class="modal">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full m-4 p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-box text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Novo Pedido</h2>
+            </div>
+            
+            <div id="orderDetails" class="space-y-4 mb-6">
+                <!-- Order details will be populated here -->
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="rejectOrder()" class="btn-reject text-white py-3 rounded-lg font-semibold shadow-lg">
+                    <i class="fas fa-times mr-2"></i> Recusar
+                </button>
+                <button onclick="acceptOrder()" class="btn-accept text-white py-3 rounded-lg font-semibold shadow-lg">
+                    <i class="fas fa-check mr-2"></i> Aceitar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings Modal -->
+    <div id="earningsModal" class="modal">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full m-4 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Meus Ganhos</h2>
+                <button onclick="closeEarnings()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="earningsContent" class="space-y-4">
+                <!-- Earnings will be populated here -->
+            </div>
+            
+            <button onclick="requestWithdrawal()" class="w-full mt-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold">
+                <i class="fas fa-money-bill-wave mr-2"></i> Solicitar Saque
+            </button>
+        </div>
+    </div>
+
+    <!-- PWA Install Banner (Android/Chrome/Edge) -->
+    <div id="installBanner" class="hidden fixed bottom-0 left-0 right-0 z-[9999] bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-2xl border-t-4 border-white">
+        <div class="max-w-lg mx-auto p-4">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <i class="fas fa-motorcycle text-green-600 text-2xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-base truncate">Instalar TimePulse AI</h3>
+                        <p class="text-xs opacity-95 mt-0.5">Acesso rápido e offline</p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1.5 flex-shrink-0">
+                    <button onclick="installPWA()" class="bg-white text-green-600 px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-100 transition shadow-lg whitespace-nowrap flex items-center justify-center gap-1.5">
+                        <i class="fas fa-download text-xs"></i>
+                        <span>Instalar</span>
+                    </button>
+                    <button onclick="dismissInstallBanner()" class="text-white hover:text-gray-200 text-xs underline py-1">
+                        Agora não
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Ready Indicator (mostra enquanto aguarda os 30 segundos) -->
+    <div id="pwaReadyIndicator" class="hidden fixed bottom-4 right-4 z-50 bg-white rounded-full shadow-2xl p-3 border-2 border-green-500">
+        <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span class="text-xs font-medium text-gray-700" id="pwaReadyText">Preparando instalação...</span>
+        </div>
+    </div>
+
+    <!-- iOS Install Modal -->
+    <div id="iosInstallModal" class="modal">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full m-4 p-6">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-download text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Instalar TimePulse AI</h2>
+                <p class="text-gray-600">Adicione à tela inicial para acesso rápido</p>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white font-bold">1</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-800 font-medium">Toque no botão Compartilhar</p>
+                            <p class="text-sm text-gray-600 mt-1">
+                                <i class="fas fa-share text-blue-500"></i> 
+                                (ícone de caixa com seta) na barra inferior
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white font-bold">2</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-800 font-medium">Role para baixo e toque em</p>
+                            <p class="text-sm text-gray-600 mt-1">
+                                <i class="fas fa-plus-square text-blue-500"></i>
+                                "Adicionar à Tela de Início"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-white font-bold">3</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-800 font-medium">Confirme tocando em</p>
+                            <p class="text-sm text-gray-600 mt-1">
+                                "Adicionar" no canto superior direito
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="dismissIOSInstallModal()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition">
+                Entendi
+            </button>
+            
+            <button onclick="dismissIOSInstallModalPermanently()" class="w-full text-gray-500 hover:text-gray-700 py-2 text-sm mt-2">
+                Não mostrar novamente
+            </button>
+        </div>
+    </div>
+
+    <script src="/js/driver-app.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        let deferredPrompt;
+        let installBannerDismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('✅ Service Worker registrado:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('❌ Falha ao registrar Service Worker:', error);
+                    });
+            });
+        }
+
+        // Detectar evento beforeinstallprompt (Chrome/Edge/Samsung Internet)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 PWA Install prompt detectado - pronto para instalar!');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Parar contador de engajamento
+            if (pwaEngagementInterval) {
+                clearInterval(pwaEngagementInterval);
+                hidePWAReadyIndicator();
+            }
+            
+            // Mostrar banner de instalação IMEDIATAMENTE se não foi dispensado
+            if (!installBannerDismissed && !isAppInstalled()) {
+                console.log('✅ Mostrando banner de instalação PWA');
+                // Aguardar apenas 1 segundo antes de mostrar o banner (mais rápido)
+                setTimeout(() => {
+                    showInstallBanner();
+                }, 1000);
+            }
+        });
+
+        // Detectar instalação bem-sucedida
+        window.addEventListener('appinstalled', (e) => {
+            console.log('✅ PWA instalado com sucesso');
+            hideInstallBanner();
+            deferredPrompt = null;
+        });
+
+        // ===================================================================
+        // LÓGICA DO MODAL BLOQUEANTE OBRIGATÓRIO
+        // ===================================================================
+        
+        // Verificar se app já está instalado (display-mode: standalone)
+        function isAppInstalled() {
+            // Verifica se está rodando em modo standalone (instalado)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            const isIOSStandalone = window.navigator.standalone === true;
+            const isAndroidStandalone = document.referrer.includes('android-app://');
+            
+            return isStandalone || isIOSStandalone || isAndroidStandalone;
+        }
+
+        // Mostrar modal bloqueante obrigatório
+        function showMandatoryInstallModal() {
+            const modal = document.getElementById('mandatoryInstallModal');
+            const androidInstructions = document.getElementById('androidInstructions');
+            const iosInstructions = document.getElementById('iosInstructions');
+            const installButton = document.getElementById('installButton');
+            const installButtonText = document.getElementById('installButtonText');
+            
+            if (!modal) return;
+            
+            // Mostrar modal
+            modal.classList.remove('hidden');
+            
+            // Mostrar instruções específicas por plataforma
+            if (isIOS()) {
+                iosInstructions.classList.remove('hidden');
+                androidInstructions.classList.add('hidden');
+                installButton.classList.add('hidden');
+                console.log('📱 iOS detectado - Mostrando instruções manuais');
+            } else if (isAndroid() || isMobile()) {
+                androidInstructions.classList.remove('hidden');
+                iosInstructions.classList.add('hidden');
+                
+                // SEMPRE mostrar botão no Android
+                installButton.classList.remove('hidden');
+                
+                // Atualizar texto do botão baseado no estado do prompt
+                if (deferredPrompt) {
+                    installButtonText.textContent = 'Instalar Agora';
+                    console.log('✅ Botão de instalação com evento pronto');
+                } else {
+                    installButtonText.textContent = 'Tentar Instalar Agora';
+                    console.log('⏳ Botão de instalação sem evento (fallback manual)');
+                }
+            }
+            
+            console.log('🚫 MODAL BLOQUEANTE ATIVO - Instalação obrigatória');
+        }
+
+        // Esconder modal bloqueante (só após instalação)
+        function hideMandatoryInstallModal() {
+            const modal = document.getElementById('mandatoryInstallModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                console.log('✅ Modal bloqueante fechado - App instalado');
+            }
+        }
+
+        // Função de instalação conectada ao botão do modal
+        async function installFromModal() {
+            const installButtonText = document.getElementById('installButtonText');
+            
+            if (!deferredPrompt) {
+                console.log('⚠️ Evento beforeinstallprompt não disponível - Usando fallback manual');
+                
+                // Mostrar instruções visuais em alert
+                const isMobileChrome = /Chrome/.test(navigator.userAgent) && /Mobile/.test(navigator.userAgent);
+                
+                if (isMobileChrome) {
+                    alert('📱 SIGA ESTES PASSOS:\n\n' +
+                          '1️⃣ Toque nos 3 PONTOS (⋮) no canto superior direito\n\n' +
+                          '2️⃣ Toque em "Adicionar à tela inicial" ou "Instalar app"\n\n' +
+                          '3️⃣ Confirme tocando em "Adicionar"\n\n' +
+                          '✅ Pronto! O app será instalado.');
+                } else {
+                    alert('📱 Para instalar:\n\n' +
+                          '1. Abra este site no Chrome do celular\n' +
+                          '2. Menu (⋮) → "Adicionar à tela inicial"\n' +
+                          '3. Confirme a instalação\n\n' +
+                          'Ou aguarde alguns segundos e tente novamente.');
+                }
+                
+                // Atualizar texto do botão
+                installButtonText.innerHTML = '<i class="fas fa-redo mr-2"></i>Aguarde e tente novamente';
+                
+                // Resetar texto após 3 segundos
+                setTimeout(() => {
+                    installButtonText.textContent = 'Tentar Instalar Agora';
+                }, 3000);
+                
+                return;
+            }
+
+            try {
+                console.log('🚀 Iniciando instalação do PWA via prompt...');
+                installButtonText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Instalando...';
+                
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                console.log(`📊 Resultado da instalação: ${outcome}`);
+                
+                if (outcome === 'accepted') {
+                    console.log('✅ Usuário aceitou - PWA sendo instalado');
+                    installButtonText.innerHTML = '<i class="fas fa-check mr-2"></i>Instalado!';
+                    // O modal será fechado pelo evento appinstalled
+                } else {
+                    console.log('❌ Usuário recusou instalação');
+                    installButtonText.textContent = 'Tentar Instalar Agora';
+                    alert('⚠️ Instalação cancelada.\n\nVocê precisa instalar o app para continuar.\n\nUse o Menu Chrome (⋮) → "Adicionar à tela inicial"');
+                }
+                
+                deferredPrompt = null;
+            } catch (error) {
+                console.error('❌ Erro ao instalar:', error);
+                installButtonText.textContent = 'Tentar Instalar Agora';
+                alert('⚠️ Erro na instalação.\n\nUse o menu do navegador:\n1. Toque nos 3 pontos (⋮)\n2. "Adicionar à tela inicial"');
+            }
+        }
+
+        // Conectar botão de instalação do modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const installBtn = document.getElementById('installButton');
+            if (installBtn) {
+                installBtn.addEventListener('click', installFromModal);
+            }
+            
+            // Verificar se precisa mostrar o modal bloqueante
+            checkAndShowMandatoryModal();
+        });
+
+        // Verificar se deve mostrar modal bloqueante (somente em mobile)
+        function checkAndShowMandatoryModal() {
+            const isInstalled = isAppInstalled();
+            const isMobileDevice = isMobile();
+            
+            console.log('=== VERIFICAÇÃO DE INSTALAÇÃO ===');
+            console.log('📱 Dispositivo móvel:', isMobileDevice);
+            console.log('📦 App instalado:', isInstalled);
+            console.log('🖥️ Display mode:', window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser');
+            
+            // REGRA: Mostrar modal bloqueante SOMENTE se:
+            // 1. FOR dispositivo móvel
+            // 2. NÃO estiver instalado
+            if (isMobileDevice && !isInstalled) {
+                // Aguardar 1 segundo para garantir que a página carregou
+                setTimeout(() => {
+                    showMandatoryInstallModal();
+                }, 1000);
+            } else if (isInstalled) {
+                console.log('✅ App já instalado - Acesso liberado');
+                hideMandatoryInstallModal();
+            } else {
+                console.log('🖥️ Desktop detectado - Modal não será mostrado');
+            }
+        }
+
+        // Quando beforeinstallprompt dispara, habilitar botão de instalação
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 beforeinstallprompt disparado!');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Habilitar e atualizar botão de instalação no modal bloqueante
+            const installButton = document.getElementById('installButton');
+            const installButtonText = document.getElementById('installButtonText');
+            
+            if (installButton && !isAppInstalled()) {
+                installButton.classList.remove('hidden');
+                
+                // Atualizar texto do botão para indicar que o prompt está pronto
+                if (installButtonText) {
+                    installButtonText.textContent = 'Instalar Agora';
+                }
+                
+                console.log('✅ Botão de instalação atualizado - Evento pronto!');
+            }
+        });
+
+        // Quando app for instalado, fechar modal bloqueante
+        window.addEventListener('appinstalled', (e) => {
+            console.log('🎉 PWA INSTALADO COM SUCESSO!');
+            hideMandatoryInstallModal();
+            deferredPrompt = null;
+            
+            // Recarregar página para abrir em modo standalone
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        });
+
+        // Verificar periodicamente se app foi instalado (para iOS)
+        setInterval(() => {
+            if (isAppInstalled()) {
+                hideMandatoryInstallModal();
+            }
+        }, 2000);
+
+        // Mostrar banner de instalação
+        function showInstallBanner() {
+            const banner = document.getElementById('installBanner');
+            if (banner && !isAppInstalled()) {
+                banner.classList.remove('hidden');
+                banner.classList.add('animate__animated', 'animate__fadeInDown');
+            }
+        }
+
+        // Esconder banner de instalação
+        function hideInstallBanner() {
+            const banner = document.getElementById('installBanner');
+            if (banner) {
+                banner.classList.add('hidden');
+            }
+        }
+
+        // Dispensar banner de instalação
+        function dismissInstallBanner() {
+            hideInstallBanner();
+            localStorage.setItem('pwa-install-dismissed', 'true');
+            installBannerDismissed = true;
+        }
+
+        // Instalar PWA
+        async function installPWA() {
+            if (!deferredPrompt) {
+                console.log('❌ Prompt de instalação não disponível');
+                // Para iOS, mostrar instruções
+                if (isIOS()) {
+                    alert('Para instalar:\n\n1. Toque no botão Compartilhar (ícone de caixa com seta)\n2. Role e toque em "Adicionar à Tela de Início"\n3. Toque em "Adicionar"');
+                } else {
+                    alert('Instalação não disponível no momento. Tente novamente mais tarde.');
+                }
+                return;
+            }
+
+            try {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`PWA Install choice: ${outcome}`);
+                
+                if (outcome === 'accepted') {
+                    console.log('✅ Usuário aceitou instalação');
+                    hideInstallBanner();
+                } else {
+                    console.log('❌ Usuário recusou instalação');
+                }
+                
+                deferredPrompt = null;
+            } catch (error) {
+                console.error('Erro ao instalar PWA:', error);
+            }
+        }
+
+        // Detectar se é iOS
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        }
+
+        // Detectar se é Android
+        function isAndroid() {
+            return /Android/.test(navigator.userAgent);
+        }
+
+        // Detectar se é móvel
+        function isMobile() {
+            return isIOS() || isAndroid() || /Mobile/.test(navigator.userAgent);
+        }
+
+        // Funções para iOS Install Modal
+        function showIOSInstallModal() {
+            const modal = document.getElementById('iosInstallModal');
+            if (modal && !isAppInstalled()) {
+                modal.classList.add('active');
+            }
+        }
+
+        function dismissIOSInstallModal() {
+            const modal = document.getElementById('iosInstallModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function dismissIOSInstallModalPermanently() {
+            dismissIOSInstallModal();
+            localStorage.setItem('ios-install-dismissed', 'true');
+        }
+
+        // ===================================================================
+        // PWA ENGAGEMENT TIMER & AUTO-INSTALL
+        // ===================================================================
+        
+        // Indicador de preparação PWA com contador de tempo
+        let pwaEngagementTimer = 0;
+        let pwaEngagementInterval = null;
+        
+        function showPWAReadyIndicator() {
+            const indicator = document.getElementById('pwaReadyIndicator');
+            if (indicator && !isAppInstalled() && !installBannerDismissed) {
+                indicator.classList.remove('hidden');
+            }
+        }
+        
+        function hidePWAReadyIndicator() {
+            const indicator = document.getElementById('pwaReadyIndicator');
+            if (indicator) {
+                indicator.classList.add('hidden');
+            }
+        }
+        
+        function updatePWAReadyText(seconds) {
+            const textEl = document.getElementById('pwaReadyText');
+            if (textEl) {
+                if (seconds >= 30) {
+                    textEl.textContent = 'Pronto! Toque para instalar';
+                } else {
+                    textEl.textContent = `${30 - seconds}s para instalação`;
+                }
+            }
+        }
+        
+        // Para iOS, mostrar modal de instalação após alguns segundos
+        if (isIOS() && !isAppInstalled() && localStorage.getItem('ios-install-dismissed') !== 'true') {
+            setTimeout(() => {
+                showIOSInstallModal();
+            }, 5000); // Mostrar após 5 segundos no iOS
+        }
+        
+        // Para outros dispositivos, apenas aguardar o evento beforeinstallprompt
+        // O banner só aparecerá quando o Chrome estiver pronto (veja o listener acima)
+
+        // ===================================================================
+        // PUSH NOTIFICATIONS
+        // ===================================================================
+        
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                console.log('❌ Push notifications não suportadas neste navegador');
+                return false;
+            }
+
+            if (Notification.permission === 'granted') {
+                console.log('✅ Permissão de notificações já concedida');
+                return true;
+            }
+
+            if (Notification.permission === 'denied') {
+                console.log('❌ Permissão de notificações negada pelo usuário');
+                return false;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('✅ Permissão de notificações concedida');
+                    await subscribeToPushNotifications();
+                    return true;
+                } else {
+                    console.log('❌ Permissão de notificações negada');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Erro ao solicitar permissão de notificações:', error);
+                return false;
+            }
+        }
+
+        async function subscribeToPushNotifications() {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                
+                // Verificar se já existe uma assinatura
+                let subscription = await registration.pushManager.getSubscription();
+                
+                if (subscription) {
+                    console.log('✅ Já inscrito em push notifications');
+                    return subscription;
+                }
+
+                // Criar nova assinatura
+                // Nota: Em produção, você precisará de uma VAPID public key
+                // Para gerar: npx web-push generate-vapid-keys
+                const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+                
+                // Por enquanto, apenas log - implementação completa requer backend
+                console.log('📝 Push notification subscription preparado');
+                console.log('⚠️ Para ativar completamente, configure VAPID keys no backend');
+                
+                return null;
+            } catch (error) {
+                console.error('Erro ao subscrever push notifications:', error);
+                return null;
+            }
+        }
+
+        // Solicitar permissão de notificação após app instalado (para apps instalados)
+        if (isAppInstalled()) {
+            // Aguardar 5 segundos após o app abrir para solicitar notificações
+            setTimeout(() => {
+                if (Notification.permission === 'default') {
+                    console.log('📲 Pronto para solicitar permissão de notificações');
+                    // Nota: A solicitação será feita quando o usuário fizer login
+                    // ou pode ser adicionado um botão nas configurações
+                }
+            }, 5000);
+        }
+
+        // Função global para solicitar notificações (pode ser chamada do app)
+        window.enablePushNotifications = requestNotificationPermission;
+
+        // Log do status PWA
+        console.log('=== STATUS PWA ===');
+        console.log('📱 Dispositivo:', isMobile() ? 'Móvel' : 'Desktop');
+        console.log('📱 Sistema:', isIOS() ? 'iOS' : (isAndroid() ? 'Android' : 'Outro'));
+        console.log('📦 App instalado:', isAppInstalled());
+        console.log('🔧 Service Worker:', 'serviceWorker' in navigator ? 'Suportado ✅' : 'Não suportado ❌');
+        console.log('🔔 Notificações:', Notification.permission);
+        console.log('🎯 Banner dispensado:', installBannerDismissed);
+        
+        // Para dispositivos móveis não iOS, mostrar instruções
+        if (isMobile() && !isIOS() && !isAppInstalled()) {
+            console.log('💡 DICA: O banner de instalação aparecerá quando:');
+            console.log('   1. Você interagir com a página (tocar/clicar)');
+            console.log('   2. Passar alguns segundos navegando');
+            console.log('   3. O navegador reconhecer o PWA como instalável');
+            console.log('   📲 Aguarde o banner verde na parte inferior da tela!');
+        }
+        
+        // Para teste/debug: descomente a linha abaixo para forçar o banner
+        // setTimeout(() => { if (!isAppInstalled()) showInstallBanner(); }, 3000);
+    </script>
+</body>
+</html>

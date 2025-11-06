@@ -1,0 +1,27 @@
+Erro na API Evolution: Erro HTTP 404: Not Found - {"status":404,"error":"Not Found","response":{"message":["The \"Restaruante_teste\" instance does not exist"]}} injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    connectExistingInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3119
+❌ Erro ao conectar instância: 
+Object { message: 'Erro HTTP 404: Not Found - {"status":404,"error":"Not Found","response":{"message":["The \\"Restaruante_teste\\" instance does not exist"]}}', error: Error, stack: "connectExistingInstance@https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3120:27\n" }
+injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    connectExistingInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3125
+Erro ao criar instância: Error: Erro HTTP 404: Not Found - {"status":404,"error":"Not Found","response":{"message":["The \"Restaruante_teste\" instance does not exist"]}}
+    connectExistingInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3120
+injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    createNewInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3069
+Carregando configurações da instância: Restaruante_teste injected.js:27:27
+❌ Erro na API Evolution: Erro HTTP 404: Not Found - {"status":404,"error":"Not Found","response":{"message":["The \"Restaruante_teste\" instance does not exist"]}} injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    connectExistingInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3119
+❌ Erro ao conectar instância: 
+Object { message: 'Erro HTTP 404: Not Found - {"status":404,"error":"Not Found","response":{"message":["The \\"Restaruante_teste\\" instance does not exist"]}}', error: Error, stack: "connectExistingInstance@https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3120:27\n" }
+injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    connectExistingInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3125
+Erro ao criar instância: Error: Erro HTTP 404: Not Found - {"status":404,"error":"Not Found","response":{"message":["The \"Restaruante_teste\" instance does not exist"]}}
+    connectExistingInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3120
+injected.js:27:27
+    get https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/__replco/static/devtools/injected.js:27
+    createNewInstance https://5e0c212d-0cca-4b80-8522-d59564922f1e-00-11ekvf5aiwxuq.janeway.replit.dev/configuracoes.html:3069

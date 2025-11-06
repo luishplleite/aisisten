@@ -1,0 +1,472 @@
+Documentação Completa da OpenAI para Integração de Prompts e Funções
+
+Baseado na pesquisa realizada, apresento a documentação completa dos endpoints e funções da OpenAI para integração de prompts, templates e todas as funcionalidades relacionadas.
+Sistema de Prompts da OpenAI
+
+A OpenAI introduziu um novo sistema de gerenciamento de prompts que trata prompts como objetos primitivos da API, oferecendo controle versionado e reutilização centralizada.
+Criação e Gerenciamento de Prompts
+Criar Prompt (Apenas via Dashboard)
+
+Atualmente, prompts só podem ser criados através do dashboard da OpenAI, não existe endpoint API para criação:
+
+    Acesse platform.openai.com/playground
+
+    Crie seu prompt no Playground
+
+    Clique em "Save"
+
+    Defina um nome e descrição
+
+    Obtenha o prompt_id (formato: pmpt_abc123)
+
+Usar Prompt via API
+
+text
+POST https://api.openai.com/v1/responses
+
+Estrutura do parâmetro prompt:
+
+python
+response = client.responses.create(
+    model="gpt-4.1",
+    prompt={
+        "id": "pmpt_abc123",           # ID do prompt
+        "version": "2",               # Versão específica (opcional)
+        "variables": {                # Variáveis para substituição
+            "customer_name": "João",
+            "product": "notebook"
+        }
+    }
+)
+
+Exemplo com cURL:
+
+bash
+curl -X POST "https://api.openai.com/v1/responses" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $OPENAI_API_KEY" \
+-d '{
+  "prompt": {
+    "prompt_id": "pmpt_123",
+    "variables": {
+      "city": "São Paulo"
+    }
+  }
+}'
+
+Variáveis e Templates
+Sintaxe de Variáveis
+
+Use {{variable_name}} nos prompts para criar templates dinâmicos:
+
+text
+# No Dashboard
+Olá {{customer_name}}, seu pedido de {{product}} foi processado.
+
+# Na API
+"variables": {
+  "customer_name": "Maria",
+  "product": "smartphone"
+}
+
+Tipos de Variáveis Suportadas
+
+    String: Texto simples
+
+    input_file: Referência a arquivos
+
+    input_image: Referência a imagens
+
+Exemplo com arquivo:
+
+python
+# Upload do arquivo
+file = client.files.create(
+    file=open("documento.pdf", "rb"),
+    purpose="user_data"
+)
+
+# Usar no prompt
+response = client.responses.create(
+    model="gpt-5",
+    prompt={
+        "id": "pmpt_abc123",
+        "variables": {
+            "topic": "IA",
+            "reference_pdf": {
+                "type": "input_file",
+                "file_id": file.id
+            }
+        }
+    }
+)
+
+Versionamento de Prompts
+Criar Nova Versão
+
+    Edite o prompt no dashboard
+
+    Clique em "Update"
+
+    Nova versão é criada automaticamente
+
+    Use version para referenciar versão específica
+
+Rollback de Versões
+
+    Vá para o dashboard de prompts
+
+    Clique em "History"
+
+    Selecione a versão desejada
+
+    Clique em "Restore"
+
+Function Calling (Tool Calling)
+Estrutura de Funções
+Definir Função
+
+python
+tools = [
+    {
+        "type": "function",
+        "name": "get_weather",
+        "description": "Obter clima atual para uma localização",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "Cidade e país, ex: São Paulo, Brasil"
+                },
+                "units": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"]
+                }
+            },
+            "required": ["location"],
+            "additionalProperties": False
+        },
+        "strict": True
+    }
+]
+
+Fazer Chamada com Funções
+
+python
+response = client.responses.create(
+    model="gpt-4.1",
+    input="Qual o clima em São Paulo?",
+    tools=tools
+)
+
+# Processar function calls
+for item in response.output:
+    if item.type == "function_call":
+        function_name = item.name
+        arguments = json.loads(item.arguments)
+        result = call_function(function_name, arguments)
+        
+        # Retornar resultado
+        input_messages.append({
+            "type": "function_call_output",
+            "call_id": item.call_id,
+            "output": json.dumps(result)
+        })
+
+Custom Tools
+Ferramenta Personalizada
+
+python
+tools = [
+    {
+        "type": "custom",
+        "name": "code_executor",
+        "description": "Executa código Python arbitrário"
+    }
+]
+
+response = client.responses.create(
+    model="gpt-5",
+    input="Use a ferramenta code_executor para calcular 2+2",
+    tools=tools
+)
+
+Custom Tools com Grammar (CFG)
+
+python
+# Usando Lark Grammar
+grammar = """
+start: expr
+expr: term (SP ADD SP term)* -> add
+term: factor (SP MUL SP factor)* -> mul
+factor: INT
+SP: " "
+ADD: "+"
+MUL: "*"
+%import common.INT
+"""
+
+tools = [
+    {
+        "type": "custom",
+        "name": "math_expression",
+        "description": "Cria expressões matemáticas válidas",
+        "format": {
+            "type": "grammar",
+            "syntax": "lark",
+            "definition": grammar
+        }
+    }
+]
+
+python
+# Usando Regex Grammar  
+regex_pattern = r"^(?P<month>January|February|March|April|May|June|July|August|September|October|November|December)\s+(?P<day>\d{1,2})(?:st|nd|rd|th)?\s+(?P<year>\d{4})$"
+
+tools = [
+    {
+        "type": "custom", 
+        "name": "date_parser",
+        "description": "Analisa datas em formato específico",
+        "format": {
+            "type": "grammar",
+            "syntax": "regex",
+            "definition": regex_pattern
+        }
+    }
+]
+
+Configurações de Tool Choice
+
+python
+# Auto (padrão) - modelo decide
+"tool_choice": "auto"
+
+# Obrigatório - deve usar ao menos uma ferramenta  
+"tool_choice": "required"
+
+# Forçar função específica
+"tool_choice": {
+    "type": "function", 
+    "name": "get_weather"
+}
+
+# Ferramentas permitidas (subset)
+"tool_choice": {
+    "type": "allowed_tools",
+    "mode": "auto", 
+    "tools": [
+        {"type": "function", "name": "get_weather"},
+        {"type": "mcp", "server_label": "wiki"}
+    ]
+}
+
+# Nenhuma ferramenta
+"tool_choice": "none"
+
+Endpoints Principais da API
+1. Responses API (Principal)
+
+text
+POST https://api.openai.com/v1/responses
+
+Parâmetros principais:
+
+    model: Modelo a usar (ex: "gpt-4.1")
+
+    input: Entrada (string ou array de mensagens)
+
+    instructions: Instruções de alto nível
+
+    prompt: Objeto com prompt gerenciado
+
+    tools: Array de ferramentas disponíveis
+
+    tool_choice: Controle de uso de ferramentas
+
+    temperature: Criatividade (0.0 a 2.0)
+
+    max_output_tokens: Limite de tokens de saída
+
+    stream: Streaming em tempo real
+
+Exemplo completo:
+
+python
+response = client.responses.create(
+    model="gpt-4.1",
+    instructions="Seja conciso e direto",
+    input="Explique inteligência artificial",
+    prompt={
+        "id": "pmpt_123",
+        "variables": {"topic": "IA"}
+    },
+    tools=[
+        {
+            "type": "function",
+            "name": "search_web",
+            "description": "Buscar informações na web"
+        }
+    ],
+    tool_choice="auto",
+    temperature=0.7,
+    stream=False
+)
+
+2. Chat Completions API (Legado)
+
+text
+POST https://api.openai.com/v1/chat/completions
+
+python
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "Você é um assistente útil"},
+        {"role": "user", "content": "Olá!"}
+    ],
+    temperature=0.7,
+    max_tokens=150
+)
+
+3. Files API (Para uploads)
+
+text
+POST https://api.openai.com/v1/files
+GET https://api.openai.com/v1/files
+GET https://api.openai.com/v1/files/{file_id}
+DELETE https://api.openai.com/v1/files/{file_id}
+
+Upload de arquivo:
+
+python
+file = client.files.create(
+    file=open("documento.pdf", "rb"),
+    purpose="user_data"
+)
+
+Message Roles e Formatting
+Roles de Mensagem
+
+    developer: Instruções do desenvolvedor (maior prioridade)
+
+    user: Instruções do usuário final
+
+    assistant: Respostas do modelo
+
+Formatação com Markdown e XML
+
+python
+developer_message = """
+# Identidade
+Você é um assistente de código especializado em Python.
+
+# Instruções
+* Use snake_case para variáveis
+* Declare variáveis com 'var' 
+* Não use formatação Markdown na resposta
+
+# Exemplos
+<user_query>
+Como declarar uma variável para nome?
+</user_query>
+
+<assistant_response>
+var first_name = "João";
+</assistant_response>
+"""
+
+Prompt Engineering e Técnicas
+Few-shot Learning
+
+python
+developer_message = """
+Classifique avaliações como Positiva, Negativa ou Neutra.
+
+# Exemplos
+<product_review id="1">
+Adoro estes fones - qualidade incrível!
+</product_review>
+<assistant_response id="1">
+Positiva
+</assistant_response>
+
+<product_review id="2">
+Bateria OK, mas material parece barato.
+</product_review>
+<assistant_response id="2">
+Neutra  
+</assistant_response>
+"""
+
+Retrieval-Augmented Generation (RAG)
+
+python
+context = """
+<context>
+Informações da empresa: [dados proprietários]
+</context>
+"""
+
+response = client.responses.create(
+    model="gpt-4.1",
+    instructions=context + "\n\nUse apenas as informações fornecidas.",
+    input="Pergunta do usuário"
+)
+
+Streaming de Respostas
+
+python
+stream = client.responses.create(
+    model="gpt-4.1",
+    input="Escreva uma história curta",
+    stream=True
+)
+
+for event in stream:
+    if event.type == "response.output_item.added":
+        print(f"Novo item: {event.item}")
+    elif event.type == "response.text.delta":
+        print(event.delta, end="")
+
+Limitações Atuais
+
+    Prompts só podem ser criados via dashboard - não há endpoints API para CRUD de prompts
+
+    Sem API para gerenciar versões programaticamente
+
+    Cache de prompts por 30 dias apenas
+
+    Context window varia por modelo (100k a 1M tokens)
+
+Melhores Práticas
+Para Prompts
+
+    Use nomes descritivos para prompts salvos
+
+    Aproveite o versionamento para experimentos
+
+    Posicione conteúdo reutilizável no início (prompt caching)
+
+    Use variáveis para personalização dinâmica
+
+Para Function Calling
+
+    Mantenha descrições claras e detalhadas
+
+    Use strict: true para garantir conformidade
+
+    Limite a 20 funções por vez para melhor precisão
+
+    Combine funções sempre chamadas em sequência
+
+Para Performance
+
+    Pin modelos específicos em produção (gpt-4.1-2025-04-14)
+
+    Construa avaliações para monitorar performance
+
+    Use prompt caching para reduzir latência e custos
+
+A OpenAI está claramente movendo em direção a um sistema mais gerenciado e estruturado para prompts, embora ainda existam limitações na gestão programática completa via API.

@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TimePulse AI</title>
+    
+    <!-- Sistema de ocultação de logs para produção -->
+    <script>
+        if (typeof console !== 'undefined') {
+            console.log = function() {};
+            console.warn = function() {};
+            console.error = function() {};
+            console.info = function() {};
+            console.debug = function() {};
+        }
+    </script>
+    <meta name="description" content="Dashboard de gerenciamento para o restaurante">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https: wss: *.supabase.co; font-src 'self' https:; object-src 'none'; media-src 'self'; frame-src 'none';">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        /* Dashboard-specific styles that work with the theme system */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Sidebar está sendo carregado do styles.css global */
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1); /* Cor transparente do verde */
+            color: var(--primary-color);
+        }
+        
+        .nav-link.active .nav-icon {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            color: #6c757d; /* Ícones escuros por padrão */
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        /* --- Alterações aqui para o fundo branco e sombra do cabeçalho da página --- */
+        .page-header {
+            background: white; /* Fundo branco */
+            color: #333; /* Cor do texto para contraste */
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* Sombra mais pronunciada */
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color); /* Mantém a cor verde para o título */
+        }
+        
+        .page-header-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            color: #6c757d; /* Cor do subtítulo para contraste */
+        }
+        /* --- Fim das alterações --- */
+        
+        .status-badge {
+            background-color: var(--success-color);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-badge.offline {
+            background-color: var(--danger-color);
+        }
+
+        .dashboard-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .card-icon {
+            font-size: 2rem;
+            padding: 1rem;
+            border-radius: 12px;
+            background-color: #f0f0f0;
+            color: #666;
+        }
+        
+        .stat-card.pendentes .card-icon {
+            background-color: #fff3cd;
+            color: #ffc107;
+        }
+
+        .stat-card.receita .card-icon {
+            background-color: #d4edda;
+            color: var(--success-color);
+        }
+
+        .stat-card.pedidos .card-icon {
+            background-color: #cce5ff;
+            color: var(--info-color);
+        }
+
+        .stat-card.entregadores .card-icon {
+            background-color: #e2e3e5;
+            color: var(--secondary-color);
+        }
+
+        .stat-card .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+        }
+        
+        .stat-card .card-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .stat-card .card-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+            line-height: 1;
+        }
+        
+        .stat-card .card-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .dashboard-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Sistema de Bloqueio Dinâmico - Trial */
+        .blocked-element {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .blocked-element > *:not(.block-overlay) {
+            filter: blur(5px);
+            user-select: none;
+        }
+
+        .block-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            filter: none !important;
+        }
+
+        .block-overlay .lock-icon {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        .block-overlay .block-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .block-overlay .block-submessage {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+        }
+
+        .block-overlay .btn-upgrade {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            pointer-events: auto;
+        }
+
+        .block-overlay .btn-upgrade:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .section-header .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+    .section-header .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+            border: 1px solid #ddd;
+        }
+
+        .section-header .btn-secondary:hover {
+            background: #d4d8dc;
+        }
+        
+        .section-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .section-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .section-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .list-item-title {
+            font-weight: 600;
+        }
+        
+        .list-item-subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .list-item-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        
+        .list-item-status.encerrado {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item-status.ocupado {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .list-item-status.disponivel {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: right;
+        }
+
+        .list-item-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .list-item-subtext {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .courier-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .courier-list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .courier-initial {
+            width: 40px;
+            height: 40px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .courier-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .courier-name {
+            font-weight: 600;
+        }
+        
+        .courier-details {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .courier-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: capitalize;
+        }
+        
+        /* Adicionando ou ajustando as cores de fundo para os status dos entregadores */
+        .courier-status.busy {
+            background-color: #fff3cd; /* Amarelo claro */
+            color: #856404; /* Amarelo escuro */
+        }
+        
+        .courier-status.active {
+            background-color: #d4edda; /* Verde claro */
+            color: #155724; /* Verde escuro */
+        }
+
+        .courier-status.inactive { /* Nova classe para entregadores inativos */
+            background-color: #e2e3e5; /* Cinza claro */
+            color: #495057; /* Cinza escuro */
+        }
+        
+        /* Estilos para ofuscação de dados em período trial */
+        .trial-blur-container {
+            position: relative;
+        }
+        
+        .trial-blur-content {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        .trial-blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 12px;
+        }
+        
+        .trial-blur-overlay .lock-icon {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+        
+        .trial-blur-overlay h4 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .trial-blur-overlay p {
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        
+        .trial-blur-overlay .btn-upgrade {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .trial-blur-overlay .btn-upgrade:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo brand-name" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name restaurant-brand" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" id="logoutButton">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content" id="mainContent">
+            <header class="page-header">
+                <div class="page-header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-line"></i>
+                        Dashboard
+                    </h1>
+                    <p class="page-subtitle" id="currentDate"></p>
+                </div>
+                <div class="status-badge" id="onlineStatusBadge">
+                    <i class="fas fa-circle"></i>
+                    <span id="onlineStatusText"></span>
+                </div>
+            </header>
+
+            <div class="dashboard-stats-grid">
+                <div class="stat-card pendentes">
+                    <div class="card-icon"><i class="fas fa-box-open"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Pedidos Pendentes</div>
+                        <div class="card-value" id="pendingOrdersCount">0</div>
+                        <div class="card-subtitle">+<span id="pendingOrdersToday">0</span> hoje</div>
+                    </div>
+                </div>
+                <div class="stat-card receita">
+                    <div class="card-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Receita Hoje</div>
+                        <div class="card-value" id="todayRevenue">R$ 0.00</div>
+                        <div class="card-subtitle"><span id="revenueComparison"></span> vs ontem</div>
+                    </div>
+                </div>
+                <div class="stat-card pedidos">
+                    <div class="card-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Pedidos Hoje</div>
+                        <div class="card-value" id="todayOrdersCount">0</div>
+                        <div class="card-subtitle"><span id="ordersComparison"></span> vs ontem</div>
+                    </div>
+                </div>
+                <div class="stat-card entregadores" id="stat-active-deliverers">
+                    <div class="card-icon"><i class="fas fa-motorcycle"></i></div>
+                    <div class="card-content">
+                        <div class="card-title">Entregadores Ativos</div>
+                        <div class="card-value" id="activeDeliverersCount">0</div>
+                        <div class="card-subtitle">
+                            <span id="busyDeliverers">0</span> ocupados
+                            <br>
+                            <span id="freeDeliverers">0</span> livres
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="dashboard-section" id="dashboard-recent-orders">
+                    <div class="section-header">
+                        <h3>Pedidos Recentes</h3>
+                        <a href="gestao_pedidos.html" class="btn btn-secondary">Ver Todos</a>
+                    </div>
+                    <ul class="section-list" id="recentOrdersList">
+                        <li style="text-align: center; color: #6c757d;">Carregando pedidos...</li>
+                    </ul>
+                </div>
+
+                <div class="dashboard-section" id="dashboard-sales-chart">
+                    <div class="section-header">
+                        <h3>Vendas dos Últimos 7 Dias</h3>
+                        <button class="btn btn-secondary" onclick="refreshChart()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                        <p class="list-item-subtext" style="text-align: center; margin-top: 1rem;">Dados dos últimos 7 dias</p>
+                    </div>
+                </div>
+                
+                <div class="dashboard-section" id="dashboard-deliverers">
+                    <div class="section-header">
+                        <h3>Entregadores</h3>
+                        <a href="gestao_entregadores.html" class="btn btn-secondary">Gerenciar</a>
+                    </div>
+                    <ul class="section-list" id="deliverersList">
+                        <li style="text-align: center; color: #6c757d;">Carregando entregadores...</li>
+                    </ul>
+                </div>
+                
+                <div class="dashboard-section" id="dashboard-popular-products">
+                    <div class="section-header">
+                        <h3>Produtos Populares</h3>
+                        <a href="cardapio.html" class="btn btn-secondary">Ver Cardápio</a>
+                    </div>
+                    <ul class="section-list" id="popularProductsList">
+                        <li style="text-align: center; color: #6c757d;">Carregando produtos...</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // LOGS DETALHADOS PARA RASTREAR MENSAGENS DE RATE LIMITING
+        console.log('🚀 DASHBOARD INICIADO - Logs ativos para debug');
+        
+        // Interceptar todas as mensagens de erro/aviso
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalLog = console.log;
+        
+        console.error = function(...args) {
+            originalError.apply(console, ['❌ ERROR DETECTADO:', ...args]);
+            // Verificar se contém mensagem de rate limiting
+            const message = args.join(' ');
+            if (message.includes('Muitas tentativas') || message.includes('15 minutos') || message.includes('429')) {
+                originalError.apply(console, ['🚨 RATE LIMITING DETECTADO EM ERROR:', message]);
+                console.trace('📍 STACK TRACE DA MENSAGEM DE RATE LIMITING:');
+            }
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, ['⚠️ WARN DETECTADO:', ...args]);
+            const message = args.join(' ');
+            if (message.includes('Muitas tentativas') || message.includes('15 minutos') || message.includes('429')) {
+                originalWarn.apply(console, ['🚨 RATE LIMITING DETECTADO EM WARN:', message]);
+                console.trace('📍 STACK TRACE DA MENSAGEM DE RATE LIMITING:');
+            }
+        };
+        
+        // Interceptar fetch para logar todas as requisições
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            console.log('🌐 FETCH INTERCEPTADO:', {
+                url: url,
+                method: options?.method || 'GET',
+                headers: options?.headers,
+                timestamp: new Date().toISOString()
+            });
+            
+            // BLOQUEAR QUALQUER REQUISIÇÃO PARA DOMÍNIO DE PRODUÇÃO
+            if (url && (url.includes('timepulseai.com.br') || url.startsWith('https://timepulseai.com.br'))) {
+                console.error('🚨 BLOQUEANDO REQUISIÇÃO PARA PRODUÇÃO:', url);
+                console.trace('📍 STACK TRACE DA REQUISIÇÃO BLOQUEADA:');
+                
+                // Converter para URL relativa
+                const urlObj = new URL(url, window.location.origin);
+                const relativePath = urlObj.pathname + urlObj.search + urlObj.hash;
+                console.log('🔄 CONVERTENDO PARA URL RELATIVA:', relativePath);
+                
+                // Fazer a requisição para o servidor local
+                url = relativePath;
+            }
+            
+            return originalFetch.apply(this, arguments).then(response => {
+                console.log('📡 RESPOSTA FETCH:', {
+                    url: url,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries()),
+                    timestamp: new Date().toISOString()
+                });
+                
+                if (response.status === 429) {
+                    console.error('🚨 STATUS 429 DETECTADO!', {
+                        url: url,
+                        status: response.status,
+                        statusText: response.statusText
+                    });
+                    console.trace('📍 STACK TRACE DO 429:');
+                }
+                
+                return response;
+            }).catch(error => {
+                console.error('❌ ERRO FETCH:', {
+                    url: url,
+                    error: error.message,
+                    stack: error.stack
+                });
+                throw error;
+            });
+        };
+        
+        // Interceptar alerts e outras notificações
+        const originalAlert = window.alert;
+        window.alert = function(message) {
+            console.log('🔔 ALERT INTERCEPTADO:', message);
+            if (message && (message.includes('Muitas tentativas') || message.includes('15 minutos') || message.includes('429'))) {
+                console.error('🚨 RATE LIMITING DETECTADO EM ALERT:', message);
+                console.trace('📍 STACK TRACE DO ALERT:');
+            }
+            return originalAlert.apply(this, arguments);
+        };
+        
+        // Interceptar mudanças no DOM que podem inserir mensagens
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE) {
+                        const text = node.textContent || node.innerText || '';
+                        if (text.includes('Muitas tentativas') || text.includes('15 minutos') || text.includes('429')) {
+                            console.error('🚨 RATE LIMITING DETECTADO NO DOM:', {
+                                text: text,
+                                node: node,
+                                parent: node.parentNode
+                            });
+                            console.trace('📍 STACK TRACE DA INSERÇÃO NO DOM:');
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Iniciar observação do DOM
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+        
+        // Interceptar sistema de notificações seguras se existir
+        setTimeout(() => {
+            if (window.secureNotifications && window.secureNotifications.show) {
+                const originalShow = window.secureNotifications.show;
+                window.secureNotifications.show = function(message, type) {
+                    console.log('📢 NOTIFICAÇÃO SEGURA INTERCEPTADA:', {
+                        message: message,
+                        type: type,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    if (message && (message.includes('Muitas tentativas') || message.includes('15 minutos') || message.includes('429'))) {
+                        console.error('🚨 RATE LIMITING DETECTADO EM NOTIFICAÇÃO SEGURA:', message);
+                        console.trace('📍 STACK TRACE DA NOTIFICAÇÃO:');
+                    }
+                    
+                    return originalShow.apply(this, arguments);
+                };
+            }
+        }, 1000);
+        
+        console.log('📊 SISTEMA DE LOGS DETALHADOS ATIVO - Monitorando rate limiting');
+
+        // Variáveis globais para o Supabase, Mapbox e dados do dashboard
+        let supabase;
+        let MAPBOX_ACCESS_TOKEN;
+        let currentRestaurant = null;
+        let allOrders = [];
+        let allDeliverers = [];
+        let allProducts = [];
+        // Flag para garantir que os listeners de tempo real sejam configurados apenas uma vez
+        let supabaseRealtimeListenersInitialized = false;
+
+        /**
+         * Formata um objeto Date para uma string legível, incluindo dia da semana, data e hora.
+         * @param {Date} date - O objeto Date a ser formatado.
+         * @returns {string} A string formatada da data e hora.
+         */
+        function formatDate(date) {
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            return `${date.toLocaleDateString('pt-BR', timeOptions)} - ${date.toLocaleDateString('pt-BR', options)}`;
+        }
+
+        /**
+         * Converte um objeto Date para uma string de data no formato 'YYYY-MM-DD' no fuso horário local.
+         * @param {Date} date - O objeto Date a ser formatado.
+         * @returns {string} A string da data local.
+         */
+        function getLocalDateString(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /**
+         * Sistema de configuração segura - Sistema seguro de backend usando URLs relativas como gestao_pedidos.html e login.html
+         */
+        async function fetchPublicConfig() {
+            try {
+                const timestamp = Date.now();
+                
+                // Buscar configuração básica do servidor (URL relativa como gestao_pedidos.html)
+                const configUrl = `/api/config?t=${timestamp}`;
+                
+                const response = await fetch(configUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+                }
+                
+                const basicConfig = await response.json();
+                
+                // Buscar configuração do Supabase (URL relativa)
+                const supabaseResponse = await fetch(`/api/config/supabase?t=${timestamp}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate'
+                    }
+                });
+                
+                if (!supabaseResponse.ok) {
+                    throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+                }
+                
+                const supabaseConfig = await supabaseResponse.json();
+                
+                // Buscar configuração do Evolution API (como gestao_pedidos.html)
+                let evolutionConfig = {};
+                try {
+                    const evolutionResponse = await fetch(`/api/config/evolution?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate'
+                        }
+                    });
+                    
+                    if (evolutionResponse.ok) {
+                        evolutionConfig = await evolutionResponse.json();
+                    }
+                } catch (evolutionError) {
+                    // Evolution é opcional, não quebra se não estiver disponível
+                }
+                
+                // Buscar configuração do Mapbox (como gestao_pedidos.html)
+                let mapboxConfig = {};
+                try {
+                    const mapboxResponse = await fetch(`/api/config/mapbox?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (mapboxResponse.ok) {
+                        mapboxConfig = await mapboxResponse.json();
+                    }
+                } catch (mapboxError) {
+                    // Mapbox é opcional
+                }
+                
+                // Buscar configuração do OpenAI (como gestao_pedidos.html)
+                let openaiConfig = {};
+                try {
+                    const openaiResponse = await fetch(`/api/config/openai?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (openaiResponse.ok) {
+                        openaiConfig = await openaiResponse.json();
+                    }
+                } catch (openaiError) {
+                    // OpenAI é opcional
+                }
+                
+                // Montar configuração final seguindo o padrão do gestao_pedidos.html
+                const finalConfig = {
+                    ...basicConfig,
+                    supabase: {
+                        url: supabaseConfig.supabaseUrl || supabaseConfig.url,
+                        anon_key: supabaseConfig.supabaseAnonKey || supabaseConfig.anon_key,
+                        configured: true
+                    },
+                    evolution: {
+                        serverUrl: evolutionConfig.serverUrl,
+                        configured: !!evolutionConfig.serverUrl
+                    },
+                    mapbox: {
+                        accessToken: mapboxConfig.accessToken,
+                        configured: !!mapboxConfig.accessToken
+                    },
+                    openai: {
+                        baseUrl: openaiConfig.baseUrl || 'https://api.openai.com/v1',
+                        configured: !!openaiConfig.apiKey
+                    }
+                };
+                
+                return finalConfig;
+                
+            } catch (error) {
+                throw new Error('Erro ao carregar configurações do servidor. Verifique sua conexão e recarregue a página.');
+            }
+        }
+
+        /**
+         * Carrega as configurações usando sistema seguro.
+         */
+        async function loadConfig() {
+            try {
+                
+                // Buscar configuração usando o sistema seguro
+                const config = await fetchPublicConfig();
+                
+                if (!config) {
+                    throw new Error('Não foi possível carregar a configuração');
+                }
+                
+                
+                // Inicializar cliente Supabase (usando nova estrutura de configuração)
+                if (config.supabase?.url && config.supabase?.anon_key && window.supabase) {
+                    supabase = window.supabase.createClient(config.supabase.url, config.supabase.anon_key);
+                } else {
+                    throw new Error('As configurações do Supabase são inválidas ou biblioteca não encontrada.');
+                }
+
+                // Armazena o token do Mapbox se estiver disponível
+                if (config.mapbox?.accessToken) {
+                    MAPBOX_ACCESS_TOKEN = config.mapbox.accessToken;
+                }
+
+                return config;
+            } catch (error) {
+                // Exibe uma página de erro amigável ao usuário
+                document.body.innerHTML = `<div class="error-page" style="text-align: center; padding: 50px; font-family: 'Inter', sans-serif;">
+                    <h2 style="color: #dc3545; margin-bottom: 20px;">Erro de Configuração</h2>
+                    <p style="margin-bottom: 10px;">${error.message}</p>
+                    <p style="margin-bottom: 30px;">Verifique a conexão com o servidor e recarregue a página.</p>
+                    <button onclick="window.location.reload()" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Recarregar</button>
+                </div>`;
+                throw error;
+            }
+        }
+
+        /**
+         * Obtém os dados da instância dos cookies, localStorage ou sessionStorage
+         */
+        function getInstanceData() {
+            try {
+                const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    try {
+                        const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                        const instanceData = JSON.parse(cookieValue);
+                        return instanceData;
+                    } catch (e) {
+                        console.error('Error parsing cookie:', e);
+                    }
+                }
+                
+                const localStorageData = localStorage.getItem('timepulse_instance_token');
+                if (localStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(localStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing localStorage:', e);
+                    }
+                }
+                
+                const sessionStorageData = sessionStorage.getItem('timepulse_instance_token');
+                if (sessionStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(sessionStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing sessionStorage:', e);
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('getInstanceData error:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Verifica se o usuário está autenticado
+         */
+        function isAuthenticated() {
+            const instanceData = getInstanceData();
+            return instanceData && instanceData.instanceId && instanceData.restaurantId;
+        }
+
+        function requireAuth() {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            document.cookie = 'timepulse_instance_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            localStorage.removeItem('timepulse_instance_token');
+            sessionStorage.removeItem('timepulse_instance_token');
+            window.location.href = 'login.html';
+        }
+
+        /**
+         * Verifica a autenticação do restaurante e carrega as configurações iniciais.
+         * Redireciona para a página de login se não houver instância conectada.
+         */
+        async function checkAuthenticationAndLoadConfig() {
+            // Verifica autenticação diretamente pelos cookies
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const currentInstance = getInstanceData();
+            const restaurantId = currentInstance.restaurantId;
+
+            try {
+                await loadConfig(); // Carrega as configurações do backend
+                
+                // Atualiza a interface com os dados da instância
+                document.getElementById('restaurantName').textContent = currentInstance.instanceName;
+
+                // Busca os dados do restaurante logado no Supabase
+                const { data: restaurant, error } = await supabase
+                    .from('restaurants')
+                    .select('*')
+                    .eq('id', restaurantId)
+                    .single();
+
+                if (error) {
+                    throw new Error('Restaurante não encontrado ou erro na sessão.');
+                }
+                
+                currentRestaurant = restaurant; // Armazena os dados do restaurante
+                document.getElementById('onlineStatusText').textContent = restaurant.pedidos_online ? 'Funcionando' : 'Offline';
+                if (!restaurant.pedidos_online) {
+                    document.getElementById('onlineStatusBadge').classList.add('offline');
+                }
+
+                document.getElementById('currentDate').textContent = formatDate(new Date()); // Atualiza a data atual
+
+                await loadDashboardData(); // Carrega os dados do dashboard
+            } catch (error) {
+                // Error handling silenced
+            }
+        }
+
+        /**
+         * Sistema desabilitado temporariamente para evitar exposição de dados sensíveis no console.
+         * Dashboard funcionará em modo de atualização manual.
+         */
+        function setupRealtimeListeners() {
+            supabaseRealtimeListenersInitialized = true;
+        }
+
+        /**
+         * Carrega todos os dados necessários para o dashboard (pedidos, entregadores, produtos).
+         * @returns {Promise<void>} Uma promessa que resolve quando os dados são carregados.
+         */
+        async function loadDashboardData() {
+            // Obtém dados da instância atual
+            const currentInstance = getInstanceData();
+            const restaurantId = currentInstance.restaurantId; 
+            try {
+                // Busca todos os pedidos do restaurante
+                const { data: ordersData, error: ordersError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('restaurant_id', restaurantId)
+                    .order('created_at', { ascending: false });
+                if (ordersError) throw ordersError;
+                allOrders = ordersData; // Armazena todos os pedidos
+
+                // Busca todos os entregadores do restaurante
+                const { data: deliverersData, error: deliverersError } = await supabase
+                    .from('deliverers')
+                    .select('*')
+                    .eq('restaurant_id', restaurantId);
+                if (deliverersError) throw deliverersError;
+                allDeliverers = deliverersData; // Armazena todos os entregadores
+                
+                // Busca todos os produtos do restaurante
+                const { data: productsData, error: productsError } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('restaurant_id', restaurantId);
+                if (productsError) throw productsError;
+                allProducts = productsData; // Armazena todos os produtos
+
+                // Busca os itens de todos os pedidos
+                const { data: orderItemsData, error: orderItemsError } = await supabase
+                    .from('order_items')
+                    .select('*')
+                    .in('order_id', ordersData.map(o => o.id)); // Filtra pelos IDs dos pedidos carregados
+                if (orderItemsError) throw orderItemsError;
+
+                // Associa os itens de pedido aos seus respectivos pedidos
+                allOrders.forEach(order => {
+                    order.order_items = orderItemsData.filter(item => item.order_id === order.id);
+                });
+
+                renderDashboard(); // Renderiza o dashboard com os dados carregados
+
+                // Após o carregamento inicial dos dados, configura os listeners de tempo real, se ainda não o fez
+                if (!supabaseRealtimeListenersInitialized) {
+                    setupRealtimeListeners();
+                }
+            }
+            catch (error) {
+            }
+        }
+        
+        /**
+         * Função principal para renderizar todas as seções do dashboard.
+         */
+        function renderDashboard() {
+            renderStats(); // Renderiza os cartões de estatísticas
+            renderRecentOrders(); // Renderiza a lista de pedidos recentes
+            renderSalesChart(); // Renderiza o gráfico de vendas
+            renderDeliverers(); // Renderiza a lista de entregadores
+            renderPopularProducts(); // Renderiza a lista de produtos populares
+            applyTrialBlurIfNeeded(); // Aplica blur se usuário trial passou do primeiro dia
+        }
+
+        /**
+         * Aplica ofuscação nos dados se o usuário estiver em trial e já passou do primeiro dia
+         */
+        async function applyTrialBlurIfNeeded() {
+            try {
+                const currentInstance = getInstanceData();
+                const restaurantId = currentInstance.restaurantId;
+                
+                // Busca dados do restaurante incluindo status de assinatura
+                const { data: restaurant, error } = await supabase
+                    .from('restaurants')
+                    .select('subscription_status, trial_start_date, trial_end_date')
+                    .eq('id', restaurantId)
+                    .single();
+                
+                if (error || !restaurant) return;
+                
+                // Verifica se está em período trial
+                const isTrial = restaurant.subscription_status === 'trial';
+                
+                if (!isTrial) return; // Se não é trial, não aplica blur
+                
+                // Verifica se trial_start_date existe e é válido
+                if (!restaurant.trial_start_date) return;
+                
+                // Normaliza as datas para meia-noite (00:00:00) para comparação de dias de calendário
+                const trialStartDate = new Date(restaurant.trial_start_date);
+                trialStartDate.setHours(0, 0, 0, 0);
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Calcula a diferença em dias de calendário
+                const daysPassed = Math.floor((today - trialStartDate) / (1000 * 60 * 60 * 24));
+                
+                // Se passou mais de 0 dias (ou seja, a partir do segundo dia de calendário), aplica blur
+                if (daysPassed > 0) {
+                    // IDs das seções que devem ser ofuscadas
+                    const sectionsToBlur = [
+                        'activeDeliverersCard',
+                        'recentOrdersSection',
+                        'salesChartSection',
+                        'deliverersSection',
+                        'popularProductsSection'
+                    ];
+                    
+                    // Aplica blur em cada seção
+                    sectionsToBlur.forEach(sectionId => {
+                        const section = document.getElementById(sectionId);
+                        if (section) {
+                            // Adiciona container e classes de blur
+                            section.classList.add('trial-blur-container');
+                            
+                            // Adiciona blur ao conteúdo
+                            const content = section.querySelector('.card-content, .section-list, .chart-container');
+                            if (content) {
+                                content.classList.add('trial-blur-content');
+                            } else {
+                                // Se não tem conteúdo específico, aplica blur em tudo
+                                section.style.filter = 'blur(8px)';
+                            }
+                            
+                            // Adiciona overlay com mensagem
+                            const overlay = document.createElement('div');
+                            overlay.className = 'trial-blur-overlay';
+                            overlay.innerHTML = `
+                                <div class="lock-icon">🔒</div>
+                                <h4>Conteúdo Premium</h4>
+                                <p>Assine para visualizar todos os dados</p>
+                                <a href="assinaturas.html" class="btn-upgrade">Assinar Agora</a>
+                            `;
+                            section.appendChild(overlay);
+                        }
+                    });
+                }
+            } catch (error) {
+                // Silenciar erros para não impactar UX
+            }
+        }
+
+        /**
+         * Renderiza os dados nos cartões de estatísticas do dashboard.
+         * Calcula pedidos pendentes, receita e pedidos de hoje/ontem, e entregadores ativos.
+         */
+        function renderStats() {
+            // Obtém as strings de data local para hoje e ontem
+            const today = getLocalDateString(new Date());
+            const yesterdayDate = new Date();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            const yesterday = getLocalDateString(yesterdayDate);
+
+            // Pedidos Pendentes
+            const pendingOrders = allOrders.filter(o => !['entregue', 'cancelado', 'encerrado', 'rejeitado'].includes(o.status));
+            document.getElementById('pendingOrdersCount').textContent = pendingOrders.length;
+            
+            // Filtra pedidos pendentes criados hoje (local)
+            const pendingOrdersToday = pendingOrders.filter(o => {
+                const orderDate = new Date(o.created_at);
+                return getLocalDateString(orderDate) === today;
+            }).length;
+            document.getElementById('pendingOrdersToday').textContent = pendingOrdersToday;
+
+            // Pedidos Completos (Encerrados ou Entregues) para hoje e ontem
+            const completedOrders = allOrders.filter(o => ['encerrado', 'entregue'].includes(o.status));
+
+            const todayCompletedOrders = completedOrders.filter(o => {
+                let completionDate;
+                if (o.status === 'entregue' && o.delivered_at) {
+                    completionDate = new Date(o.delivered_at);
+                } else if (o.status === 'encerrado' && o.updated_at) { 
+                    completionDate = new Date(o.updated_at);
+                } else {
+                    return false; 
+                }
+                return getLocalDateString(completionDate) === today;
+            });
+
+            const yesterdayCompletedOrders = completedOrders.filter(o => {
+                let completionDate;
+                if (o.status === 'entregue' && o.delivered_at) {
+                    completionDate = new Date(o.delivered_at);
+                } else if (o.status === 'encerrado' && o.updated_at) {
+                    completionDate = new Date(o.updated_at);
+                } else {
+                    return false;
+                }
+                return getLocalDateString(completionDate) === yesterday;
+            });
+
+            document.getElementById('todayOrdersCount').textContent = todayCompletedOrders.length;
+
+            // Receita de Hoje e Ontem
+            const todayRevenue = todayCompletedOrders.reduce((sum, o) => sum + parseFloat(o.total), 0);
+            document.getElementById('todayRevenue').textContent = `R$ ${todayRevenue.toFixed(2)}`;
+
+            const yesterdayRevenue = yesterdayCompletedOrders.reduce((sum, o) => sum + parseFloat(o.total), 0);
+            
+            // Calcula a variação percentual da receita
+            let revenueChange = 0;
+            if (yesterdayRevenue > 0) {
+                revenueChange = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+            } else if (todayRevenue > 0) {
+                revenueChange = 100; 
+            } else {
+                revenueChange = 0; 
+            }
+            document.getElementById('revenueComparison').textContent = `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(0)}%`;
+
+            // Calcula a variação percentual de pedidos
+            let ordersChange = 0;
+            if (yesterdayCompletedOrders.length > 0) {
+                ordersChange = ((todayCompletedOrders.length - yesterdayCompletedOrders.length) / yesterdayCompletedOrders.length) * 100;
+            } else if (todayCompletedOrders.length > 0) {
+                ordersChange = 100; 
+            } else {
+                ordersChange = 0; 
+            }
+            document.getElementById('ordersComparison').textContent = `${ordersChange >= 0 ? '+' : ''}${ordersChange.toFixed(0)}%`;
+
+            // Entregadores Ativos, Ocupados e Livres
+            const busyDeliverers = allDeliverers.filter(d => d.status === 'busy').length;
+            const activeDeliverers = allDeliverers.filter(d => d.status === 'active').length;
+            document.getElementById('activeDeliverersCount').textContent = activeDeliverers + busyDeliverers;
+            document.getElementById('busyDeliverers').textContent = busyDeliverers;
+            document.getElementById('freeDeliverers').textContent = activeDeliverers;
+        }
+
+        /**
+         * Renderiza a lista de pedidos recentes.
+         * Exibe os 5 pedidos mais recentes.
+         */
+        function renderRecentOrders() {
+            const recentOrdersList = document.getElementById('recentOrdersList');
+            // Ordena os pedidos por data de criação (mais recente primeiro)
+            const sortedOrders = [...allOrders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const ordersToDisplay = sortedOrders.slice(0, 5); // Pega os 5 primeiros
+
+            if (ordersToDisplay.length === 0) {
+                recentOrdersList.innerHTML = '<li style="text-align: center; color: #6c757d;">Nenhum pedido recente.</li>';
+                return;
+            }
+
+            // Mapeia os pedidos para elementos HTML e os insere na lista
+            recentOrdersList.innerHTML = ordersToDisplay.map(order => {
+                const orderNumber = String(order.id).slice(-8).toUpperCase(); // Últimos 8 caracteres do ID
+                const timeAgo = getTimeAgo(order.created_at); // Tempo desde a criação
+                const statusClass = getStatusClass(order.status); // Classe CSS para o status
+                const statusLabel = getStatusLabel(order.status); // Texto do status
+                const total = parseFloat(order.total || 0).toFixed(2);
+                const customerName = order.customer_name === 'Cliente de Balcão' ? 'Cliente de Balcão' : order.customer_name;
+
+                return `
+                    <li class="section-list-item">
+                        <div class="list-item-content">
+                            <span class="list-item-title">#${orderNumber}</span>
+                            <span class="list-item-subtitle">${customerName}</span>
+                        </div>
+                        <div class="list-item-right">
+                            <span class="list-item-value">R$ ${total}</span>
+                            <span class="list-item-subtext">${timeAgo}</span>
+                            <span class="list-item-status ${statusClass}">${statusLabel}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        let salesChart; // Variável global para a instância do Chart.js
+        /**
+         * Renderiza o gráfico de vendas dos últimos 7 dias.
+         */
+        function renderSalesChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            // Garante que o gráfico seja sempre baseado nos últimos 7 dias completos, no fuso horário local
+            const today = new Date();
+            const salesByDay = {};
+            const labels = [];
+            const data = [];
+
+            for (let i = 6; i >= 0; i--) { // Começa 6 dias atrás para incluir hoje
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateString = getLocalDateString(date);
+                salesByDay[dateString] = 0;
+                labels.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+            }
+
+            // Para o gráfico de vendas, você pode querer usar a data de criação ou a data de conclusão.
+            // Mantendo a data de criação para consistência com a lógica anterior do gráfico.
+            allOrders.forEach(order => {
+                const orderDate = new Date(order.created_at);
+                const dateString = getLocalDateString(orderDate);
+                if (salesByDay[dateString] !== undefined) {
+                    salesByDay[dateString] += parseFloat(order.total);
+                }
+            });
+
+            // Preenche os dados na ordem correta dos rótulos
+            labels.forEach(label => {
+                // Encontra a data correspondente ao label para pegar o valor de salesByDay
+                const [day, month] = label.split('/');
+                const year = new Date().getFullYear(); // Assume o ano atual para o gráfico
+                const fullDateString = `${year}-${month}-${day}`;
+                data.push(salesByDay[fullDateString] || 0); // Usa 0 se não houver dados para o dia
+            });
+
+
+            // Destroi a instância anterior do gráfico se existir
+            if (salesChart) {
+                salesChart.destroy();
+            }
+
+            // Cria um novo gráfico de linha
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Receita Diária (R$)',
+                        data: data,
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Força a atualização do gráfico de vendas.
+         */
+        function refreshChart() {
+            renderSalesChart();
+        }
+
+        /**
+         * Renderiza a lista de entregadores, ordenando-os por status (ocupado primeiro).
+         */
+        function renderDeliverers() {
+            const deliverersList = document.getElementById('deliverersList');
+            // Ordena os entregadores: ocupados primeiro, depois os demais
+            const sortedDeliverers = [...allDeliverers].sort((a, b) => {
+                // Prioriza 'busy' (ocupado)
+                if (a.status === 'busy' && b.status !== 'busy') return -1;
+                if (a.status !== 'busy' && b.status === 'busy') return 1;
+                // Em seguida, prioriza 'active' (disponível) sobre outros status
+                if (a.status === 'active' && b.status !== 'active') return -1;
+                if (a.status !== 'active' && b.status === 'active') return 1;
+                return 0; // Mantém a ordem original para outros status
+            });
+            
+            if (sortedDeliverers.length === 0) {
+                deliverersList.innerHTML = '<li style="text-align: center; color: #6c757d;">Nenhum entregador cadastrado.</li>';
+                return;
+            }
+
+            // Mapeia os entregadores para elementos HTML e os insere na lista
+            deliverersList.innerHTML = sortedDeliverers.map(deliverer => {
+                const statusText = deliverer.status === 'busy' ? 'Ocupado' : (deliverer.status === 'active' ? 'Disponível' : 'Inativo');
+                // CORREÇÃO: Usar 'busy' ou 'active' como classe para corresponder ao CSS
+                const statusClass = deliverer.status === 'busy' ? 'busy' : (deliverer.status === 'active' ? 'active' : 'inactive'); 
+                const firstInitial = deliverer.name ? deliverer.name.charAt(0).toUpperCase() : '?';
+
+                return `
+                    <li class="courier-list-item">
+                        <div class="courier-initial">${firstInitial}</div>
+                        <div class="courier-info">
+                            <div class="courier-name">${deliverer.name}</div>
+                            <div class="courier-details">
+                                ${deliverer.type === 'own' ? 'Próprio' : 'Terceirizado'}
+                            </div>
+                        </div>
+                        <span class="courier-status ${statusClass}">${statusText}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Renderiza a lista de produtos mais populares com base nos itens de pedido.
+         * Exibe os 3 produtos mais vendidos.
+         */
+        function renderPopularProducts() {
+            const popularProductsList = document.getElementById('popularProductsList');
+            const productSales = {};
+
+            // Calcula a quantidade vendida de cada produto
+            allOrders.forEach(order => {
+                if (order.order_items) {
+                    order.order_items.forEach(item => {
+                        const productName = item.product_name;
+                        if (!productSales[productName]) {
+                            productSales[productName] = { count: 0, price: parseFloat(item.price) };
+                        }
+                        productSales[productName].count += item.quantity;
+                    });
+                }
+            });
+
+            // Ordena os produtos por quantidade vendida (maior primeiro)
+            const sortedProducts = Object.keys(productSales).sort((a, b) => productSales[b].count - productSales[a].count);
+            const productsToDisplay = sortedProducts.slice(0, 3); // Pega os 3 mais populares
+            
+            if (productsToDisplay.length === 0) {
+                popularProductsList.innerHTML = '<li style="text-align: center; color: #6c757d;">Nenhum produto vendido recentemente.</li>';
+                return;
+            }
+
+            // Mapeia os produtos para elementos HTML e os insere na lista
+            popularProductsList.innerHTML = productsToDisplay.map(name => {
+                const product = productSales[name];
+                return `
+                    <li class="section-list-item">
+                        <div class="list-item-content">
+                            <span class="list-item-title">${name}</span>
+                            <span class="list-item-subtitle">${product.count} vendidos</span>
+                        </div>
+                        <div class="list-item-right">
+                            <span class="list-item-value">R$ ${product.price.toFixed(2)}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Retorna a classe CSS apropriada para um determinado status de pedido.
+         * Mapeia para as classes CSS existentes no estilo para garantir a estilização.
+         * @param {string} status - O status do pedido.
+         * @returns {string} A classe CSS correspondente.
+         */
+        function getStatusClass(status) {
+            const classes = {
+                'novo': 'novo', 
+                'aceito': 'aceito', 
+                'preparo': 'preparo',
+                'pronto': 'pronto', 
+                'saiu_entrega': 'saiu_entrega',
+                'entregue': 'encerrado', // Mapeado para 'encerrado' para usar o estilo existente
+                'rejeitado': 'ocupado', // Mapeado para 'ocupado' para usar o estilo existente
+                'cancelado': 'ocupado', // Mapeado para 'ocupado' para usar o estilo existente
+                'Aberta': 'disponivel', // Mapeado para 'disponivel' para usar o estilo existente
+                'encerrado': 'encerrado'
+            };
+            return classes[status] || 'novo'; // Retorna 'novo' como padrão
+        }
+
+        /**
+         * Retorna o rótulo de texto para um determinado status de pedido.
+         * @param {string} status - O status do pedido.
+         * @returns {string} O rótulo de texto correspondente.
+         */
+        function getStatusLabel(status) {
+            const labels = {
+                'novo': 'Novo', 'aceito': 'Aceito', 'preparo': 'Em Preparo',
+                'pronto': 'Pronto', 'saiu_entrega': 'Saiu p/ Entrega',
+                'entregue': 'Entregue', 'rejeitado': 'Rejeitado',
+                'cancelado': 'Cancelado', 'Aberta': 'Aberta',
+                'encerrado': 'Encerrado'
+            };
+            return labels[status] || status; // Retorna o próprio status se não houver rótulo
+        }
+
+        /**
+         * Calcula o tempo decorrido desde uma data fornecida em um formato legível.
+         * @param {string} dateString - A string da data (ex: ISO 8601).
+         * @returns {string} O tempo decorrido (ex: "5min atrás", "2h atrás", "3d atrás").
+         */
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+            if (diffInMinutes < 1) return 'Agora';
+            if (diffInMinutes < 60) return `${diffInMinutes}min atrás`;
+
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) return `${diffInHours}h atrás`;
+
+            const diffInDays = Math.floor(diffInHours / 24);
+            return `${diffInDays}d atrás`;
+        }
+
+        /**
+         * Realiza o processo de logout, limpando a sessão local e redirecionando para a página de login.
+         */
+        async function signOut() {
+            // Usar modal padrão de confirmação
+            const confirmLogout = await showCustomConfirmation('Deseja realmente sair?', 'Sair');
+            if (confirmLogout) {
+                try {
+                    // 1. PRIMEIRO: Fazer logout do Supabase
+                    if (window.supabase) {
+                        await window.supabase.auth.signOut();
+                        console.log('✅ Logout do Supabase realizado');
+                    }
+                    
+                    // 2. Limpar dados locais
+                    if (window.SECURE_INSTANCE_MANAGER) {
+                        window.SECURE_INSTANCE_MANAGER.logout();
+                    } else {
+                        // Fallback manual
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    }
+                } catch (error) {
+                    console.error('Erro durante logout:', error);
+                }
+                window.location.href = 'login.html';
+            }
+        }
+
+        // ===== FUNÇÕES UTILITÁRIAS =====
+        function showCustomConfirmation(message, title = 'Confirmação') {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                        <div class="modal" id="customConfirmationDialog" style="z-index: 16000; display:flex;">
+                            <div class="modal-content" style="max-width: 400px;">
+                                <div class="modal-header"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+                                <div class="modal-body" style="text-align: center; padding: 2rem;"><p>${message}</p></div>
+                                <div style="padding: 1.5rem; border-top: 1px solid #e9ecef; display: flex; justify-content: center; gap: 1rem;">
+                                    <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                                    <button class="btn btn-primary" id="confirmConfirmBtn">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const dialog = document.getElementById('customConfirmationDialog');
+                const close = () => { dialog.remove(); resolve(false); };
+                const confirm = () => { dialog.remove(); resolve(true); };
+                dialog.querySelector('.modal-close').onclick = close;
+                dialog.querySelector('#cancelConfirmBtn').onclick = close;
+                dialog.querySelector('#confirmConfirmBtn').onclick = confirm;
+            });
+        }
+
+        // Adicionar event listener específico para o botão de logout
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🚪 Botão sair clicado - iniciando signOut()');
+                    signOut();
+                });
+            }
+        });
+
+        // Inicialização da aplicação - carregar configurações quando DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', checkAuthenticationAndLoadConfig);
+    </script>
+
+    <script>
+    // Função para controlar o menu mobile
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
+
+    // Fechar menu ao clicar em um link (em mobile)
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    });
+
+    // =================================================================
+    // SISTEMA DE BLOQUEIO DINÂMICO - TRIAL
+    // =================================================================
+
+    /**
+     * Busca configurações de bloqueio do restaurante e aplica no dashboard
+     */
+    async function applyDynamicBlocking() {
+        try {
+            // Obter restaurantId do cookie ou localStorage
+            let restaurantId = localStorage.getItem('restaurantId');
+            
+            // Se não encontrou no localStorage, buscar no cookie
+            if (!restaurantId) {
+                const cookie = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    try {
+                        const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                        const instanceData = JSON.parse(cookieValue);
+                        restaurantId = instanceData.restaurantId;
+                        console.log('🔍 restaurantId encontrado no cookie:', restaurantId);
+                    } catch (e) {
+                        console.error('❌ Erro ao parsear cookie:', e);
+                    }
+                }
+            }
+            
+            if (!restaurantId) {
+                console.log('⚠️ restaurantId não encontrado - bloqueio não aplicado');
+                return;
+            }
+
+            // Buscar configurações de bloqueio
+            const response = await fetch(`/api/blocking-config?restaurantId=${restaurantId}`);
+            
+            if (!response.ok) {
+                console.error('❌ Erro ao buscar configurações de bloqueio:', response.status);
+                return;
+            }
+
+            const data = await response.json();
+            
+            // Calcular dias desde trial_start_date
+            const trialStartDate = new Date(data.trial_start_date);
+            const today = new Date();
+            const daysSinceStart = Math.floor((today - trialStartDate) / (1000 * 60 * 60 * 24));
+            
+            console.log(`📊 Plano: ${data.plan} | Status: ${data.subscription_status} | Dias desde início: ${daysSinceStart}`);
+
+            // Aplicar bloqueios conforme configuração
+            data.blocking_config.forEach(config => {
+                if (config.is_blocked && daysSinceStart >= config.block_after_days) {
+                    applyBlockToElement(config.element_id, config.element_name);
+                }
+            });
+
+        } catch (error) {
+            console.error('❌ Erro ao aplicar bloqueios dinâmicos:', error);
+        }
+    }
+
+    /**
+     * Aplica bloqueio visual em um elemento
+     */
+    function applyBlockToElement(elementId, elementName) {
+        const element = document.getElementById(elementId);
+        
+        if (!element) {
+            console.warn(`⚠️ Elemento não encontrado: ${elementId}`);
+            return;
+        }
+
+        // Adicionar classe de bloqueio
+        element.classList.add('blocked-element');
+
+        // Criar overlay de bloqueio
+        const overlay = document.createElement('div');
+        overlay.className = 'block-overlay';
+        overlay.innerHTML = `
+            <i class="fas fa-lock lock-icon"></i>
+            <div class="block-message">🔒 Conteúdo Premium</div>
+            <div class="block-submessage">Assine para visualizar todos os dados</div>
+            <a href="assinaturas.html" class="btn-upgrade">
+                <i class="fas fa-crown"></i> Assinar Agora
+            </a>
+        `;
+
+        element.appendChild(overlay);
+        console.log(`🔒 Bloqueio aplicado: ${elementName} (${elementId})`);
+    }
+
+    // Aplicar bloqueios quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyDynamicBlocking);
+    } else {
+        applyDynamicBlocking();
+    }
+    </script>
+</body>
+</html>

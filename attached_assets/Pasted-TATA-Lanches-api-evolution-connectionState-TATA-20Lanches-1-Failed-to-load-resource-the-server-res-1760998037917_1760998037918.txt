@@ -1,0 +1,227 @@
+TATA Lanches
+api/evolution/connectionState/TATA%20Lanches:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:1953:29
+checkWhatsAppInstanceStatus @ configuracoes.html:2638Understand this error
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+api/evolution/connectionState/TATA%20Lanches:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+api/evolution/connectionState/TATA%20Lanches:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+configuracoes.html:2356 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+configuracoes.html:2979 🔍 WHATSAPP - Verificando status da instância: TATA Lanches
+secure-config.js:519 ✅ Dados de instância encontrados: TATA Lanches
+configuracoes.html:2604 🔍 WHATSAPP - Verificando status da instância EXATA: TATA Lanches
+TATA%20Lanches:1  Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:2357:25
+checkWhatsAppInstanceStatus @ configuracoes.html:2638Understand this error
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+configuracoes.html:4440  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateIntegrationsStatus @ configuracoes.html:4440
+(anonymous) @ configuracoes.html:2359Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+configuracoes.html:2360 ✅ CONFIGURAÇÕES - Verificação periódica concluída
+configuracoes.html:7100  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateWhatsAppStatus @ configuracoes.html:7100
+await in updateWhatsAppStatus
+initializeWhatsAppStatus @ configuracoes.html:2990Understand this error
+configuracoes.html:2356 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+configuracoes.html:2979 🔍 WHATSAPP - Verificando status da instância: TATA Lanches
+secure-config.js:519 ✅ Dados de instância encontrados: TATA Lanches
+configuracoes.html:2604 🔍 WHATSAPP - Verificando status da instância EXATA: TATA Lanches
+configuracoes.html:2606  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+checkWhatsAppInstanceStatus @ configuracoes.html:2606
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:2357:25
+checkWhatsAppInstanceStatus @ configuracoes.html:2638
+await in checkWhatsAppInstanceStatus
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+configuracoes.html:4440  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateIntegrationsStatus @ configuracoes.html:4440
+(anonymous) @ configuracoes.html:2359Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+configuracoes.html:2360 ✅ CONFIGURAÇÕES - Verificação periódica concluída
+configuracoes.html:7100  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateWhatsAppStatus @ configuracoes.html:7100
+await in updateWhatsAppStatus
+initializeWhatsAppStatus @ configuracoes.html:2990
+await in initializeWhatsAppStatus
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:3387 Usando instanceName: TATA Lanches
+configuracoes.html:3356 📱 MODAL - Nome EXATO da tabela restaurants: "TATA Lanches"
+configuracoes.html:3516 🔍 MODAL - Verificando se instância "TATA Lanches" existe...
+configuracoes.html:3387 Usando instanceName: TATA Lanches
+configuracoes.html:3356 📱 MODAL - Nome EXATO da tabela restaurants: "TATA Lanches"
+configuracoes.html:3516 🔍 MODAL - Verificando se instância "TATA Lanches" existe...
+configuracoes.html:3518  GET https://timepulseai.com.br/api/evolution/check-instance/TATA%20Lanches 404 (Not Found)
+checkInstanceExistsModal @ configuracoes.html:3518
+openWhatsAppModal @ configuracoes.html:3365
+await in openWhatsAppModal
+onclick @ configuracoes.html:635Understand this error
+configuracoes.html:3537 ⚠️ MODAL - Erro da API (tratando como instância não existente): 404 {exists: false, error: 'Erro ao buscar instâncias', details: {…}}
+checkInstanceExistsModal @ configuracoes.html:3537
+await in checkInstanceExistsModal
+openWhatsAppModal @ configuracoes.html:3365
+await in openWhatsAppModal
+onclick @ configuracoes.html:635Understand this warning
+configuracoes.html:3518  GET https://timepulseai.com.br/api/evolution/check-instance/TATA%20Lanches 404 (Not Found)
+checkInstanceExistsModal @ configuracoes.html:3518
+openWhatsAppModal @ configuracoes.html:3365Understand this error
+configuracoes.html:3537 ⚠️ MODAL - Erro da API (tratando como instância não existente): 404 {exists: false, error: 'Erro ao buscar instâncias', details: {…}}
+checkInstanceExistsModal @ configuracoes.html:3537
+await in checkInstanceExistsModal
+openWhatsAppModal @ configuracoes.html:3365Understand this warning
+configuracoes.html:3680 📤 MODAL - Criando instância: {instanceName: 'TATA Lanches', integration: 'WHATSAPP-BAILEYS', qrcode: true, webhook: {…}}
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:3709 ✅ MODAL - QR Code exibido!
+configuracoes.html:2356 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+configuracoes.html:2979 🔍 WHATSAPP - Verificando status da instância: TATA Lanches
+secure-config.js:519 ✅ Dados de instância encontrados: TATA Lanches
+configuracoes.html:2604 🔍 WHATSAPP - Verificando status da instância EXATA: TATA Lanches
+configuracoes.html:2606  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+checkWhatsAppInstanceStatus @ configuracoes.html:2606
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:2357:25
+checkWhatsAppInstanceStatus @ configuracoes.html:2638
+await in checkWhatsAppInstanceStatus
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+configuracoes.html:4440  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateIntegrationsStatus @ configuracoes.html:4440
+(anonymous) @ configuracoes.html:2359Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+configuracoes.html:2360 ✅ CONFIGURAÇÕES - Verificação periódica concluída
+configuracoes.html:7100  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateWhatsAppStatus @ configuracoes.html:7100
+await in updateWhatsAppStatus
+initializeWhatsAppStatus @ configuracoes.html:2990
+await in initializeWhatsAppStatus
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2356 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+configuracoes.html:2979 🔍 WHATSAPP - Verificando status da instância: TATA Lanches
+secure-config.js:519 ✅ Dados de instância encontrados: TATA Lanches
+configuracoes.html:2604 🔍 WHATSAPP - Verificando status da instância EXATA: TATA Lanches
+configuracoes.html:2606  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+checkWhatsAppInstanceStatus @ configuracoes.html:2606
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:2357:25
+checkWhatsAppInstanceStatus @ configuracoes.html:2638
+await in checkWhatsAppInstanceStatus
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+configuracoes.html:4440  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateIntegrationsStatus @ configuracoes.html:4440
+(anonymous) @ configuracoes.html:2359Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+configuracoes.html:2360 ✅ CONFIGURAÇÕES - Verificação periódica concluída
+configuracoes.html:7100  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateWhatsAppStatus @ configuracoes.html:7100
+await in updateWhatsAppStatus
+initializeWhatsAppStatus @ configuracoes.html:2990
+await in initializeWhatsAppStatus
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2356 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+configuracoes.html:2979 🔍 WHATSAPP - Verificando status da instância: TATA Lanches
+secure-config.js:519 ✅ Dados de instância encontrados: TATA Lanches
+configuracoes.html:2604 🔍 WHATSAPP - Verificando status da instância EXATA: TATA Lanches
+configuracoes.html:2606  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+checkWhatsAppInstanceStatus @ configuracoes.html:2606
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:2357:25
+checkWhatsAppInstanceStatus @ configuracoes.html:2638
+await in checkWhatsAppInstanceStatus
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+configuracoes.html:4440  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateIntegrationsStatus @ configuracoes.html:4440
+(anonymous) @ configuracoes.html:2359Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+configuracoes.html:2360 ✅ CONFIGURAÇÕES - Verificação periódica concluída
+configuracoes.html:7100  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateWhatsAppStatus @ configuracoes.html:7100
+await in updateWhatsAppStatus
+initializeWhatsAppStatus @ configuracoes.html:2990
+await in initializeWhatsAppStatus
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2356 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+configuracoes.html:2979 🔍 WHATSAPP - Verificando status da instância: TATA Lanches
+secure-config.js:519 ✅ Dados de instância encontrados: TATA Lanches
+configuracoes.html:2604 🔍 WHATSAPP - Verificando status da instância EXATA: TATA Lanches
+configuracoes.html:2606  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+checkWhatsAppInstanceStatus @ configuracoes.html:2606
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2611 📡 WHATSAPP - Status HTTP: 400
+configuracoes.html:2638 ❌ WHATSAPP - Erro ao verificar status: Error: Erro HTTP 400
+    at checkWhatsAppInstanceStatus (configuracoes.html:2619:27)
+    at async initializeWhatsAppStatus (configuracoes.html:2981:32)
+    at async configuracoes.html:2357:25
+checkWhatsAppInstanceStatus @ configuracoes.html:2638
+await in checkWhatsAppInstanceStatus
+initializeWhatsAppStatus @ configuracoes.html:2981
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:2194 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+configuracoes.html:2216 ⚠️ CONFIGURAÇÕES - Asaas não configurado
+configuracoes.html:4429 🔄 Atualizando status da seção de integrações...
+configuracoes.html:7072  GET https://timepulseai.com.br/api/trial-status/1592e22a-e641-42ed-9e20-00f200f20274 429 (Too Many Requests)
+updateWhatsAppStatus @ configuracoes.html:7072
+initializeWhatsAppStatus @ configuracoes.html:2990
+await in initializeWhatsAppStatus
+(anonymous) @ configuracoes.html:2357Understand this error
+configuracoes.html:7075 ⚠️ Erro na API de trial status (429)
+configuracoes.html:4440  GET https://timepulseai.com.br/api/evolution/connectionState/TATA%20Lanches 400 (Bad Request)
+updateIntegrationsStatus @ configuracoes.html:4440
+(anonymous) @ configuracoes.html:2359Understand this error
+configuracoes.html:4475 ❌ Erro na API (400) - definindo status como desconectado
+configuracoes.html:4399 🔄 Atualizando status na página principal: Desconectado
+configuracoes.html:2360 ✅ CONFIGURAÇÕES - Verificação periódica concluída

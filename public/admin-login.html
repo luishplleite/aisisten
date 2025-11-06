@@ -1,0 +1,337 @@
+admin-login.html<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Administrativo - TimePulse AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .login-header {
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .login-header p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .admin-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #ffcdd2;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .back-to-site {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .back-to-site a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .back-to-site a:hover {
+            text-decoration: underline;
+        }
+        
+        .security-notice {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            border: 1px solid #bbdefb;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="admin-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1>Área Administrativa</h1>
+            <p>TimePulse AI - Sistema de Gestão</p>
+        </div>
+        
+        <div class="security-notice">
+            <i class="fas fa-lock"></i>
+            <strong>Área Restrita:</strong> Apenas administradores autorizados podem acessar este painel.
+        </div>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Email de Administrador
+                </label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="admin@timepulseai.com.br">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Senha
+                </label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Digite sua senha">
+            </div>
+            
+            <button type="submit" class="login-btn" id="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Acessar Sistema
+            </button>
+            
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner fa-spin"></i> Verificando credenciais...
+            </div>
+        </form>
+        
+        <div class="error-message" id="error-message"></div>
+        
+        <div class="back-to-site">
+            <a href="index.html">
+                <i class="fas fa-arrow-left"></i> Voltar ao Site Principal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de configuração padronizada
+        let CONFIG = {};
+        let SUPABASE_CLIENT = null;
+
+        // Carregar todas as configurações do sistema
+        async function loadSystemConfig() {
+            try {
+                // Carregar configurações gerais
+                const configResponse = await fetch('/api/config');
+                if (configResponse.ok) {
+                    CONFIG = await configResponse.json();
+                    console.log('✅ Configuração básica carregada:', CONFIG.status);
+                }
+
+                // Carregar configuração específica do Supabase
+                const supabaseResponse = await fetch('/api/config/supabase');
+                if (supabaseResponse.ok) {
+                    const supabaseConfig = await supabaseResponse.json();
+                    CONFIG.supabase = supabaseConfig;
+                    console.log('✅ Configuração Supabase carregada:', supabaseConfig.status);
+                    
+                    // Inicializar cliente Supabase se disponível
+                    if (supabaseConfig.configured && window.supabase) {
+                        SUPABASE_CLIENT = window.supabase.createClient(
+                            supabaseConfig.supabaseUrl, 
+                            supabaseConfig.supabaseAnonKey
+                        );
+                        console.log('✅ Cliente Supabase inicializado');
+                    }
+                } else {
+                    console.error('❌ Erro ao carregar configuração Supabase:', supabaseResponse.status, supabaseResponse.statusText);
+                    const errorData = await supabaseResponse.text();
+                    console.error('Detalhes do erro:', errorData);
+                }
+            } catch (error) {
+                console.error('❌ Erro ao carregar configurações:', error);
+            }
+        }
+
+        // Verificar se já está logado
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Carregar configurações do sistema primeiro
+            await loadSystemConfig();
+            
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                // Verificar se o token ainda é válido
+                fetch('/api/admin/verify', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        localStorage.removeItem('admin_token');
+                    }
+                }).catch(() => {
+                    localStorage.removeItem('admin_token');
+                });
+            }
+        });
+
+        // Form de login usando configuração padronizada
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('login-btn');
+            const loading = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            
+            // Verificar se as configurações foram carregadas
+            if (!CONFIG.supabase || !CONFIG.supabase.configured) {
+                console.warn('⚠️ Supabase não configurado - continuando com autenticação básica');
+                // Mostrar aviso mas permitir login
+                if (!CONFIG.supabase) {
+                    console.warn('⚠️ Configuração Supabase não carregada');
+                }
+            }
+            
+            // Limpar mensagens anteriores
+            errorMessage.style.display = 'none';
+            
+            // Mostrar loading
+            loginBtn.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Salvar token e redirecionar
+                    localStorage.setItem('admin_token', data.token);
+                    console.log('✅ Login administrativo realizado com sucesso');
+                    window.location.href = 'admin.html';
+                } else {
+                    // Mostrar erro
+                    errorMessage.textContent = data.error || 'Credenciais inválidas';
+                    errorMessage.style.display = 'block';
+                    console.error('❌ Erro no login:', data.error);
+                }
+            } catch (error) {
+                console.error('❌ Erro no login:', error);
+                errorMessage.textContent = 'Erro de conexão. Tente novamente.';
+                errorMessage.style.display = 'block';
+            } finally {
+                // Esconder loading
+                loginBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        // Permitir login com Enter
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('login-form').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

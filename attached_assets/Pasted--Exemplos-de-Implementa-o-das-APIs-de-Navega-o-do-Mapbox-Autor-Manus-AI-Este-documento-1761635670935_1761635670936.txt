@@ -1,0 +1,371 @@
+# Exemplos de Implementação das APIs de Navegação do Mapbox
+
+**Autor:** Manus AI
+
+Este documento compila exemplos de requisições e respostas das principais APIs de navegação do Mapbox: **Map Matching**, **Directions**, **Optimization** e **Matrix**. Os exemplos foram extraídos das documentações oficiais do Mapbox em 28 de Outubro de 2025 [1, 2, 3, 4].
+
+**Nota:** Substitua `YOUR_MAPBOX_ACCESS_TOKEN` pelo seu token de acesso real do Mapbox.
+
+## 1. Map Matching API (v5)
+
+A Map Matching API ajusta traços de GPS à rede de estradas.
+
+### 1.1. Exemplos de Requisição cURL
+
+#### 1.1.1. Requisição com Anotação `maxspeed`
+
+Solicita informações de limite de velocidade (`maxspeed`) ao longo do traço.
+
+```bash
+$curl "https://api.mapbox.com/matching/v5/mapbox/driving/-122.39636,37.79129;-122.39732,37.79283;-122.39606,37.79349?annotations=maxspeed&overview=full&geometries=geojson&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 1.1.2. Requisição com Parâmetro `approaches`
+
+Define a abordagem de "meio-fio" (`curb`) para cada ponto de passagem.
+
+```bash
+$curl "https://api.mapbox.com/matching/v5/mapbox/driving/-117.17282,32.71204;-117.17288,32.71225;-117.17293,32.71244;-117.17292,32.71256?approaches=curb;curb;curb;curb&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 1.1.3. Requisição com Múltiplos Parâmetros (Passos, Limpeza, Nomes de Waypoints)
+
+Retorna instruções passo a passo (`steps=true`), otimiza o traço (`tidy=true`) e nomeia os pontos de passagem.
+
+```bash
+$curl "https://api.mapbox.com/matching/v5/mapbox/driving/2.344003,48.85805;2.34675,48.85727;2.34868,48.85936;2.34955,48.86084;2.34955,48.86088;2.34962,48.86102;2.34982,48.86125?steps=true&tidy=true&waypoints=0;6&waypoint_names=Home;Work&banner_instructions=true&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+### 1.2. Exemplo de Resposta JSON (Trecho)
+
+A resposta inclui o objeto `matchings` (com a rota ajustada) e o objeto `tracepoints` (com os pontos de entrada ajustados).
+
+```json
+{
+  "matchings": [
+    {
+      "confidence": 4.615758886217236e-10,
+      "geometry": {
+        "coordinates": [
+          [-122.397484, 37.792809],
+          [-122.39746, 37.792693],
+          // ... coordenadas omitidas ...
+          [-122.396075, 37.793502]
+        ],
+        "type": "LineString"
+      },
+      "legs": [
+        {
+          "annotation": {
+            "maxspeed": [
+              // ... anotações de velocidade omitidas ...
+            ]
+          },
+          "summary": "",
+          "weight": 153.6,
+          "duration": 73.6,
+          "steps": [],
+          "distance": 207.8
+        }
+      ],
+      "weight_name": "routability",
+      "distance": 207.8
+    }
+  ],
+  "tracepoints": [
+    null,
+    {
+      "alternatives_count": 0,
+      "waypoint_index": 0,
+      "matchings_index": 0,
+      "distance": 14.635568381812668,
+      "name": "Davis Street",
+      "location": [-122.397484, 37.792809]
+    },
+    // ... mais tracepoints omitidos ...
+  ],
+  "code": "Ok"
+}
+```
+
+## 2. Directions API (v5)
+
+A Directions API calcula a rota mais rápida e fornece instruções passo a passo.
+
+### 2.1. Exemplos de Requisição cURL
+
+#### 2.1.1. Requisição Básica (Ciclismo)
+
+Rota entre dois pontos usando o perfil de ciclismo.
+
+```bash
+$curl "https://api.mapbox.com/directions/v5/mapbox/cycling/-122.42,37.78;-77.03,38.91?access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 2.1.2. Requisição com Anotação `maxspeed`
+
+Solicita anotações de limite de velocidade.
+
+```bash
+$curl "https://api.mapbox.com/directions/v5/mapbox/driving/-122.39636,37.79129;-122.39732,37.79283;-122.39606,37.79349?annotations=maxspeed&overview=full&geometries=geojson&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 2.1.3. Requisição com `radiuses` e `geometries`
+
+Define raios de busca para os pontos de passagem e solicita a geometria no formato `polyline6`.
+
+```bash
+$curl "https://api.mapbox.com/directions/v5/mapbox/driving/13.43,52.51;13.42,52.5;13.41,52.5?radiuses=40;;100&geometries=polyline6&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 2.1.4. Requisição com Instruções de Voz e Banner
+
+Solicita instruções passo a passo, de voz e de banner, com nomes para os waypoints.
+
+```bash
+$curl "https://api.mapbox.com/directions/v5/mapbox/cycling/-122.42,37.78;-77.03,38.91?steps=true&voice_instructions=true&banner_instructions=true&voice_units=imperial&waypoint_names=Home;Work&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+### 2.2. Exemplo de Resposta JSON (Trecho)
+
+Exemplo de resposta (novo formato `waypoints_per_route=true`) mostrando a estrutura de rotas e waypoints.
+
+```json
+{
+  "routes": [
+    {
+      "geometry": "mnn_Ick}pAfBiF`CzA",
+      "waypoints": [
+        {
+          "name": "Köpenicker Straße",
+          "location": [ 13.426579, 52.508068 ]
+        },
+        {
+          "name": "Engeldamm",
+          "location": [ 13.427292, 52.506902 ]
+        }
+      ],
+      "legs": [
+        {
+          "summary": "Köpenicker Straße, Engeldamm",
+          "duration": 26.2,
+          "steps": [
+            {
+              "maneuver": {
+                "type": "depart",
+                "instruction": "Head southeast on Köpenicker Straße (L 1066)"
+              },
+              "voiceInstructions": [
+                // ... instruções de voz omitidas ...
+              ],
+              "bannerInstructions": [
+                // ... instruções de banner omitidas ...
+              ],
+              "name": "Köpenicker Straße (L 1066)",
+              "distance": 98.1
+            }
+          ]
+        }
+      ],
+      "distance": 176.7
+    }
+  ],
+  "code": "Ok",
+  "uuid": "cjd51uqn5005447p8nte2zc4w"
+}
+```
+
+## 3. Optimization API v2 (Beta)
+
+A Optimization API resolve problemas de roteamento de veículos (VRP). O fluxo é assíncrono: submissão via POST e recuperação via GET.
+
+### 3.1. Submissão do Problema de Roteamento
+
+#### 3.1.1. Requisição HTTP POST
+
+Submete o documento JSON do problema de roteamento.
+
+```http
+POST /optimized-trips/v2?access_token=YOUR_MAPBOX_ACCESS_TOKEN HTTP/1.1
+Host: api.mapbox.com
+Content-Type: application/json
+
+{
+    "version": 1,
+    "vehicles": [...],
+    "services": [...]
+}
+```
+
+#### 3.1.2. Requisição cURL POST
+
+Submete o documento de problema contido em um arquivo `problem.json`.
+
+```bash
+$curl -H 'Content-Type: application/json' \
+     -d @problem.json \
+     'https://api.mapbox.com/optimized-trips/v2?access_token=YOUR_MAPBOX_ACCESS_TOKEN'
+```
+
+#### 3.1.3. Resposta 202 Accepted (Trecho)
+
+Retorna um `id` para rastrear a solução.
+
+```json
+{ 
+    "id": "123e4567-e89b-12d3-a456-426655440000",
+    "status": "ok"
+}
+```
+
+### 3.2. Recuperação da Solução
+
+#### 3.2.1. Requisição cURL GET
+
+Recupera o status ou a solução usando o `id` do trabalho.
+
+```bash
+$curl "https://api.mapbox.com/optimized-trips/v2/YOUR_JOB_ID?access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 3.2.2. Exemplo de Resposta 200 OK (Solução)
+
+A solução retorna as rotas otimizadas para cada veículo.
+
+```json
+{
+  "dropped": {
+    "services": [],
+    "shipments": []
+  },
+  "routes": [
+    {
+      "vehicle": "truck-1",
+      "stops": [
+        {
+          "location": "warehouse",
+          "eta": "2022-01-01T09:00:00Z",
+          "type": "start",
+          "odometer": 0
+        },
+        {
+          "location": "stop-3",
+          "eta": "2022-01-01T09:01:12Z",
+          "type": "dropoff",
+          "odometer": 381
+        },
+        // ... outras paradas omitidas ...
+        {
+          "location": "warehouse",
+          "eta": "2022-01-01T09:02:28Z",
+          "type": "end",
+          "odometer": 762
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 3.3. Listagem de Submissões
+
+#### 3.3.1. Requisição cURL GET
+
+Lista todos os problemas de roteamento submetidos e seus status.
+
+```bash
+$curl --request GET \
+  --url 'https://api.mapbox.com/optimized-trips/v2?access_token=YOUR_MAPBOX_ACCESS_TOKEN' \
+  --header 'Content-Type: application/json'
+```
+
+#### 3.3.2. Exemplo de Resposta 200 OK (Lista)
+
+```json
+[
+  { "id": "123e4567-e89b-12d3-a456-426655440000", "status": "processing" },
+  { "id": "123e4567-e89b-12d3-a456-426655440001", "status": "complete" }
+]
+```
+
+## 4. Matrix API (v1)
+
+A Matrix API retorna tempos de viagem e/ou distâncias entre múltiplos pontos.
+
+### 4.1. Exemplos de Requisição cURL
+
+#### 4.1.1. Matriz Simétrica com `approaches`
+
+Solicita uma matriz 3x3 simétrica para carros, com abordagem de "meio-fio" (`curb`).
+
+```bash
+$curl "https://api.mapbox.com/directions-matrix/v1/mapbox/driving/-122.42,37.78;-122.45,37.91;-122.48,37.73?approaches=curb;curb;curb&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 4.1.2. Matriz Simétrica com `depart_at`
+
+Solicita uma matriz 3x3 para carros com partida em 30 minutos (requer variável de ambiente `DEPARTURE_TIME`).
+
+```bash
+$DEPARTURE_TIME=$(TZ=US/Pacific date -r $(($(date "+%s") + 30 * 60)) "+%Y-%m-%dT%H:%M")
+$curl "https://api.mapbox.com/directions-matrix/v1/mapbox/driving/-122.42,37.78;-122.45,37.91;-122.48,37.73?depart_at=$DEPARTURE_TIME&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 4.1.3. Matriz Assimétrica (2x3)
+
+Usa os índices 0 e 2 como origens (`sources=0;2`) e todos como destinos (`destinations=all`).
+
+```bash
+$curl "https://api.mapbox.com/directions-matrix/v1/mapbox/cycling/-122.42,37.78;-122.45,37.91;-122.48,37.73?sources=0;2&destinations=all&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+#### 4.1.4. Matriz com `annotations=distance,duration`
+
+Solicita tanto a duração quanto a distância na matriz.
+
+```bash
+$curl "https://api.mapbox.com/directions-matrix/v1/mapbox/walking/-122.418563,37.751659;-122.422969,37.75529;-122.426904,37.759617?sources=1&annotations=distance,duration&access_token=YOUR_MAPBOX_ACCESS_TOKEN"
+```
+
+### 4.2. Exemplo de Resposta JSON (Trecho)
+
+A resposta retorna a matriz de durações (`durations`) e os waypoints ajustados.
+
+```json
+{
+  "code": "Ok",
+  "durations": [
+    [0, 573, 1169.5],
+    [573, 0, 597],
+    [1169.5, 597, 0]
+  ],
+  "destinations": [
+    {
+      "name": "Mission Street",
+      "location": [-122.418408, 37.751668],
+      "distance": 5
+    },
+    // ... outros destinos omitidos ...
+  ],
+  "sources": [
+    {
+      "name": "Mission Street",
+      "location": [-122.418408, 37.751668],
+      "distance": 5
+    },
+    // ... outras origens omitidas ...
+  ]
+}
+```
+
+***
+
+## Referências
+
+[1] Mapbox. *Map Matching API*. Disponível em: [https://docs.mapbox.com/api/navigation/map-matching/](https://docs.mapbox.com/api/navigation/map-matching/).
+
+[2] Mapbox. *Directions API*. Disponível em: [https://docs.mapbox.com/api/navigation/directions/](https://docs.mapbox.com/api/navigation/directions/).
+
+[3] Mapbox. *Optimization API v2*. Disponível em: [https://docs.mapbox.com/api/navigation/optimization/](https://docs.mapbox.com/api/navigation/optimization/).
+
+[4] Mapbox. *Matrix API*. Disponível em: [https://docs.mapbox.com/api/navigation/matrix/](https://docs.mapbox.com/api/navigation/matrix/).

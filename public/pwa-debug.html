@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Debug - TimePulse AI</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00B172">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.ok {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+        .status.warning {
+            background: #ff9800;
+            color: white;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #00B172;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #009860;
+        }
+        h1 {
+            color: #00B172;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #00B172;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico PWA - TimePulse AI</h1>
+
+    <div class="card">
+        <h2>1. Informações do Dispositivo</h2>
+        <div id="deviceInfo"></div>
+    </div>
+
+    <div class="card">
+        <h2>2. Status do Service Worker</h2>
+        <div id="swStatus"></div>
+        <button onclick="registerSW()">🔄 Registrar Service Worker</button>
+    </div>
+
+    <div class="card">
+        <h2>3. Status do Manifest</h2>
+        <div id="manifestStatus"></div>
+        <button onclick="checkManifest()">🔍 Verificar Manifest</button>
+    </div>
+
+    <div class="card">
+        <h2>4. Instalabilidade PWA</h2>
+        <div id="installStatus"></div>
+        <button id="installBtn" onclick="tryInstall()" style="display:none;">📱 Tentar Instalar</button>
+    </div>
+
+    <div class="card">
+        <h2>5. Verificação de Ícones</h2>
+        <div id="iconsStatus"></div>
+        <button onclick="checkIcons()">🖼️ Verificar Ícones</button>
+    </div>
+
+    <div class="card">
+        <h2>6. Console Logs</h2>
+        <pre id="consoleLogs"></pre>
+    </div>
+
+    <div class="card">
+        <h2>📋 Instruções de Instalação Manual</h2>
+        <ol>
+            <li>Toque nos <strong>3 pontos (⋮)</strong> no canto superior direito do Chrome</li>
+            <li>Procure por <strong>"Adicionar à tela inicial"</strong> ou <strong>"Instalar app"</strong></li>
+            <li>Se não aparecer, significa que o Chrome ainda não detectou como PWA instalável</li>
+            <li>Verifique os status acima para identificar o problema</li>
+        </ol>
+    </div>
+
+    <script>
+        let logs = [];
+        let deferredPrompt = null;
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push(`[${timestamp}] ${message}`);
+            document.getElementById('consoleLogs').textContent = logs.join('\n');
+            console.log(message);
+        }
+
+        // 1. Device Info
+        function checkDevice() {
+            const info = {
+                'User Agent': navigator.userAgent,
+                'Plataforma': navigator.platform,
+                'Idioma': navigator.language,
+                'Online': navigator.onLine,
+                'HTTPS': window.location.protocol === 'https:',
+                'Display Mode': window.matchMedia('(display-mode: standalone)').matches ? 'Standalone (App Instalado)' : 'Browser',
+                'Service Worker Suportado': 'serviceWorker' in navigator
+            };
+
+            let html = '';
+            for (const [key, value] of Object.entries(info)) {
+                const status = (key === 'HTTPS' || key === 'Service Worker Suportado') ? 
+                    (value ? 'ok' : 'error') : '';
+                html += `<p><strong>${key}:</strong> ${value} ${status ? `<span class="status ${status}">${value ? '✓' : '✗'}</span>` : ''}</p>`;
+            }
+            document.getElementById('deviceInfo').innerHTML = html;
+            log('Device info checked');
+        }
+
+        // 2. Service Worker
+        async function registerSW() {
+            if (!('serviceWorker' in navigator)) {
+                document.getElementById('swStatus').innerHTML = '<p class="status error">Service Worker não suportado neste navegador</p>';
+                log('Service Worker not supported');
+                return;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                document.getElementById('swStatus').innerHTML = `
+                    <p><span class="status ok">✓ Registrado</span></p>
+                    <p><strong>Scope:</strong> ${registration.scope}</p>
+                    <p><strong>Estado:</strong> ${registration.active ? 'Ativo' : 'Aguardando'}</p>
+                `;
+                log('Service Worker registered successfully');
+            } catch (error) {
+                document.getElementById('swStatus').innerHTML = `<p class="status error">Erro: ${error.message}</p>`;
+                log('Service Worker registration failed: ' + error.message);
+            }
+        }
+
+        // 3. Manifest
+        async function checkManifest() {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                
+                let html = '<p><span class="status ok">✓ Manifest encontrado</span></p>';
+                html += `<pre>${JSON.stringify(manifest, null, 2)}</pre>`;
+                
+                // Verificar campos obrigatórios
+                const required = ['name', 'short_name', 'start_url', 'display', 'icons'];
+                const missing = required.filter(field => !manifest[field]);
+                
+                if (missing.length > 0) {
+                    html += `<p class="status error">Campos faltando: ${missing.join(', ')}</p>`;
+                } else {
+                    html += '<p class="status ok">✓ Todos os campos obrigatórios presentes</p>';
+                }
+                
+                document.getElementById('manifestStatus').innerHTML = html;
+                log('Manifest checked successfully');
+            } catch (error) {
+                document.getElementById('manifestStatus').innerHTML = `<p class="status error">Erro ao carregar manifest: ${error.message}</p>`;
+                log('Manifest check failed: ' + error.message);
+            }
+        }
+
+        // 4. Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installBtn').style.display = 'inline-block';
+            document.getElementById('installStatus').innerHTML = `
+                <p><span class="status ok">✓ PWA Instalável!</span></p>
+                <p>O Chrome detectou este site como uma PWA instalável.</p>
+                <p>Clique no botão abaixo ou use o menu do Chrome.</p>
+            `;
+            log('beforeinstallprompt event fired - PWA is installable!');
+        });
+
+        async function tryInstall() {
+            if (!deferredPrompt) {
+                alert('Prompt de instalação não disponível. Use o menu do Chrome: ⋮ → Adicionar à tela inicial');
+                log('Install attempted but prompt not available');
+                return;
+            }
+
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            log(`Install prompt result: ${outcome}`);
+            
+            if (outcome === 'accepted') {
+                document.getElementById('installStatus').innerHTML = '<p><span class="status ok">✓ Instalação aceita!</span></p>';
+            } else {
+                document.getElementById('installStatus').innerHTML = '<p><span class="status warning">Instalação cancelada</span></p>';
+            }
+            
+            deferredPrompt = null;
+        }
+
+        function checkInstallability() {
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                document.getElementById('installStatus').innerHTML = '<p><span class="status ok">✓ App já está instalado!</span></p>';
+                log('App is already installed');
+            } else if (!deferredPrompt) {
+                document.getElementById('installStatus').innerHTML = `
+                    <p><span class="status warning">⏳ Aguardando detecção do Chrome</span></p>
+                    <p>O Chrome ainda não disparou o evento de instalação.</p>
+                    <p><strong>Possíveis motivos:</strong></p>
+                    <ul>
+                        <li>Precisa de mais tempo de engajamento (30-60s de navegação)</li>
+                        <li>Falta algum requisito PWA (veja os status acima)</li>
+                        <li>Já foi instalado e desinstalado recentemente</li>
+                    </ul>
+                    <p><strong>Solução:</strong> Use a instalação manual pelo menu do Chrome (⋮)</p>
+                `;
+                log('Install prompt not yet available');
+            }
+        }
+
+        // 5. Check Icons
+        async function checkIcons() {
+            const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            let html = '';
+            
+            for (const size of iconSizes) {
+                const url = `/img/icon-${size}x${size}.png`;
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    if (response.ok) {
+                        html += `<p>✓ icon-${size}x${size}.png <span class="status ok">OK</span></p>`;
+                        log(`Icon ${size}x${size} found`);
+                    } else {
+                        html += `<p>✗ icon-${size}x${size}.png <span class="status error">Não encontrado</span></p>`;
+                        log(`Icon ${size}x${size} not found`);
+                    }
+                } catch (error) {
+                    html += `<p>✗ icon-${size}x${size}.png <span class="status error">Erro</span></p>`;
+                    log(`Icon ${size}x${size} error: ${error.message}`);
+                }
+            }
+            
+            document.getElementById('iconsStatus').innerHTML = html;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('PWA Debug page loaded');
+            checkDevice();
+            registerSW();
+            checkManifest();
+            checkInstallability();
+            checkIcons();
+            
+            setTimeout(() => {
+                if (!deferredPrompt) {
+                    log('After 5 seconds: Install prompt still not available');
+                    log('Recommendation: Use manual installation from Chrome menu');
+                }
+            }, 5000);
+        });
+
+        window.addEventListener('appinstalled', () => {
+            log('App installed successfully!');
+            document.getElementById('installStatus').innerHTML = '<p><span class="status ok">✓ App instalado com sucesso!</span></p>';
+        });
+    </script>
+</body>
+</html>

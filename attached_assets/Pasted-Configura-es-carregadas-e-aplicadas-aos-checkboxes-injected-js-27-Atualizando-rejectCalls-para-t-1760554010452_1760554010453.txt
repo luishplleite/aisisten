@@ -1,0 +1,72 @@
+Configurações carregadas e aplicadas aos checkboxes
+injected.js:27 🔄 Atualizando rejectCalls para true...
+7bd37d3b-c90e-4ed3-ba6a-2da7f92bcc3c-00-2wdsenso8eh9e.worf.replit.dev/api/evolution/update-settings/frutidelis:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27Understand this error
+injected.js:27 🔄 Atualizando ignoreGroups para true...
+injected.js:204  POST https://7bd37d3b-c90e-4ed3-ba6a-2da7f92bcc3c-00-2wdsenso8eh9e.worf.replit.dev/api/evolution/update-settings/frutidelis 404 (Not Found)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:774Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:774Understand this error
+injected.js:27 🔄 Atualizando alwaysOnline para true...
+injected.js:204  POST https://7bd37d3b-c90e-4ed3-ba6a-2da7f92bcc3c-00-2wdsenso8eh9e.worf.replit.dev/api/evolution/update-settings/frutidelis 404 (Not Found)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:792Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:792Understand this error
+injected.js:27 🔄 Atualizando readMessages para true...
+injected.js:204  POST https://7bd37d3b-c90e-4ed3-ba6a-2da7f92bcc3c-00-2wdsenso8eh9e.worf.replit.dev/api/evolution/update-settings/frutidelis 404 (Not Found)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:810Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:810Understand this error
+injected.js:27 🔄 Atualizando readStatus para true...
+injected.js:204  POST https://7bd37d3b-c90e-4ed3-ba6a-2da7f92bcc3c-00-2wdsenso8eh9e.worf.replit.dev/api/evolution/update-settings/frutidelis 404 (Not Found)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:846Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:846Understand this error
+injected.js:27 🔄 Atualizando syncFullHistory para true...
+injected.js:204  POST https://7bd37d3b-c90e-4ed3-ba6a-2da7f92bcc3c-00-2wdsenso8eh9e.worf.replit.dev/api/evolution/update-settings/frutidelis 404 (Not Found)
+apply @ injected.js:204
+updateWhatsAppSetting @ configuracoes.html:3665
+onchange @ configuracoes.html:828Understand this error
+injected.js:27 ❌ Erro ao atualizar configuração: Error: Erro ao atualizar configuração
+    at updateWhatsAppSetting (configuracoes.html:3680:27)
+(anonymous) @ injected.js:27
+updateWhatsAppSetting @ configuracoes.html:3700
+await in updateWhatsAppSetting
+onchange @ configuracoes.html:828Understand this error
+injected.js:27 🔄 CONFIGURAÇÕES - Verificação periódica executando...
+injected.js:27 ✅ Dados de instância encontrados: Frutidelis
+injected.js:27 🔍 WHATSAPP - Verificando status da instância: frutidelis
+injected.js:27 📡 WHATSAPP - Status HTTP: 200
+injected.js:27 📊 WHATSAPP - Estado da instância: open
+injected.js:27 🔍 CONFIGURAÇÕES - Verificando status do Asaas...
+injected.js:27 ✅ CONFIGURAÇÕES - Asaas conectado - API key configurada
+injected.js:27 🔄 Atualizando status da seção de integrações...
+injected.js:27 ✅ WhatsApp conectado - atualizando status na seção integrações
+injected.js:27 🔄 Atualizando status na página principal: Conectado
+injected.js:27 ✅ CONFIGURAÇÕES - Verificação periódica concluída

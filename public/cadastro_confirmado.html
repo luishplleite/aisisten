@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Confirmado - TimePulse AI</title>
+    <meta name="description" content="Cadastro confirmado com sucesso no sistema TimePulse AI.">
+
+    <link rel="icon" href="https://img.icons8.com/fluency/48/time-machine.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #218838;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--dark-color), #212529);
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .confirmation-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+            animation: fade-in 0.5s ease-out;
+            text-align: center;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .confirmation-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .logo {
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            width: 200px;
+            height: 220px;
+            object-fit: contain;
+        }
+
+        .logo:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+            transition: var(--transition);
+        }
+        
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .confirmation-body {
+            padding: 2rem 1.5rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .success-icon::before {
+            content: "✓";
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .countdown-container {
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .countdown-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .countdown-timer {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .login-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition);
+            margin-top: 1rem;
+        }
+
+        .login-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="confirmation-container">
+        <div class="confirmation-header">
+            <a href="index.html" class="logo">
+                <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI">
+            </a>
+            <div class="tagline">Sistema de Gestão de Entregas</div>
+        </div>
+        
+        <div class="confirmation-body">
+            <div class="success-icon"></div>
+            
+            <h1 class="success-title">Cadastro Confirmado!</h1>
+            
+            <p class="success-message">
+                Sua conta foi confirmada com sucesso! Agora você pode fazer login no sistema TimePulse AI e começar a gerenciar seus pedidos e entregas.
+            </p>
+            
+            <div class="countdown-container">
+                <div class="countdown-text">Redirecionando para o login em:</div>
+                <div class="countdown-timer" id="countdown">5</div>
+            </div>
+            
+            <a href="login.html" class="login-button">
+                Ir para o Login Agora
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Contador regressivo de 5 segundos
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = 'login.html';
+            }
+        }, 1000);
+        
+        // Permitir redirecionamento imediato clicando no botão
+        document.querySelector('.login-button').addEventListener('click', () => {
+            clearInterval(timer);
+        });
+        
+        console.log('✅ Página de confirmação de cadastro carregada');
+        console.log('🔄 Redirecionamento automático em 5 segundos para login.html');
+    </script>
+</body>
+</html>

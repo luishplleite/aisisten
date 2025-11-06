@@ -1,0 +1,29 @@
+{
+  "name": "timepulse-ai",
+  "version": "1.0.0",
+  "description": "TimePulse AI - Delivery Management Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/mcp-server-supabase": "^0.5.6",
+    "@supabase/supabase-js": "^2.75.1",
+    "bcrypt": "^6.0.0",
+    "canvas": "^3.2.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "helmet": "^6.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^2.7.0",
+    "openai": "^5.23.2",
+    "pg": "^8.16.3",
+    "tslib": "^2.8.1",
+    "undici": "^7.16.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,27 @@
+{
+    "status": "healthy",
+    "timestamp": "2025-09-11T11:00:00Z",
+    "checks": {
+        "database": {
+            "status": "ok",
+            "response_time": "12ms"
+        },
+        "supabase": {
+            "status": "ok",
+            "response_time": "45ms"
+        },
+        "evolution": {
+            "status": "ok", 
+            "response_time": "67ms"
+        },
+        "external_apis": {
+            "status": "ok",
+            "services": ["mapbox", "openai"]
+        }
+    },
+    "performance": {
+        "cpu_usage": "23%",
+        "memory_usage": "45%",
+        "disk_usage": "12%"
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "status": "secure_config",
+    "configured": false,
+    "environment": "production",
+    "note": "API keys are now managed via environment variables for security",
+    "required_env_vars": ["EVOLUTION_SERVER_URL", "EVOLUTION_API_KEY"],
+    "features": {
+        "whatsapp": true,
+        "webhook": true,
+        "instance_management": true,
+        "qr_code": true,
+        "message_history": true,
+        "group_management": true
+    },
+    "endpoints": {
+        "instances": "/instance",
+        "messages": "/message",
+        "webhooks": "/webhook"
+    }
+}

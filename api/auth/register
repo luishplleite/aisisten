@@ -1,0 +1,11 @@
+{
+    "status": "endpoint_not_implemented",
+    "message": "Endpoint de registro requer backend ativo",
+    "required_fields": ["email", "password", "name"],
+    "optional_fields": ["phone", "restaurant_name"],
+    "validation": {
+        "email": "valid_email_format",
+        "password": "min_8_chars_with_number"
+    },
+    "supabase_integration": true
+}

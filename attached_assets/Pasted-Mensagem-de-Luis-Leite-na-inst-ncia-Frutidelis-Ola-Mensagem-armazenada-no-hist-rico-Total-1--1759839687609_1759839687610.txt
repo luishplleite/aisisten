@@ -1,0 +1,106 @@
+Mensagem de Luis Leite na instância Frutidelis: Ola
+📝 Mensagem armazenada no histórico. Total: 1
+🏪 Restaurante encontrado: Frutidelis (ID: 50b2dbcb-66bb-4969-92cf-493f03237e49)
+🔍 Buscando contexto completo via MCP...
+📞 Telefone normalizado: 5513991292600@s.whatsapp.net -> +5513991292600
+📞 Buscando cliente em 5 formatos de telefone
+🔧 Executando consulta Supabase: customers_data {
+  phone: '+5513991292600',
+  restaurant_id: '50b2dbcb-66bb-4969-92cf-493f03237e49'
+}
+🔍 Buscando cliente por telefone: +*********2600
+📞 Tentando 2 formatos de telefone
+✅ Cliente encontrado via busca otimizada
+✅ Consulta Supabase executada com sucesso
+👤 Cliente encontrado: Luis Leite (formato: +5513991292600)
+🔧 Executando consulta Supabase: products_data { restaurant_id: '50b2dbcb-66bb-4969-92cf-493f03237e49' }
+🔍 Buscando cardápio completo para restaurante: 50b2dbcb-66bb-4969-92cf-493f03237e49
+📦 Cardápio salvo no cache para restaurante: 50b2dbcb-66bb-4969-92cf-493f03237e49
+✅ Consulta Supabase executada com sucesso
+📝 Cardápio carregado: 2 categorias, 5 produtos
+💾 Mensagem salva no histórico: 5513991292600@s.whatsapp.net (user)
+❌ Erro ao carregar histórico: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column chat_histories.created_at does not exist'
+}
+🤖 Processando mensagem com Ana...
+📚 Usando histórico de 0 mensagens
+🎯 Buscando prompt para tipo de negócio: lanchonete
+✅ Prompt personalizado carregado para tipo: lanchonete
+✅ Ana processou a mensagem: Oi! Que alegria te ver por aqui! 😊 
+
+Só pra confirmar, qual é o seu nome? E o seu telefone, por fav...
+💾 Mensagem salva no histórico: 5513991292600@s.whatsapp.net (assistant)
+📤 Enviando mensagem via Evolution API: {
+  instance: 'Frutidelis',
+  remoteJid: '5513991292600@s.whatsapp.net',
+  cleanNumber: '5513991292600',
+  messageLength: 103
+}
+✅ Mensagem enviada com sucesso via Evolution API
+✅ Resposta enviada com sucesso via Evolution API
+🔐 Verificando autenticação para Evolution API...
+🔍 Debug cookies recebidos: Sim (325 chars)
+🔍 JSON Cookie encontrado: Sim
+✅ Cookie JSON parseado com sucesso: {
+  hasInstanceId: true,
+  hasToken: true,
+  hasRestaurantId: true,
+  hasUserEmail: true,
+  instanceName: 'Frutidelis'
+}
+✅ Usuário autenticado: luishplleite@gmail.com
+📊 Rate limit OK para luishplleite@gmail.com: 1/30
+🔍 Validando nome da instância: "Frutidelis" (length: 10)
+✅ Nome da instância válido: "Frutidelis"
+🔍 Proxy Evolution: Verificando instância "Frutidelis"
+✅ Evolution: Instância "Frutidelis" - Status: open
+📊 Rate limit OK para 172.31.111.98: 2/10
+🔐 Verificando autenticação para Evolution API...
+🔍 Debug cookies recebidos: Sim (325 chars)
+🔍 JSON Cookie encontrado: Sim
+✅ Cookie JSON parseado com sucesso: {
+  hasInstanceId: true,
+  hasToken: true,
+  hasRestaurantId: true,
+  hasUserEmail: true,
+  instanceName: 'Frutidelis'
+}
+✅ Usuário autenticado: luishplleite@gmail.com
+📊 Rate limit OK para luishplleite@gmail.com: 2/30
+🔍 Validando nome da instância: "Frutidelis" (length: 10)
+✅ Nome da instância válido: "Frutidelis"
+🔍 Proxy Evolution: Verificando instância "Frutidelis"
+✅ Evolution: Instância "Frutidelis" - Status: open
+📊 Status do teste para restaurante 50b2dbcb-66bb-4969-92cf-493f03237e49: active, 0 dias restantes
+📨 Webhook Evolution API recebido: {
+  "event": "messages.upsert",
+  "instance": "Frutidelis",
+  "messageType": "conversation",
+  "hasMessage": true,
+  "fromMe": false,
+  "pushName": "Luis Leite"
+}
+💬 Mensagem de Luis Leite na instância Frutidelis: Oi
+📝 Mensagem armazenada no histórico. Total: 2
+🏪 Restaurante encontrado: Frutidelis (ID: 50b2dbcb-66bb-4969-92cf-493f03237e49)
+🔍 Buscando contexto completo via MCP...
+📞 Telefone normalizado: 5513991292600@s.whatsapp.net -> +5513991292600
+📞 Buscando cliente em 5 formatos de telefone
+🔧 Executando consulta Supabase: customers_data {
+  phone: '+5513991292600',
+  restaurant_id: '50b2dbcb-66bb-4969-92cf-493f03237e49'
+}
+🔍 Buscando cliente por telefone: +*********2600
+📞 Tentando 2 formatos de telefone
+✅ Cliente encontrado via busca otimizada
+✅ Consulta Supabase executada com sucesso
+👤 Cliente encontrado: Luis Leite (formato: +5513991292600)
+🔧 Executando consulta Supabase: products_data { restaurant_id: '50b2dbcb-66bb-4969-92cf-493f03237e49' }
+🔍 Buscando cardápio completo para restaurante: 50b2dbcb-66bb-4969-92cf-493f03237e49
+📦 Cardápio carregado do cache para restaurante: 50b2dbcb-66bb-4969-92cf-493f03237e49
+✅ Consulta Supabase executada com sucesso
+📝 Cardápio carregado: 2 categorias, 5 produtos
+💾 Mensagem salva no histórico: 5513991292600@s.whatsapp.net (

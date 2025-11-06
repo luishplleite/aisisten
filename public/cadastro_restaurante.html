@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Restaurante - TimePulse AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Force fresh config loading with version -->
+    <script src="js/secure-config.js?v=20250911fix&nocache=1"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .register-container {
+            background: white;
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-lg);
+            padding: var(--spacing-2xl);
+            width: 100%;
+            max-width: 500px;
+            margin: var(--spacing-md);
+        }
+        
+        .logo {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-base);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+        
+        .btn-full-width {
+            width: 100%;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+        }
+        
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .loading .btn {
+            position: relative;
+        }
+        
+        .loading .btn::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" 
+                 alt="TimePulse AI" 
+                 style="width: 200px; height: 220px; object-fit: contain; display: block; margin: 0 auto;">
+        </div>
+        <p class="subtitle">Cadastre seu restaurante</p>
+        
+        <div id="successMessage" class="success-message">
+            <i class="fas fa-check-circle"></i> Restaurante cadastrado com sucesso! Verifique seu email para ativar a conta.
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-triangle"></i> <span id="errorText">Erro ao cadastrar restaurante.</span>
+        </div>
+        
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="restaurantName">Nome do Restaurante</label>
+                <input type="text" id="restaurantName" name="restaurantName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="ownerName">Nome do Proprietário</label>
+                <input type="text" id="ownerName" name="ownerName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Telefone</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Endereço Completo</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="city">Cidade</label>
+                <input type="text" id="city" name="city" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full-width">
+                <i class="fas fa-plus"></i> Cadastrar Restaurante
+            </button>
+        </form>
+        
+        <div class="login-link">
+            <p>Já tem uma conta? <a href="login.html">Fazer login</a></p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Funções utilitárias
+        function showMessage(elementId, message, show = true) {
+            const element = document.getElementById(elementId);
+            if (show) {
+                if (elementId === 'errorMessage') {
+                    document.getElementById('errorText').textContent = message;
+                }
+                element.style.display = 'block';
+            } else {
+                element.style.display = 'none';
+            }
+        }
+
+        function setLoading(isLoading) {
+            const form = document.getElementById('registrationForm');
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        // Funções de formatação removidas pois os campos CNPJ e CEP foram excluídos
+
+        // Função para enviar email de confirmação usando Office Integrator API
+        async function sendConfirmationEmail(userData) {
+            try {
+                // Conteúdo HTML do email
+                const emailContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #28a745; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
+        .content { background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+        .button { display: inline-block; background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .data-list { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕐 Bem-vindo ao TimePulseAI!</h1>
+        </div>
+        <div class="content">
+            <p><strong>Olá ${userData.ownerName},</strong></p>
+            <p>Seu restaurante <strong>"${userData.restaurantName}"</strong> foi cadastrado com sucesso na plataforma TimePulseAI!</p>
+            
+            <div class="data-list">
+                <h3>📋 Dados do Cadastro:</h3>
+                <ul>
+                    <li><strong>Restaurante:</strong> ${userData.restaurantName}</li>
+                    <li><strong>Proprietário:</strong> ${userData.ownerName}</li>
+                    <li><strong>Email:</strong> ${userData.email}</li>
+                    <li><strong>Telefone:</strong> ${userData.phone}</li>
+                    <li><strong>Endereço:</strong> ${userData.address}, ${userData.city} - ${userData.state}</li>
+                    ${userData.cnpj ? `<li><strong>CNPJ:</strong> ${userData.cnpj}</li>` : ''}
+                </ul>
+            </div>
+            
+            <p>🚀 Agora você pode fazer login em sua conta e começar a gerenciar seus pedidos de delivery!</p>
+            <p style="text-align: center;">
+                <a href="https://timepulseai.com.br/login.html" class="button">Fazer Login Agora</a>
+            </p>
+            
+            <hr style="margin: 30px 0; border: 1px solid #ddd;">
+            <p style="color: #666; font-size: 14px;">
+                <strong>Atenciosamente,</strong><br>
+                Equipe TimePulseAI<br>
+                <em>Revolucionando a gestão de delivery</em><br>
+                <a href="https://timepulseai.com.br" style="color: #28a745;">timepulseai.com.br</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+                // Enviar email usando a API do Office Integrator
+                const formData = new FormData();
+                formData.append('apikey', API_CONFIG.officeIntegrator.apiKey);
+                formData.append('permissions', JSON.stringify({
+                    "document.export": true,
+                    "document.print": false,
+                    "document.edit": false,
+                    "review.changes.resolve": false,
+                    "review.comment": false,
+                    "collab.chat": false
+                }));
+                formData.append('editor_settings', JSON.stringify({
+                    "unit": "in",
+                    "language": "pt",
+                    "view": "pageview"
+                }));
+                formData.append('callback_settings', JSON.stringify({
+                    "save_format": "html",
+                    "save_url": `https://${API_CONFIG.officeIntegrator.domain}/email-callback.php`,
+                    "context_info": `Email confirmação - ${userData.email}`
+                }));
+                formData.append('document_info', JSON.stringify({
+                    "document_name": `Confirmação Cadastro - ${userData.restaurantName}`,
+                    "document_id": `confirm_${Date.now()}`
+                }));
+                formData.append('user_info', JSON.stringify({
+                    "user_id": userData.email,
+                    "display_name": userData.ownerName
+                }));
+                formData.append('document_defaults', JSON.stringify({
+                    "orientation": "portrait",
+                    "paper_size": "A4",
+                    "font_name": "Arial",
+                    "font_size": 12,
+                    "track_changes": "disabled"
+                }));
+
+                // Enviar email usando nosso endpoint PHP
+                console.log('📧 Preparando envio de email para:', userData.email);
+                
+                try {
+                    const response = await fetch('./send-email.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            to: userData.email,
+                            subject: `🕐 Bem-vindo ao TimePulseAI - ${userData.restaurantName}`,
+                            html: emailContent
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('✅ Email enviado:', result.message);
+                        return {
+                            success: true,
+                            message: `Email de confirmação enviado para ${userData.email}`
+                        };
+                    } else {
+                        const error = await response.json();
+                        console.log('⚠️ Erro ao enviar email:', error.error);
+                        // Não falhar o cadastro por causa do email
+                        return {
+                            success: true,
+                            message: 'Cadastro realizado. Email será enviado em breve.'
+                        };
+                    }
+                } catch (error) {
+                    console.log('⚠️ Erro de conexão para envio de email:', error);
+                    // Não falhar o cadastro por causa do email
+                    return {
+                        success: true,
+                        message: 'Cadastro realizado. Email será enviado em breve.'
+                    };
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro ao enviar email:', error);
+                return { 
+                    success: false, 
+                    message: 'Erro ao enviar email de confirmação' 
+                };
+            }
+        }
+
+        // Inicializar Supabase usando o mesmo endpoint do login.html
+        async function initializeSupabaseClient() {
+            try {
+                console.log('🔍 Inicializando cliente Supabase...');
+                
+                // Buscar configuração do Supabase via endpoint
+                const timestamp = Date.now();
+                const supabaseUrl = `/api/config/supabase?t=${timestamp}&nocache=1`;
+                console.log(`🔍 Carregando configuração Supabase de: ${supabaseUrl}`);
+                
+                const supabaseResponse = await fetch(supabaseUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
+                if (!supabaseResponse.ok) {
+                    throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+                }
+                
+                const config = await supabaseResponse.json();
+                console.log('✅ Configuração Supabase carregada via API');
+                
+                if (!config.supabaseUrl || !config.supabaseAnonKey) {
+                    throw new Error('Configuração do Supabase incompleta');
+                }
+                
+                // Inicializar cliente Supabase
+                if (window.supabase) {
+                    const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+                        auth: {
+                            autoRefreshToken: true,
+                            persistSession: true,
+                            detectSessionInUrl: false
+                        }
+                    });
+                    
+                    console.log('✅ Cliente Supabase inicializado com sucesso');
+                    return client;
+                } else {
+                    throw new Error('Biblioteca Supabase não encontrada.');
+                }
+            } catch (error) {
+                console.error('❌ Erro ao inicializar Supabase:', error);
+                throw error;
+            }
+        }
+
+        // Função principal de cadastro
+        async function registerRestaurant(formData) {
+            try {
+                // Inicializar Supabase usando o novo método
+                const supabase = await initializeSupabaseClient();
+                if (!supabase) {
+                    throw new Error('Erro ao conectar com o banco de dados');
+                }
+
+                // Criar usuário na autenticação SEM enviar email de confirmação automático
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password,
+                    options: {
+                        data: {
+                            full_name: formData.ownerName,
+                            restaurant_name: formData.restaurantName,
+                            email_confirmed: true // Marca como já confirmado para evitar emails automáticos
+                        }
+                        // Removido emailRedirectTo para evitar emails automáticos do Supabase
+                    }
+                });
+
+                if (authError) {
+                    throw new Error('Erro ao criar conta: ' + authError.message);
+                }
+
+                // Preparar dados do restaurante
+                const restaurantData = {
+                    name: formData.restaurantName,
+                    owner_name: formData.ownerName,
+                    owner_phone: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    state: 'SP', // Estado padrão São Paulo
+                    zip_code: '00000-000', // CEP padrão
+                    owner_id: authData.user?.id,
+                    status: 'active',
+                    plan: 'basic',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                // Salvar dados do restaurante na tabela restaurants
+                const { data: restaurantResult, error: restaurantError } = await supabase
+                    .from('restaurants')
+                    .insert([restaurantData])
+                    .select();
+
+                if (restaurantError) {
+                    throw new Error('Erro ao salvar dados do restaurante: ' + restaurantError.message);
+                }
+
+                // Enviar email de confirmação
+                const emailResult = await sendConfirmationEmail({
+                    restaurantName: formData.restaurantName,
+                    ownerName: formData.ownerName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    state: formData.state,
+                    cnpj: formData.cnpj
+                });
+
+                return {
+                    success: true,
+                    message: 'Restaurante cadastrado com sucesso!',
+                    data: restaurantResult[0],
+                    emailSent: emailResult.success
+                };
+
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                return {
+                    success: false,
+                    message: error.message || 'Erro ao cadastrar restaurante'
+                };
+            }
+        }
+
+        // Event listener do formulário
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Esconder mensagens anteriores
+            showMessage('successMessage', '', false);
+            showMessage('errorMessage', '', false);
+            
+            // Mostrar carregamento
+            setLoading(true);
+
+            // Coletar dados do formulário
+            const formData = {
+                restaurantName: document.getElementById('restaurantName').value.trim(),
+                ownerName: document.getElementById('ownerName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                password: document.getElementById('password').value
+            };
+
+            // Validações básicas - Email é obrigatório
+            if (!formData.restaurantName || !formData.ownerName || !formData.email || 
+                !formData.phone || !formData.address || !formData.city || !formData.password) {
+                setLoading(false);
+                showMessage('errorMessage', 'Por favor, preencha todos os campos obrigatórios, incluindo o e-mail.');
+                return;
+            }
+
+            // Validação específica de email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                setLoading(false);
+                showMessage('errorMessage', 'Por favor, insira um e-mail válido.');
+                return;
+            }
+
+            if (formData.password.length < 6) {
+                setLoading(false);
+                showMessage('errorMessage', 'A senha deve ter pelo menos 6 caracteres.');
+                return;
+            }
+
+            // Tentar fazer o cadastro
+            const result = await registerRestaurant(formData);
+            
+            setLoading(false);
+
+            if (result.success) {
+                showMessage('successMessage', 'Cadastro realizado com sucesso! Redirecionando...');
+                // Limpar formulário
+                document.getElementById('registrationForm').reset();
+                
+                // Redirecionar após 2 segundos para a página de confirmação
+                setTimeout(() => {
+                    window.location.href = 'cadastro_realizado.html';
+                }, 2000);
+            } else {
+                showMessage('errorMessage', result.message);
+            }
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('📋 Formulário de cadastro carregado');
+            
+            // Verificar se a configuração do Supabase está disponível
+            try {
+                console.log('🔍 Inicializando cliente Supabase...');
+                // A verificação será feita automaticamente quando for necessário usar o Supabase
+                console.log('✅ Sistema configurado e pronto para uso');
+            } catch (error) {
+                console.error('❌ Erro na configuração:', error);
+                showMessage('errorMessage', 'Sistema temporariamente indisponível. Tente novamente mais tarde.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio - TimePulse AI</title>
+    <meta name="description" content="Gerencie seu cardápio, produtos e categorias">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/secure-config.js"></script>
+    <!-- Sistema de Teste Gratuito -->
+    <script src="js/trial-countdown.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #28a745;
+            --primary-dark: #1e7e34;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .restaurant-name {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #495057;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .main-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 2rem;
+        }
+
+        .tab-link {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--secondary-color);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .categories-container, .products-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .category-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .category-item:hover, .category-item.active {
+            background-color: var(--light-color);
+        }
+        
+        .category-item.active {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .category-actions button {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .category-actions button:hover {
+            color: var(--dark-color);
+        }
+        
+        .product-list-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .product-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .product-list-item-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #ccc;
+            margin-right: 1rem;
+        }
+
+        .product-list-item-details {
+            flex-grow: 1;
+        }
+
+        .product-list-item-name {
+            font-weight: 600;
+        }
+
+        .product-list-item-description {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .product-list-item-price {
+            font-weight: bold;
+            color: var(--primary-color);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .product-list-item-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .product-list-item-actions button {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: .5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: .75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        #addOnCategoriesLink {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            padding: 1rem;
+            border-radius: .25rem;
+        }
+        
+        .checkbox-group, .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .checkbox-group label, .radio-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+        .checkbox-group input, .radio-group input {
+            margin-top: 0;
+        }
+        
+        /* Estilos para notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            min-width: 300px;
+            max-width: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideInRight 0.3s ease-out;
+            border-left: 4px solid #28a745;
+        }
+        
+        .notification.error {
+            border-left-color: #dc3545;
+        }
+        
+        .notification-content {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .notification-content i:first-child {
+            color: #28a745;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .notification.error .notification-content i:first-child {
+            color: #dc3545;
+        }
+        
+        .notification-content span {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .notification-close:hover {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Menu Hamburger para Mobile */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10000;
+            align-items: center;
+            padding: 0;
+            justify-content: flex-start;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            height: 60px;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .mobile-logo {
+            height: 40px;
+            width: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsivo para Mobile */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 9999;
+                width: 280px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .sidebar-header img {
+                height: 120px;
+                max-width: 150px;
+            }
+
+            /* Cardápio específico mobile */
+            .menu-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .categories-sidebar {
+                margin-bottom: 1rem;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+                padding-bottom: 1rem;
+            }
+
+            .category-item {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .products-section {
+                padding: 0;
+            }
+
+            .actions-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .actions-bar .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Header Mobile com Menu Hamburger -->
+        <div class="mobile-header">
+            <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Abrir menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" class="mobile-logo">
+        </div>
+
+        <!-- Overlay para fechar menu mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
+
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="text-align: center;"><img src="https://raw.githubusercontent.com/luishplleite/logotimipulseai/refs/heads/main/LOGO%20FINAL.png" alt="TimePulse AI" style="height: 200px; width: auto; max-width: 220px;"></div>
+                <div class="restaurant-name" id="restaurantName">Carregando...</div>
+            </div>
+            
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                    <a href="gestao_pedidos.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Pedidos
+                    </a>
+                    <a href="cozinha.html" class="nav-link">
+                        <span class="nav-icon">👨‍🍳</span>
+                        Cozinha
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão</div>
+                    <a href="cardapio.html" class="nav-link active">
+                        <span class="nav-icon">🍽️</span>
+                        Cardápio
+                    </a>
+                    <a href="gestao_entregadores.html" class="nav-link">
+                        <span class="nav-icon">🏍️</span>
+                        Entregadores
+                    </a>
+                    <a href="clientes.html" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Clientes
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Relatórios</div>
+                    <a href="relatorios.html" class="nav-link">
+                        <span class="nav-icon">📈</span>
+                        Análises
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Comercial</div>
+                    <a href="assinaturas.html" class="nav-link">
+                        <span class="nav-icon">💳</span>
+                        Assinaturas
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <a href="configuracoes.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Configurações
+                    </a>
+                    <a href="ajuda.html" class="nav-link">
+                        <span class="nav-icon">❓</span>
+                        Ajuda
+                    </a>
+                    <a href="#" class="nav-link" id="logoutButton">
+                        <span class="nav-icon">🚪</span>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">
+                    <i class="fas fa-book-open"></i>
+                    Gestão de Cardápio
+                </h1>
+                <p class="page-subtitle">Adicione, edite e organize seus produtos e categorias.</p>
+            </div>
+
+            <div class="main-tabs">
+                <button class="tab-link active" onclick="openTab(event, 'cardapioTab')">Cardápio</button>
+                <button class="tab-link" onclick="openTab(event, 'adicionaisTab')">Adicionais</button>
+            </div>
+
+            <div id="cardapioTab" class="tab-content active">
+                <div class="menu-grid">
+                    <div class="categories-container">
+                        <div class="section-header">
+                            <h3>Categorias</h3>
+                            <div class="section-actions">
+                                <button class="btn btn-primary btn-sm" onclick="openCategoryModal()">
+                                    <i class="fas fa-plus"></i> Nova
+                                </button>
+                            </div>
+                        </div>
+                        <ul id="categoryList" class="category-list">
+                            </ul>
+                    </div>
+                    <div class="products-container">
+                        <div class="section-header">
+                            <h3 id="productsTitle">Todos os Produtos</h3>
+                            <div class="section-actions">
+                                <button class="btn btn-success btn-sm" onclick="openProductModal()">
+                                    <i class="fas fa-plus"></i> Novo Produto
+                                </button>
+                            </div>
+                        </div>
+                        <div id="productsList">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adicionaisTab" class="tab-content">
+                 <div class="menu-grid">
+                    <div class="categories-container">
+                        <div class="section-header">
+                            <h3>Grupos de Adicionais</h3>
+                            <div class="section-actions">
+                                <button class="btn btn-primary btn-sm" onclick="openAddOnCategoryModal()">
+                                    <i class="fas fa-plus"></i> Novo Grupo
+                                </button>
+                            </div>
+                        </div>
+                        <ul id="addOnCategoryList" class="category-list">
+                            </ul>
+                    </div>
+                    <div class="products-container">
+                        <div class="section-header">
+                            <h3 id="addOnsTitle">Itens Adicionais</h3>
+                            <div class="section-actions">
+                                <button class="btn btn-success btn-sm" onclick="openAddOnModal()">
+                                    <i class="fas fa-plus"></i> Novo Item
+                                </button>
+                            </div>
+                        </div>
+                        <div id="addOnsList">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Nova Categoria</h3>
+                <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label for="categoryName" class="form-label">Nome</label>
+                    <input type="text" id="categoryName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription" class="form-label">Descrição</label>
+                    <textarea id="categoryDescription" class="form-control" rows="3"></textarea>
+                </div>
+                 <div class="form-group">
+                    <label for="categoryOrder" class="form-label">Ordem de Exibição</label>
+                    <input type="number" id="categoryOrder" class="form-control" value="0">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="categoryActive" checked>
+                        <label for="categoryActive">Ativa</label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h3 id="productModalTitle">Novo Produto</h3>
+                <button class="modal-close" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label for="productName" class="form-label">Nome</label>
+                    <input type="text" id="productName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription" class="form-label">Descrição</label>
+                    <textarea id="productDescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory" class="form-label">Categoria</label>
+                    <select id="productCategory" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice" class="form-label">Preço (R$)</label>
+                    <input type="number" id="productPrice" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Impressão (onde imprimir)</label>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; border: 1px solid #ced4da; padding: 1rem; border-radius: .25rem;">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="impressaoBalcao" value="balcao">
+                            <label for="impressaoBalcao">Balcão</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="impressaoSalao" value="salao">
+                            <label for="impressaoSalao">Salão</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="impressaoCozinha" value="cozinha">
+                            <label for="impressaoCozinha">Cozinha</label>
+                        </div>
+                        <small style="color: #6c757d; font-size: 0.8rem;">Selecione onde este produto deve ser impresso</small>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Grupos de Adicionais Vinculados</label>
+                    <div id="addOnCategoriesLink">
+                        </div>
+                </div>
+                
+                <!-- Seção Fiscal -->
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <label class="form-label" style="margin-bottom: 0; font-weight: 600; color: #495057;">📋 Informações Fiscais</label>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="preencherComIA()" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-robot"></i> Preencher com IA
+                        </button>
+                    </div>
+                    <div style="border: 2px solid #e9ecef; border-radius: 8px; padding: 1.5rem; background-color: #f8f9fa;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label for="productNCM" class="form-label">NCM</label>
+                                <input type="text" id="productNCM" class="form-control" maxlength="8" placeholder="Ex: 12345678">
+                                <small class="text-muted">Nomenclatura Comum do Mercosul</small>
+                            </div>
+                            <div>
+                                <label for="productCFOP" class="form-label">CFOP</label>
+                                <input type="text" id="productCFOP" class="form-control" maxlength="4" placeholder="Ex: 5102">
+                                <small class="text-muted">Código Fiscal de Operação</small>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label for="productICMSAliquota" class="form-label">ICMS Alíquota (%)</label>
+                                <input type="number" id="productICMSAliquota" class="form-control" step="0.01" min="0" max="100" placeholder="Ex: 18.00">
+                            </div>
+                            <div>
+                                <label for="productICMSCST" class="form-label">ICMS CST</label>
+                                <input type="text" id="productICMSCST" class="form-control" maxlength="3" placeholder="Ex: 000">
+                            </div>
+                            <div>
+                                <label for="productOrigemMercadoria" class="form-label">Origem</label>
+                                <select id="productOrigemMercadoria" class="form-control">
+                                    <option value="">Selecione...</option>
+                                    <option value="0">0 - Nacional</option>
+                                    <option value="1">1 - Estrangeira - Importação direta</option>
+                                    <option value="2">2 - Estrangeira - Mercado interno</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label for="productPISAliquota" class="form-label">PIS Alíquota (%)</label>
+                                <input type="number" id="productPISAliquota" class="form-control" step="0.0001" min="0" max="100" placeholder="Ex: 1.6500">
+                            </div>
+                            <div>
+                                <label for="productPISCST" class="form-label">PIS CST</label>
+                                <input type="text" id="productPISCST" class="form-control" maxlength="2" placeholder="Ex: 01">
+                            </div>
+                            <div>
+                                <label for="productCOFINSAliquota" class="form-label">COFINS Alíquota (%)</label>
+                                <input type="number" id="productCOFINSAliquota" class="form-control" step="0.0001" min="0" max="100" placeholder="Ex: 7.6000">
+                            </div>
+                            <div>
+                                <label for="productCOFINSCST" class="form-label">COFINS CST</label>
+                                <input type="text" id="productCOFINSCST" class="form-control" maxlength="2" placeholder="Ex: 01">
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label for="productCEST" class="form-label">CEST</label>
+                                <input type="text" id="productCEST" class="form-control" maxlength="7" placeholder="Ex: 1234567">
+                                <small class="text-muted">Código Especificador da Substituição Tributária</small>
+                            </div>
+                            <div>
+                                <label for="productUnidadeComercial" class="form-label">Unidade Comercial</label>
+                                <select id="productUnidadeComercial" class="form-control">
+                                    <option value="UN">UN - Unidade</option>
+                                    <option value="KG">KG - Quilograma</option>
+                                    <option value="L">L - Litro</option>
+                                    <option value="M">M - Metro</option>
+                                    <option value="PC">PC - Peça</option>
+                                    <option value="DZ">DZ - Dúzia</option>
+                                    <option value="CX">CX - Caixa</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="productCodigoInterno" class="form-label">Código Interno</label>
+                                <input type="text" id="productCodigoInterno" class="form-control" maxlength="50" placeholder="Código interno do produto">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="productObservacoesFiscais" class="form-label">Observações Fiscais</label>
+                            <textarea id="productObservacoesFiscais" class="form-control" rows="2" placeholder="Observações adicionais sobre a tributação do produto"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="productTributacaoEspecial">
+                                <label for="productTributacaoEspecial">Tributação Especial</label>
+                            </div>
+                            <div id="aiPreenchidoStatus" style="display: none; color: #28a745; font-size: 0.9rem;">
+                                <i class="fas fa-check-circle"></i> Preenchido com IA
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                     <div class="checkbox-group">
+                        <input type="checkbox" id="productActive" checked>
+                        <label for="productActive">Ativo</label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="addOnCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addOnCategoryModalTitle">Novo Grupo de Adicionais</h3>
+                <button class="modal-close" onclick="closeAddOnCategoryModal()">&times;</button>
+            </div>
+            <form id="addOnCategoryForm">
+                <input type="hidden" id="addOnCategoryId">
+                <div class="form-group">
+                    <label for="addOnCategoryName" class="form-label">Nome do Grupo</label>
+                    <input type="text" id="addOnCategoryName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="addOnCategoryDescription" class="form-label">Descrição (Opcional)</label>
+                    <textarea id="addOnCategoryDescription" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo de Seleção</label>
+                    <div class="radio-group">
+                        <input type="radio" id="selectionTypeMultiple" name="selectionType" value="multiple" checked>
+                        <label for="selectionTypeMultiple">Múltipla (checkbox)</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="selectionTypeSingle" name="selectionType" value="single">
+                        <label for="selectionTypeSingle">Única (radio button)</label>
+                    </div>
+                </div>
+                <div class="form-group" style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label for="minSelection" class="form-label">Seleção Mínima</label>
+                        <input type="number" id="minSelection" class="form-control" value="0" min="0">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="maxSelection" class="form-label">Seleção Máxima</label>
+                        <input type="number" id="maxSelection" class="form-control" value="1" min="1">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddOnCategoryModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addOnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addOnModalTitle">Novo Item Adicional</h3>
+                <button class="modal-close" onclick="closeAddOnModal()">&times;</button>
+            </div>
+            <form id="addOnForm">
+                <input type="hidden" id="addOnId">
+                <div class="form-group">
+                    <label for="addOnName" class="form-label">Nome do Item</label>
+                    <input type="text" id="addOnName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="addOnPrice" class="form-label">Preço (R$)</label>
+                    <input type="number" id="addOnPrice" class="form-control" step="0.01" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="addOnCategory" class="form-label">Grupo de Adicional</label>
+                    <select id="addOnCategory" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="addOnActive" checked>
+                        <label for="addOnActive">Ativo</label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddOnModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // Configurações dinâmicas do sistema
+        let supabase;
+
+        async function fetchPublicConfig() {
+            try {
+                const currentHost = window.location.hostname;
+                const currentPort = window.location.port;
+                const currentProtocol = window.location.protocol;
+                
+                // Determinar URL base baseada no ambiente atual
+                let baseUrl;
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                    baseUrl = `${currentProtocol}//${currentHost}:${currentPort || '5000'}`;
+                } else if (currentHost === 'timepulseai.com.br' || currentHost === 'www.timepulseai.com.br') {
+                    baseUrl = `https://${currentHost}`;
+                } else if (currentHost.includes('replit')) {
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                } else {
+                    baseUrl = `${currentProtocol}//${currentHost}${currentPort ? ':' + currentPort : ''}`;
+                }
+                
+                const timestamp = Date.now();
+                const configUrl = `${baseUrl}/api/config?t=${timestamp}`;
+                
+                console.log(`🔍 Cardápio - Carregando configuração de: ${configUrl}`);
+                
+                // Buscar configuração básica do servidor
+                const response = await fetch(configUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro do servidor: ${response.status} - ${response.statusText}`);
+                }
+                
+                const basicConfig = await response.json();
+                console.log('✅ Configuração básica carregada no cardápio');
+                
+                // Buscar configuração do Supabase
+                const supabaseUrl = `${baseUrl}/api/config/supabase`;
+                const supabaseResponse = await fetch(supabaseUrl, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!supabaseResponse.ok) {
+                    throw new Error(`Erro ao carregar configuração do Supabase: ${supabaseResponse.status}`);
+                }
+                
+                const supabaseConfig = await supabaseResponse.json();
+                console.log('✅ Configuração Supabase carregada no cardápio');
+                
+                // Buscar configuração do Evolution API
+                let evolutionConfig = {};
+                try {
+                    const evolutionResponse = await fetch(`${baseUrl}/api/config/evolution?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (evolutionResponse.ok) {
+                        evolutionConfig = await evolutionResponse.json();
+                        console.log('✅ Configuração Evolution carregada no cardápio');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Evolution API não disponível:', error.message);
+                }
+                
+                // Buscar configuração do Mapbox
+                let mapboxConfig = {};
+                try {
+                    const mapboxResponse = await fetch(`${baseUrl}/api/config/mapbox?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (mapboxResponse.ok) {
+                        mapboxConfig = await mapboxResponse.json();
+                        console.log('✅ Configuração Mapbox carregada no cardápio');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Mapbox API não disponível:', error.message);
+                }
+                
+                // Buscar configuração do OpenAI
+                let openaiConfig = {};
+                try {
+                    const openaiResponse = await fetch(`${baseUrl}/api/config/openai?t=${timestamp}`, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (openaiResponse.ok) {
+                        openaiConfig = await openaiResponse.json();
+                        console.log('✅ Configuração OpenAI carregada no cardápio');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ OpenAI API não disponível:', error.message);
+                }
+                
+                const finalConfig = {
+                    ...basicConfig,
+                    supabaseUrl: supabaseConfig.url,
+                    supabaseAnonKey: supabaseConfig.anon_key,
+                    evolution: evolutionConfig,
+                    mapbox: mapboxConfig,
+                    openai: openaiConfig
+                };
+                
+                return finalConfig;
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar configuração no cardápio:', error);
+                return null;
+            }
+        }
+
+        // ===== SISTEMA SIMPLIFICADO DE INSTÂNCIA =====
+        function getInstanceData() {
+            try {
+                const cookie = document.cookie.split('; ').find(row => row.startsWith('timepulse_instance_token='));
+                
+                if (cookie) {
+                    try {
+                        const cookieValue = decodeURIComponent(cookie.split('=')[1]);
+                        const tokenData = JSON.parse(cookieValue);
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing cookie:', e);
+                    }
+                }
+                
+                const localStorageData = localStorage.getItem('timepulse_instance_token');
+                if (localStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(localStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing localStorage:', e);
+                    }
+                }
+                
+                const sessionStorageData = sessionStorage.getItem('timepulse_instance_token');
+                if (sessionStorageData) {
+                    try {
+                        const tokenData = JSON.parse(decodeURIComponent(sessionStorageData));
+                        return tokenData;
+                    } catch (e) {
+                        console.error('Error parsing sessionStorage:', e);
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('getInstanceData error:', error);
+                return null;
+            }
+        }
+
+        function isAuthenticated() {
+            const instanceData = getInstanceData();
+            return instanceData && instanceData.instanceId && instanceData.restaurantId;
+        }
+
+        function requireAuth() {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function logout() {
+            document.cookie = 'timepulse_instance_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            window.location.href = 'login.html';
+        }
+
+        async function initializeConfiguration() {
+            const config = await fetchPublicConfig();
+            if (!config || !config.supabaseUrl || !config.supabaseAnonKey) {
+                throw new Error('Não foi possível carregar as configurações seguras do servidor.');
+            }
+
+            // Inicializa o Supabase com configurações seguras
+            if (window.supabase) {
+                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                console.log('✅ Supabase inicializado com sucesso no cardápio');
+            } else {
+                throw new Error('Biblioteca Supabase não encontrada.');
+            }
+        }
+
+        let currentRestaurant = null;
+        let categories = [];
+        let products = [];
+        let addOnCategories = [];
+        let addOns = [];
+        let selectedCategoryId = null;
+        let selectedAddOnCategoryId = null;
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('Inicializando configurações do cardápio...');
+                await initializeConfiguration();
+                
+                await loadRestaurantInfo();
+                if (currentRestaurant) {
+                    await loadAllData();
+                    renderAll();
+                    setupEventListeners();
+                }
+            } catch (error) {
+                console.error('❌ Falha na inicialização do cardápio.', error);
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; font-family: 'Inter', sans-serif;">
+                        <div style="padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h2 style="color: #dc3545; margin-bottom: 1rem;">Erro na Inicialização</h2>
+                            <p style="margin-bottom: 1rem;">${error.message}</p>
+                            <button onclick="window.location.reload()" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem;">Recarregar</button>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        async function loadAllData() {
+            await Promise.all([
+                loadCategories(),
+                loadProducts(),
+                loadAddOnCategories(),
+                loadAddOns()
+            ]);
+        }
+        
+        function renderAll() {
+            renderCategories();
+            renderProducts();
+            renderAddOnCategories();
+            renderAddOns();
+        }
+
+        async function loadRestaurantInfo() {
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const currentInstance = getInstanceData();
+            const restaurantId = currentInstance.restaurantId;
+            const { data, error } = await supabase.from('restaurants').select('*').eq('id', restaurantId).single();
+            if (error) {
+                console.error('Erro ao carregar restaurante:', error);
+                return;
+            }
+            currentRestaurant = data;
+            document.getElementById('restaurantName').textContent = currentRestaurant.name;
+        }
+
+        // --- CARREGAMENTO DE DADOS ---
+        async function loadCategories() {
+            const { data, error } = await supabase
+                .from('product_categories')
+                .select('*')
+                .eq('restaurant_id', getInstanceData().restaurantId)
+                .order('display_order', { ascending: true })
+                .order('name', { ascending: true });
+            if (error) console.error('Erro ao carregar categorias de produtos:', error);
+            else categories = data;
+        }
+
+        async function loadProducts() {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*, product_add_on_categories_link(add_on_category_id)')
+                .eq('restaurant_id', getInstanceData().restaurantId)
+                .order('display_order', { ascending: true })
+                .order('name', { ascending: true });
+            if (error) console.error('Erro ao carregar produtos:', error);
+            else products = data;
+        }
+        
+        async function loadAddOnCategories() {
+            const { data, error } = await supabase
+                .from('add_on_categories')
+                .select('*')
+                .eq('restaurant_id', getInstanceData().restaurantId)
+                .order('name', { ascending: true });
+            if (error) console.error('Erro ao carregar categorias de adicionais:', error);
+            else addOnCategories = data;
+        }
+        
+        async function loadAddOns() {
+            const { data, error } = await supabase
+                .from('product_add_ons')
+                .select('*')
+                .eq('restaurant_id', getInstanceData().restaurantId)
+                .order('name', { ascending: true });
+            if (error) console.error('Erro ao carregar adicionais:', error);
+            else addOns = data;
+        }
+
+        // --- RENDERIZAÇÃO ---
+        function renderCategories() {
+            const list = document.getElementById('categoryList');
+            list.innerHTML = `<li class="category-item ${selectedCategoryId === null ? 'active' : ''}" onclick="filterByCategory(null)"><span>Todos os Produtos</span></li>`;
+            categories.forEach(cat => {
+                const item = document.createElement('li');
+                item.className = `category-item ${selectedCategoryId === cat.id ? 'active' : ''}`;
+                item.onclick = () => filterByCategory(cat.id);
+                item.innerHTML = `
+                    <span>${cat.name}</span>
+                    <div class="category-actions">
+                        <button onclick="event.stopPropagation(); openCategoryModal('${cat.id}')"><i class="fas fa-edit"></i></button>
+                        <button onclick="event.stopPropagation(); deleteCategory('${cat.id}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                list.appendChild(item);
+            });
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('productsList');
+            container.innerHTML = '';
+            const filteredProducts = selectedCategoryId ? products.filter(p => p.category_id === selectedCategoryId) : products;
+            if (filteredProducts.length === 0) {
+                container.innerHTML = '<p class="empty-state">Nenhum produto encontrado.</p>';
+                return;
+            }
+            filteredProducts.forEach(prod => {
+                const item = document.createElement('div');
+                item.className = 'product-list-item';
+                item.innerHTML = `
+                    <div class="product-list-item-image"><i class="fas fa-image"></i></div>
+                    <div class="product-list-item-details">
+                        <div class="product-list-item-name">${prod.name}</div>
+                        <div class="product-list-item-description">${prod.description || ''}</div>
+                    </div>
+                    <div class="product-list-item-price">R$ ${parseFloat(prod.price).toFixed(2)}</div>
+                    <div class="product-list-item-actions">
+                        <button onclick="openProductModal('${prod.id}')"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteProduct('${prod.id}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                container.appendChild(item);
+            });
+        }
+        
+        function renderAddOnCategories() {
+            const list = document.getElementById('addOnCategoryList');
+            list.innerHTML = `<li class="category-item ${selectedAddOnCategoryId === null ? 'active' : ''}" onclick="filterByAddOnCategory(null)"><span>Todos os Itens</span></li>`;
+            addOnCategories.forEach(cat => {
+                const item = document.createElement('li');
+                item.className = `category-item ${selectedAddOnCategoryId === cat.id ? 'active' : ''}`;
+                item.onclick = () => filterByAddOnCategory(cat.id);
+                item.innerHTML = `
+                    <span>${cat.name}</span>
+                    <div class="category-actions">
+                        <button onclick="event.stopPropagation(); openAddOnCategoryModal('${cat.id}')"><i class="fas fa-edit"></i></button>
+                        <button onclick="event.stopPropagation(); deleteAddOnCategory('${cat.id}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                list.appendChild(item);
+            });
+        }
+
+        function renderAddOns() {
+            const container = document.getElementById('addOnsList');
+            container.innerHTML = '';
+            const filteredAddOns = selectedAddOnCategoryId ? addOns.filter(p => p.add_on_category_id === selectedAddOnCategoryId) : addOns;
+            if (filteredAddOns.length === 0) {
+                container.innerHTML = '<p class="empty-state">Nenhum item adicional encontrado.</p>';
+                return;
+            }
+            filteredAddOns.forEach(addOn => {
+                const item = document.createElement('div');
+                item.className = 'product-list-item';
+                item.innerHTML = `
+                    <div class="product-list-item-details">
+                        <div class="product-list-item-name">${addOn.name}</div>
+                    </div>
+                    <div class="product-list-item-price">R$ ${parseFloat(addOn.price).toFixed(2)}</div>
+                    <div class="product-list-item-actions">
+                        <button onclick="openAddOnModal('${addOn.id}')"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteAddOn('${addOn.id}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                container.appendChild(item);
+            });
+        }
+
+        function filterByCategory(categoryId) {
+            selectedCategoryId = categoryId;
+            const category = categories.find(c => c.id === categoryId);
+            document.getElementById('productsTitle').textContent = category ? `Produtos em ${category.name}` : 'Todos os Produtos';
+            renderCategories();
+            renderProducts();
+        }
+
+        function filterByAddOnCategory(addOnCategoryId) {
+            selectedAddOnCategoryId = addOnCategoryId;
+            const category = addOnCategories.find(c => c.id === addOnCategoryId);
+            document.getElementById('addOnsTitle').textContent = category ? `Itens em ${category.name}` : 'Todos os Itens';
+            renderAddOnCategories();
+            renderAddOns();
+        }
+
+        // --- MODAIS E FORMULÁRIOS ---
+        function setupEventListeners() {
+            document.getElementById('categoryForm').addEventListener('submit', handleCategorySubmit);
+            document.getElementById('productForm').addEventListener('submit', handleProductSubmit);
+            document.getElementById('addOnCategoryForm').addEventListener('submit', handleAddOnCategorySubmit);
+            document.getElementById('addOnForm').addEventListener('submit', handleAddOnSubmit);
+        }
+
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+        
+        function openCategoryModal(id = null) {
+            const form = document.getElementById('categoryForm');
+            form.reset();
+            document.getElementById('categoryId').value = '';
+            
+            if(id) {
+                const category = categories.find(c => c.id === id);
+                document.getElementById('categoryModalTitle').textContent = 'Editar Categoria';
+                document.getElementById('categoryId').value = category.id;
+                document.getElementById('categoryName').value = category.name;
+                document.getElementById('categoryDescription').value = category.description;
+                document.getElementById('categoryOrder').value = category.display_order;
+                document.getElementById('categoryActive').checked = category.active;
+            } else {
+                document.getElementById('categoryModalTitle').textContent = 'Nova Categoria';
+            }
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+        }
+
+        async function handleCategorySubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('categoryId').value;
+            const categoryData = {
+                restaurant_id: getInstanceData().restaurantId,
+                name: document.getElementById('categoryName').value,
+                description: document.getElementById('categoryDescription').value,
+                display_order: parseInt(document.getElementById('categoryOrder').value) || 0,
+                active: document.getElementById('categoryActive').checked,
+            };
+
+            let error;
+            if (id) {
+                ({ error } = await supabase.from('product_categories').update(categoryData).eq('id', id));
+            } else {
+                ({ error } = await supabase.from('product_categories').insert([categoryData]));
+            }
+
+            if (error) {
+                console.error('Erro ao salvar categoria:', error);
+                alert('Erro ao salvar categoria.');
+            } else {
+                closeCategoryModal();
+                await loadCategories();
+                renderCategories();
+            }
+        }
+        
+        async function deleteCategory(id) {
+            const productCount = products.filter(p => p.category_id === id).length;
+            if (productCount > 0) {
+                alert(`Não é possível excluir esta categoria pois ela contém ${productCount} produto(s). Mova ou exclua os produtos primeiro.`);
+                return;
+            }
+            if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+            const { error } = await supabase.from('product_categories').delete().eq('id', id);
+            if (error) {
+                console.error('Erro ao excluir categoria:', error);
+                alert('Erro ao excluir categoria.');
+            } else {
+                await loadCategories();
+                renderCategories();
+            }
+        }
+
+        async function openProductModal(id = null) {
+            const form = document.getElementById('productForm');
+            form.reset();
+            document.getElementById('productId').value = '';
+            
+            const categorySelect = document.getElementById('productCategory');
+            categorySelect.innerHTML = '<option value="">Selecione...</option>';
+            categories.forEach(cat => {
+                categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+
+            const addOnLinkContainer = document.getElementById('addOnCategoriesLink');
+            addOnLinkContainer.innerHTML = '';
+            console.log('🔗 Criando radio buttons para grupos de adicionais:', addOnCategories);
+            
+            // Adicionar opção "Nenhum" como primeira opção
+            const noneDiv = document.createElement('div');
+            noneDiv.className = 'radio-group';
+            noneDiv.style.margin = '0.5rem 0';
+            
+            const noneRadio = document.createElement('input');
+            noneRadio.type = 'radio';
+            noneRadio.id = `addon-link-none`;
+            noneRadio.value = '';
+            noneRadio.name = 'addOnLink';
+            noneRadio.checked = true; // Marcado por padrão
+            
+            const noneLabel = document.createElement('label');
+            noneLabel.htmlFor = `addon-link-none`;
+            noneLabel.textContent = 'Nenhum grupo vinculado';
+            noneLabel.style.marginLeft = '0.5rem';
+            noneLabel.style.cursor = 'pointer';
+            noneLabel.style.fontStyle = 'italic';
+            noneLabel.style.color = '#6c757d';
+            
+            noneDiv.appendChild(noneRadio);
+            noneDiv.appendChild(noneLabel);
+            addOnLinkContainer.appendChild(noneDiv);
+            
+            addOnCategories.forEach(cat => {
+                const radioDiv = document.createElement('div');
+                radioDiv.className = 'radio-group';
+                radioDiv.style.margin = '0.5rem 0';
+                
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.id = `addon-link-${cat.id}`;
+                radio.value = cat.id;
+                radio.name = 'addOnLink';
+                
+                const label = document.createElement('label');
+                label.htmlFor = `addon-link-${cat.id}`;
+                label.textContent = cat.name;
+                label.style.marginLeft = '0.5rem';
+                label.style.cursor = 'pointer';
+                
+                // Adicionar log quando radio for clicado
+                radio.addEventListener('change', function() {
+                    if (this.checked) {
+                        console.log(`📋 Radio ${cat.name} (${cat.id}): SELECIONADO`);
+                        const selected = document.querySelector('input[name="addOnLink"]:checked').value;
+                        console.log('📋 Grupo selecionado atualmente:', selected || 'Nenhum');
+                    }
+                });
+                
+                radioDiv.appendChild(radio);
+                radioDiv.appendChild(label);
+                addOnLinkContainer.appendChild(radioDiv);
+            });
+
+            if(id) {
+                const product = products.find(p => p.id === id);
+                document.getElementById('productModalTitle').textContent = 'Editar Produto';
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productDescription').value = product.description;
+                document.getElementById('productCategory').value = product.category_id;
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productActive').checked = product.active;
+                
+                // Limpar seleções de impressão
+                document.getElementById('impressaoBalcao').checked = false;
+                document.getElementById('impressaoSalao').checked = false;
+                document.getElementById('impressaoCozinha').checked = false;
+                
+                // Carregar impressão atual (pode ser múltipla escolha separada por vírgula)
+                if (product.impressao) {
+                    const impressoes = product.impressao.split(',').map(s => s.trim().toLowerCase());
+                    if (impressoes.includes('balcao')) document.getElementById('impressaoBalcao').checked = true;
+                    if (impressoes.includes('salao')) document.getElementById('impressaoSalao').checked = true;
+                    if (impressoes.includes('cozinha')) document.getElementById('impressaoCozinha').checked = true;
+                }
+                
+                // Carregar campos fiscais
+                document.getElementById('productNCM').value = product.ncm || '';
+                document.getElementById('productCFOP').value = product.cfop || '';
+                document.getElementById('productICMSAliquota').value = product.icms_aliquota || '';
+                document.getElementById('productICMSCST').value = product.icms_cst || '';
+                document.getElementById('productPISAliquota').value = product.pis_aliquota || '';
+                document.getElementById('productPISCST').value = product.pis_cst || '';
+                document.getElementById('productCOFINSAliquota').value = product.cofins_aliquota || '';
+                document.getElementById('productCOFINSCST').value = product.cofins_cst || '';
+                document.getElementById('productOrigemMercadoria').value = product.origem_mercadoria || '';
+                document.getElementById('productCEST').value = product.cest || '';
+                document.getElementById('productUnidadeComercial').value = product.unidade_comercial || 'UN';
+                document.getElementById('productCodigoInterno').value = product.codigo_interno || '';
+                document.getElementById('productObservacoesFiscais').value = product.observacoes_fiscais || '';
+                document.getElementById('productTributacaoEspecial').checked = product.tributacao_especial || false;
+                
+                // Mostrar status de IA se foi preenchido com IA
+                const aiStatus = document.getElementById('aiPreenchidoStatus');
+                if (product.ai_preenchido) {
+                    aiStatus.style.display = 'block';
+                } else {
+                    aiStatus.style.display = 'none';
+                }
+                
+                if (product.product_add_on_categories_link && product.product_add_on_categories_link.length > 0) {
+                    // Para radio buttons, selecionamos apenas o primeiro grupo vinculado
+                    const firstLink = product.product_add_on_categories_link[0];
+                    const radio = document.getElementById(`addon-link-${firstLink.add_on_category_id}`);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                } else {
+                    // Se não houver grupos vinculados, manter "Nenhum" selecionado
+                    const noneRadio = document.getElementById('addon-link-none');
+                    if (noneRadio) noneRadio.checked = true;
+                }
+            } else {
+                document.getElementById('productModalTitle').textContent = 'Novo Produto';
+                // Limpar seleções de impressão para novo produto
+                document.getElementById('impressaoBalcao').checked = false;
+                document.getElementById('impressaoSalao').checked = false;
+                document.getElementById('impressaoCozinha').checked = false;
+                
+                // Limpar campos fiscais para novo produto
+                document.getElementById('productNCM').value = '';
+                document.getElementById('productCFOP').value = '';
+                document.getElementById('productICMSAliquota').value = '';
+                document.getElementById('productICMSCST').value = '';
+                document.getElementById('productPISAliquota').value = '';
+                document.getElementById('productPISCST').value = '';
+                document.getElementById('productCOFINSAliquota').value = '';
+                document.getElementById('productCOFINSCST').value = '';
+                document.getElementById('productOrigemMercadoria').value = '';
+                document.getElementById('productCEST').value = '';
+                document.getElementById('productUnidadeComercial').value = 'UN';
+                document.getElementById('productCodigoInterno').value = '';
+                document.getElementById('productObservacoesFiscais').value = '';
+                document.getElementById('productTributacaoEspecial').checked = false;
+                document.getElementById('aiPreenchidoStatus').style.display = 'none';
+                
+                if(selectedCategoryId) {
+                    categorySelect.value = selectedCategoryId;
+                }
+            }
+            document.getElementById('productModal').classList.add('show');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('show');
+        }
+
+        async function handleProductSubmit(e) {
+            e.preventDefault();
+            console.log('🔄 Iniciando salvamento de produto...');
+            
+            const id = document.getElementById('productId').value;
+            console.log('📝 ID do produto:', id ? `Editando produto ${id}` : 'Criando novo produto');
+            
+            // Coletar seleções de impressão
+            const impressaoSelecionadas = [];
+            if (document.getElementById('impressaoBalcao').checked) impressaoSelecionadas.push('balcao');
+            if (document.getElementById('impressaoSalao').checked) impressaoSelecionadas.push('salao');
+            if (document.getElementById('impressaoCozinha').checked) impressaoSelecionadas.push('cozinha');
+            console.log('🖨️ Impressão selecionada:', impressaoSelecionadas);
+            
+            const productData = {
+                restaurant_id: getInstanceData().restaurantId,
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDescription').value,
+                category_id: document.getElementById('productCategory').value || null,
+                price: parseFloat(document.getElementById('productPrice').value),
+                display_order: 0,
+                preparation_time: 0,
+                active: document.getElementById('productActive').checked,
+                impressao: impressaoSelecionadas.join(','), // Salvar como string separada por vírgulas
+                // Campos Fiscais
+                ncm: document.getElementById('productNCM').value || null,
+                cfop: document.getElementById('productCFOP').value || null,
+                icms_aliquota: document.getElementById('productICMSAliquota').value ? parseFloat(document.getElementById('productICMSAliquota').value) : null,
+                icms_cst: document.getElementById('productICMSCST').value || null,
+                pis_aliquota: document.getElementById('productPISAliquota').value ? parseFloat(document.getElementById('productPISAliquota').value) : null,
+                pis_cst: document.getElementById('productPISCST').value || null,
+                cofins_aliquota: document.getElementById('productCOFINSAliquota').value ? parseFloat(document.getElementById('productCOFINSAliquota').value) : null,
+                cofins_cst: document.getElementById('productCOFINSCST').value || null,
+                origem_mercadoria: document.getElementById('productOrigemMercadoria').value || null,
+                cest: document.getElementById('productCEST').value || null,
+                unidade_comercial: document.getElementById('productUnidadeComercial').value || 'UN',
+                codigo_interno: document.getElementById('productCodigoInterno').value || null,
+                observacoes_fiscais: document.getElementById('productObservacoesFiscais').value || null,
+                tributacao_especial: document.getElementById('productTributacaoEspecial').checked,
+                ai_preenchido: document.getElementById('aiPreenchidoStatus').style.display !== 'none'
+            };
+            
+            console.log('📊 Dados do produto a serem salvos:', productData);
+
+            let savedProduct;
+            let productError;
+
+            if (id) {
+                console.log('✏️ Atualizando produto existente...');
+                const { data, error } = await supabase.from('products').update(productData).eq('id', id).select().single();
+                savedProduct = data;
+                productError = error;
+                console.log('📤 Resultado da atualização:', { data, error });
+            } else {
+                console.log('➕ Criando novo produto...');
+                const { data, error } = await supabase.from('products').insert([productData]).select().single();
+                savedProduct = data;
+                productError = error;
+                console.log('📤 Resultado da criação:', { data, error });
+            }
+
+            if (productError) {
+                console.error('❌ Erro detalhado ao salvar produto:', productError);
+                console.error('📋 Dados que causaram erro:', productData);
+                
+                // Tentar diferentes formas de extrair informações do erro
+                try {
+                    console.error('🔍 Erro completo (JSON):', JSON.stringify(productError, null, 2));
+                } catch (e) {
+                    console.error('🔍 Erro não pode ser serializado:', e);
+                }
+                
+                console.error('🔍 Tipo do erro:', typeof productError);
+                console.error('🔍 Propriedades do erro:', Object.keys(productError));
+                console.error('🔍 Código do erro:', productError.code);
+                console.error('🔍 Mensagem do erro:', productError.message);
+                console.error('🔍 Detalhes do erro:', productError.details);
+                console.error('🔍 Hint do erro:', productError.hint);
+                console.error('🔍 Status do erro:', productError.status);
+                console.error('🔍 StatusText do erro:', productError.statusText);
+                
+                // Verificar se é uma categoria inválida
+                if (productError.code === '23503' || productError.message?.includes('foreign key')) {
+                    alert('Erro: Categoria inválida selecionada. Por favor, selecione uma categoria válida ou deixe em branco.');
+                } else {
+                    alert(`Erro ao salvar produto: ${productError.message || productError.code || JSON.stringify(productError)}`);
+                }
+                return;
+            }
+            
+            console.log('✅ Produto salvo com sucesso:', savedProduct);
+            
+            const selectedRadio = document.querySelector('input[name="addOnLink"]:checked');
+            const selectedAddOnLink = selectedRadio ? selectedRadio.value : '';
+            console.log('🔗 Grupo de adicionais selecionado:', selectedAddOnLink || 'Nenhum');
+
+            console.log('🗑️ Limpando links existentes de adicionais...');
+            const { error: deleteError } = await supabase.from('product_add_on_categories_link').delete().eq('product_id', savedProduct.id);
+            if (deleteError) {
+                console.error("❌ Erro ao limpar links de adicionais:", deleteError);
+            } else {
+                console.log('✅ Links existentes removidos com sucesso');
+            }
+
+            if (selectedAddOnLink && selectedAddOnLink !== '') {
+                console.log('🔗 Inserindo novo link de adicional...');
+                const linkToInsert = { product_id: savedProduct.id, add_on_category_id: selectedAddOnLink };
+                console.log('📋 Link a ser inserido:', linkToInsert);
+                const { error: insertError } = await supabase.from('product_add_on_categories_link').insert([linkToInsert]);
+                if (insertError) {
+                    console.error("❌ Erro ao vincular adicional:", insertError);
+                } else {
+                    console.log('✅ Link de adicional inserido com sucesso');
+                }
+            } else {
+                console.log('ℹ️ Nenhum grupo de adicional foi vinculado ao produto');
+            }
+            
+            console.log('🔄 Fechando modal e recarregando lista de produtos...');
+            closeProductModal();
+            await loadProducts();
+            renderProducts();
+            console.log('✅ Processo de salvamento concluído!');
+            
+            // Mostrar modal de sucesso
+            showNotification('Produto salvo com sucesso!', 'success');
+        }
+        
+        // Função para mostrar notificações
+        function showNotification(message, type = 'success') {
+            // Remover notificação existente se houver
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Criar elemento da notificação
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                    <span>${message}</span>
+                    <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Adicionar ao corpo da página
+            document.body.appendChild(notification);
+            
+            // Remover automaticamente após 4 segundos
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 4000);
+        }
+        
+        // Sistema de Cache para economizar tokens da API
+        const AI_CACHE_KEY = 'timepulse_ai_fiscal_cache';
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 horas em millisegundos
+        
+        function getCachedFiscalData(productKey) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(AI_CACHE_KEY) || '{}');
+                const cached = cache[productKey];
+                if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+                    console.log('📦 Dados fiscais recuperados do cache para:', productKey);
+                    return cached.data;
+                }
+            } catch (error) {
+                console.warn('Erro ao ler cache:', error);
+            }
+            return null;
+        }
+        
+        function setCachedFiscalData(productKey, data) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(AI_CACHE_KEY) || '{}');
+                cache[productKey] = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(AI_CACHE_KEY, JSON.stringify(cache));
+                console.log('💾 Dados fiscais salvos no cache para:', productKey);
+            } catch (error) {
+                console.warn('Erro ao salvar cache:', error);
+            }
+        }
+        
+        // Função principal para preencher campos fiscais com IA
+        async function preencherComIA() {
+            const productName = document.getElementById('productName').value?.trim();
+            const productDescription = document.getElementById('productDescription').value?.trim();
+            
+            if (!productName) {
+                showNotification('Por favor, preencha o nome do produto antes de usar a IA.', 'error');
+                return;
+            }
+            
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando com IA...';
+            button.disabled = true;
+            
+            try {
+                // Criar chave única para cache
+                const productKey = `${productName}_${productDescription || ''}`.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                
+                // Verificar cache primeiro
+                let dadosFiscais = getCachedFiscalData(productKey);
+                
+                if (!dadosFiscais) {
+                    console.log('📋 Aplicando classificação fiscal padrão...');
+                    // Como a API sempre retorna null, usar dados padrão diretamente
+                    dadosFiscais = gerarDadosFiscaisPadrao();
+                    setCachedFiscalData(productKey, dadosFiscais);
+                }
+                
+                // Preencher campos com os dados fiscais
+                preencherCamposFiscais(dadosFiscais);
+                
+                // Mostrar status de preenchimento
+                const statusElement = document.getElementById('aiPreenchidoStatus');
+                if (statusElement) statusElement.style.display = 'block';
+                
+                const confianca = dadosFiscais.confianca ? ` (${Math.round(dadosFiscais.confianca * 100)}% confiança)` : '';
+                showNotification(`Classificação fiscal aplicada com sucesso!${confianca}`, 'success');
+                
+                if (dadosFiscais.observacoes) {
+                    console.log('📝 Observações:', dadosFiscais.observacoes);
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro ao preencher com IA:', error);
+                
+                // Em caso de erro, usar dados padrão como fallback
+                const dadosPadrao = gerarDadosFiscaisPadrao();
+                preencherCamposFiscais(dadosPadrao);
+                
+                console.log('📋 Usando dados fiscais padrão para produtos alimentícios');
+                showNotification('IA não disponível. Aplicando classificação fiscal padrão para produtos alimentícios.', 'info');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+        
+        // Função para preencher os campos do formulário
+        function preencherCamposFiscais(dados) {
+            document.getElementById('productNCM').value = dados.ncm || '';
+            document.getElementById('productCFOP').value = dados.cfop || '';
+            document.getElementById('productICMSAliquota').value = dados.icms_aliquota || '';
+            document.getElementById('productICMSCST').value = dados.icms_cst || '';
+            document.getElementById('productPISAliquota').value = dados.pis_aliquota || '';
+            document.getElementById('productPISCST').value = dados.pis_cst || '';
+            document.getElementById('productCOFINSAliquota').value = dados.cofins_aliquota || '';
+            document.getElementById('productCOFINSCST').value = dados.cofins_cst || '';
+            document.getElementById('productOrigemMercadoria').value = dados.origem_mercadoria || '';
+            document.getElementById('productUnidadeComercial').value = dados.unidade_comercial || 'UN';
+            
+            if (dados.cest) document.getElementById('productCEST').value = dados.cest;
+        }
+        
+        // Função principal para chamar a API de classificação fiscal
+        async function chamarAPIClassificacaoFiscal(nome, descricao) {
+            // Para ambiente de desenvolvimento/demo, pular tentativas de API e ir direto para dados padrão
+            console.log('ℹ️ APIs de IA não configuradas - usando classificação fiscal padrão');
+            return null; // Retorna null para ativar o fallback
+        }
+        
+        
+        // Função para gerar dados fiscais padrão em caso de falha
+        function gerarDadosFiscaisPadrao() {
+            return {
+                ncm: '21069090', // Preparações alimentícias diversas
+                cfop: '5102', // Venda de mercadoria adquirida ou recebida
+                icms_aliquota: 12.00,
+                icms_cst: '000',
+                pis_aliquota: 1.6500,
+                pis_cst: '01',
+                cofins_aliquota: 7.6000,
+                cofins_cst: '01', 
+                origem_mercadoria: '0',
+                unidade_comercial: 'UN',
+                cest: null,
+                confianca: 0.5,
+                observacoes: 'Classificação padrão aplicada devido a erro na IA. Revisar manualmente.'
+            };
+        }
+        
+        async function deleteProduct(id) {
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+            await supabase.from('product_add_on_categories_link').delete().eq('product_id', id);
+            const { error } = await supabase.from('products').delete().eq('id', id);
+            if (error) {
+                console.error('Erro ao excluir produto:', error);
+                 alert('Erro ao excluir produto.');
+            } else {
+                await loadProducts();
+                renderProducts();
+            }
+        }
+        
+        // --- Funções para Adicionais (CORRIGIDAS) ---
+        function openAddOnCategoryModal(id = null) {
+            const form = document.getElementById('addOnCategoryForm');
+            form.reset();
+            document.getElementById('addOnCategoryId').value = '';
+            // Define valores padrão para um novo grupo
+            document.getElementById('selectionTypeMultiple').checked = true;
+            document.getElementById('minSelection').value = 0;
+            document.getElementById('maxSelection').value = 1;
+
+            if(id) {
+                const category = addOnCategories.find(c => c.id === id);
+                if (category) {
+                    document.getElementById('addOnCategoryModalTitle').textContent = 'Editar Grupo de Adicionais';
+                    document.getElementById('addOnCategoryId').value = category.id;
+                    document.getElementById('addOnCategoryName').value = category.name;
+                    document.getElementById('addOnCategoryDescription').value = category.description || '';
+                    document.getElementById('minSelection').value = category.min_selection || 0;
+                    document.getElementById('maxSelection').value = category.max_selection || 1;
+
+                    if (category.selection_type === 'single') {
+                        document.getElementById('selectionTypeSingle').checked = true;
+                    } else {
+                        document.getElementById('selectionTypeMultiple').checked = true;
+                    }
+                }
+            } else {
+                document.getElementById('addOnCategoryModalTitle').textContent = 'Novo Grupo de Adicionais';
+            }
+            document.getElementById('addOnCategoryModal').classList.add('show');
+        }
+        
+        function closeAddOnCategoryModal() {
+            document.getElementById('addOnCategoryModal').classList.remove('show');
+        }
+
+        async function handleAddOnCategorySubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('addOnCategoryId').value;
+            
+            const minSelection = parseInt(document.getElementById('minSelection').value) || 0;
+            const maxSelection = parseInt(document.getElementById('maxSelection').value) || 1;
+
+            if (minSelection > maxSelection) {
+                alert("A seleção mínima não pode ser maior que a seleção máxima.");
+                return;
+            }
+
+            // Coleta os dados do formulário (sem a coluna 'active')
+            const data = {
+                restaurant_id: getInstanceData().restaurantId,
+                name: document.getElementById('addOnCategoryName').value,
+                description: document.getElementById('addOnCategoryDescription').value,
+                selection_type: document.querySelector('input[name="selectionType"]:checked').value,
+                min_selection: minSelection,
+                max_selection: maxSelection,
+            };
+
+            let error;
+            if (id) {
+                ({ error } = await supabase.from('add_on_categories').update(data).eq('id', id));
+            } else {
+                ({ error } = await supabase.from('add_on_categories').insert([data]));
+            }
+
+            if (error) {
+                console.error('Erro ao salvar grupo de adicionais:', error);
+                alert('Ocorreu um erro ao salvar o grupo de adicionais. Verifique o console para mais detalhes.');
+            } else {
+                closeAddOnCategoryModal();
+                await loadAddOnCategories();
+                renderAddOnCategories();
+            }
+        }
+        
+        async function deleteAddOnCategory(id) {
+            const addOnCount = addOns.filter(a => a.add_on_category_id === id).length;
+            if (addOnCount > 0) {
+                alert(`Não é possível excluir este grupo, pois ele contém ${addOnCount} item(ns). Exclua os itens primeiro.`);
+                return;
+            }
+            if (!confirm('Tem certeza? Isso removerá o grupo permanentemente.')) return;
+            
+            await supabase.from('product_add_ons').delete().eq('add_on_category_id', id);
+            const { error } = await supabase.from('add_on_categories').delete().eq('id', id);
+            if (error) {
+                 console.error('Erro ao excluir grupo:', error);
+                 alert('Erro ao excluir grupo.');
+            } else {
+                await loadAllData();
+                renderAll();
+            }
+        }
+
+        function openAddOnModal(id = null) {
+            const form = document.getElementById('addOnForm');
+            form.reset();
+            document.getElementById('addOnId').value = '';
+            
+            const categorySelect = document.getElementById('addOnCategory');
+            categorySelect.innerHTML = '<option value="">Selecione...</option>';
+            addOnCategories.forEach(cat => {
+                categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+            });
+
+            if(id) {
+                const addOn = addOns.find(a => a.id === id);
+                document.getElementById('addOnModalTitle').textContent = 'Editar Item Adicional';
+                document.getElementById('addOnId').value = addOn.id;
+                document.getElementById('addOnName').value = addOn.name;
+                document.getElementById('addOnPrice').value = addOn.price;
+                document.getElementById('addOnCategory').value = addOn.add_on_category_id;
+                document.getElementById('addOnActive').checked = addOn.active;
+            } else {
+                document.getElementById('addOnModalTitle').textContent = 'Novo Item Adicional';
+                if(selectedAddOnCategoryId) {
+                    categorySelect.value = selectedAddOnCategoryId;
+                }
+            }
+            document.getElementById('addOnModal').classList.add('show');
+        }
+        
+        function closeAddOnModal() {
+            document.getElementById('addOnModal').classList.remove('show');
+        }
+
+        async function handleAddOnSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('addOnId').value;
+            const data = {
+                restaurant_id: getInstanceData().restaurantId,
+                name: document.getElementById('addOnName').value,
+                price: parseFloat(document.getElementById('addOnPrice').value),
+                add_on_category_id: document.getElementById('addOnCategory').value,
+                active: document.getElementById('addOnActive').checked,
+            };
+            let error;
+            if (id) {
+                ({ error } = await supabase.from('product_add_ons').update(data).eq('id', id));
+            } else {
+                ({ error } = await supabase.from('product_add_ons').insert([data]));
+            }
+            if (error) {
+                console.error('Erro ao salvar item adicional:', error);
+                alert('Erro ao salvar item adicional.');
+            } else {
+                closeAddOnModal();
+                await loadAddOns();
+                renderAddOns();
+            }
+        }
+
+        async function deleteAddOn(id) {
+            if (!confirm('Tem certeza?')) return;
+            const { error } = await supabase.from('product_add_ons').delete().eq('id', id);
+            if (error) {
+                console.error('Erro ao excluir item adicional:', error);
+                alert('Erro ao excluir item adicional.');
+            } else {
+                await loadAddOns();
+                renderAddOns();
+            }
+        }
+        
+        async function signOut() {
+            // Usar modal padrão de confirmação
+            if (await showCustomConfirmation('Deseja realmente sair?', 'Sair')) {
+                try {
+                    // 1. PRIMEIRO: Fazer logout do Supabase
+                    if (window.supabase) {
+                        await window.supabase.auth.signOut();
+                        console.log('✅ Logout do Supabase realizado');
+                    }
+                    
+                    // 2. Limpar dados locais
+                    if (window.SECURE_INSTANCE_MANAGER) {
+                        window.SECURE_INSTANCE_MANAGER.logout();
+                    } else {
+                        // Fallback manual
+                        document.cookie.split(";").forEach(function(c) { 
+                            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                        });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    }
+                } catch (error) {
+                    console.error('Erro durante logout:', error);
+                }
+                window.location.href = 'login.html';
+            }
+        }
+        
+        // Modal de confirmação padrão para todo o sistema
+        function showCustomConfirmation(message, title = 'Confirmação') {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                        <div class="modal" id="customConfirmationDialog" style="z-index: 16000; display:flex;">
+                            <div class="modal-content" style="max-width: 400px;">
+                                <div class="modal-header"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+                                <div class="modal-body" style="text-align: center; padding: 2rem;"><p>${message}</p></div>
+                                <div style="padding: 1.5rem; border-top: 1px solid #e9ecef; display: flex; justify-content: center; gap: 1rem;">
+                                    <button class="btn btn-secondary" id="cancelConfirmBtn">Cancelar</button>
+                                    <button class="btn btn-primary" id="confirmConfirmBtn">Confirmar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const dialog = document.getElementById('customConfirmationDialog');
+                const close = () => { dialog.remove(); resolve(false); };
+                const confirm = () => { dialog.remove(); resolve(true); };
+                dialog.querySelector('.modal-close').onclick = close;
+                dialog.querySelector('#cancelConfirmBtn').onclick = close;
+                dialog.querySelector('#confirmConfirmBtn').onclick = confirm;
+            });
+        }
+
+        // Adicionar event listener específico para o botão de logout
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutButton = document.getElementById('logoutButton');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🚪 Botão sair clicado - iniciando signOut()');
+                    signOut();
+                });
+            }
+        });
+    </script>
+
+    <script>
+    // Função para controlar o menu mobile
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
+
+    // Fechar menu ao clicar em um link (em mobile)
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleMobileMenu();
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

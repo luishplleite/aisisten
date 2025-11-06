@@ -1,0 +1,193 @@
+# Documentação Completa: Progressive Web Apps (PWA)
+
+**Autor:** Manus AI
+**Data:** 28 de Outubro de 2025
+
+## 1. Introdução e Conceitos Fundamentais
+
+Uma **Progressive Web App (PWA)** é uma aplicação construída com tecnologias web (HTML, CSS, JavaScript) que oferece uma experiência de usuário similar à de uma aplicação nativa de plataforma [1]. O conceito central da PWA é combinar o alcance universal da web com as capacidades avançadas das aplicações nativas.
+
+As PWAs são caracterizadas por serem:
+
+*   **Progressivas:** Funcionam para qualquer usuário, independentemente da escolha do navegador, e são aprimoradas progressivamente para navegadores mais modernos.
+*   **Responsivas:** Adaptam-se a qualquer formato ou tamanho de ecrã.
+*   **Independentes de Conectividade:** Funcionam offline ou em redes de baixa qualidade, graças aos **Service Workers**.
+*   **Semelhantes a Aplicações (App-like):** Oferecem uma experiência de utilizador fluida e com navegação semelhante a uma aplicação nativa.
+*   **Instaláveis:** Podem ser instaladas no ecrã inicial do dispositivo, sem a necessidade de uma loja de aplicações.
+*   **Seguras:** Exigem o protocolo **HTTPS** para garantir a segurança dos dados e a integridade do Service Worker [2].
+
+## 2. Componentes Essenciais da PWA
+
+Para que uma aplicação web seja considerada uma PWA, ela deve implementar pelo menos dois componentes cruciais: o **Web App Manifest** e o **Service Worker**.
+
+### 2.1. Web App Manifest
+
+O **Web App Manifest** é um ficheiro JSON que fornece informações sobre a aplicação ao sistema operativo e ao navegador. É essencial para a funcionalidade de instalação da PWA, definindo como ela deve aparecer no dispositivo do usuário [3].
+
+| Membro Essencial | Descrição | Exemplo |
+| :--- | :--- | :--- |
+| `name` | Nome completo da aplicação. | `"Minha Primeira PWA"` |
+| `short_name` | Nome curto, usado em espaços limitados (ex: ecrã inicial). | `"MinhaPWA"` |
+| `icons` | Array de objetos de ícones, crucial para a instalação e ecrã de *splash*. | `[{ "src": "/icon-512x512.png", "sizes": "512x512", "type": "image/png" }]` |
+| `start_url` | URL que deve ser carregada quando a aplicação é iniciada. | `"/index.html"` |
+| `display` | Define o modo de exibição. O mais comum é o `standalone`. | `"standalone"` |
+| `theme_color` | Cor da barra de ferramentas do navegador e da barra de título da janela da aplicação. | `"#2196F3"` |
+| `background_color` | Cor de fundo exibida no ecrã de *splash* enquanto a aplicação carrega. | `"#2196F3"` |
+| `scope` | Define o conjunto de URLs que o navegador considera parte da aplicação. | `"/"` |
+
+**Exemplo de Manifest (`manifest.webmanifest`):**
+
+```json
+{
+  "short_name": "MinhaPWA",
+  "name": "Minha Primeira Progressive Web App",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#2196F3",
+  "theme_color": "#2196F3",
+  "description": "Um exemplo básico de PWA.",
+  "lang": "pt-BR"
+}
+```
+
+O Manifest deve ser ligado ao HTML através da *tag* `<link>` no `<head>`:
+
+```html
+<link rel="manifest" href="/manifest.webmanifest">
+```
+
+### 2.2. Service Worker
+
+O **Service Worker** é um *script* JavaScript que o navegador executa em segundo plano, separado da página web. Ele atua como um *proxy* de rede programável, permitindo o controlo de requisições de rede, o *caching* de recursos e a funcionalidade offline [4].
+
+O Service Worker é a chave para as PWAs serem independentes de conectividade.
+
+**Ciclo de Vida do Service Worker:**
+
+1.  **Registo:** O Service Worker é registado a partir do código JavaScript da página principal.
+2.  **Instalação:** O evento `install` é disparado. É aqui que os recursos essenciais são armazenados em *cache* (geralmente usando a **Cache API**).
+3.  **Ativação:** O evento `activate` é disparado. É o momento ideal para limpar *caches* antigos.
+4.  **Funcionamento:** O evento `fetch` é disparado para todas as requisições de rede dentro do seu *scope*. O Service Worker pode interceptar a requisição e decidir se deve servir o recurso a partir do *cache* ou da rede.
+
+**Exemplo de Registo do Service Worker (`index.html`):**
+
+```javascript
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('ServiceWorker registado com sucesso no escopo: ', registration.scope);
+            })
+            .catch(error => {
+                console.log('Falha no registo do ServiceWorker: ', error);
+            });
+    });
+}
+```
+
+**Exemplo de Service Worker Básico (`sw.js`):**
+
+```javascript
+// Nome do cache
+const CACHE_NAME = 'pwa-cache-v1';
+
+// Arquivos a serem cacheados durante a instalação
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/manifest.webmanifest',
+  '/icons/icon-192x192.png'
+];
+
+// Evento de instalação: armazena os arquivos essenciais no cache
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Evento de 'fetch': intercepta requisições e serve do cache (Cache-First Strategy)
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Retorna o recurso do cache se encontrado
+        if (response) {
+          return response;
+        }
+        // Caso contrário, busca na rede
+        return fetch(event.request);
+      })
+  );
+});
+
+// Evento de ativação: limpa caches antigos
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // Deleta caches que não estão na whitelist (caches de versões antigas)
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+```
+
+## 3. Requisitos de Instalabilidade
+
+Para que um navegador ofereça a opção de instalação (o chamado *prompt* de instalação ou "Add to Home Screen" - A2HS), a PWA deve cumprir os seguintes critérios mínimos (podem variar ligeiramente por navegador) [2]:
+
+| Requisito | Detalhe |
+| :--- | :--- |
+| **HTTPS** | A aplicação deve ser servida através de uma conexão segura (HTTPS). |
+| **Manifest** | Deve incluir um Web App Manifest válido, com os campos `name`, `short_name`, `start_url`, `display` (`standalone` ou `fullscreen`) e um array `icons` com pelo menos um ícone de 192x192px e outro de 512x512px. |
+| **Service Worker** | Deve ter um Service Worker registado que inclua um *handler* para o evento `fetch`, permitindo o funcionamento offline. |
+| **Experiência do Usuário** | O usuário deve ter interagido com a aplicação por um período mínimo (critério que varia, mas geralmente implica uma visita de alguns segundos). |
+| **Meta Tag** | Opcionalmente, incluir `<meta name="theme-color" content="...">` no HTML. |
+
+## 4. Melhores Práticas para PWAs
+
+Para construir PWAs de alta qualidade, é recomendável seguir as seguintes práticas:
+
+1.  **Performance:** O tempo de carregamento deve ser rápido. Utilize o Service Worker para implementar estratégias de *caching* agressivas (*Cache-First* para recursos estáticos, *Network-First* para dados dinâmicos) [5].
+2.  **Acessibilidade:** Garanta que a aplicação seja acessível a todos os utilizadores, incluindo aqueles que utilizam tecnologias de assistência.
+3.  **Design Responsivo:** O design deve adaptar-se perfeitamente a todos os dispositivos, desde telemóveis a *desktops*.
+4.  **Notificações Push:** Utilize a **Push API** e a **Notifications API** (através do Service Worker) para enviar notificações relevantes, mesmo quando a aplicação está fechada.
+5.  **Sincronização em Segundo Plano:** Utilize a **Background Synchronization API** para adiar o envio de dados (como mensagens de chat) até que o utilizador tenha uma conexão estável, melhorando a experiência offline.
+6.  **Otimização de Ícones:** Forneça ícones *maskable* (com `purpose: "maskable"`) para garantir que o ícone da PWA se adapte às diferentes formas de ícones utilizadas em sistemas operativos como o Android [3].
+
+---
+## Referências
+
+[1] **Progressive web apps**. MDN Web Docs. Disponível em: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps
+
+[2] **¿Qué se necesita para que una Aplicación Web Progresiva...**. web.dev. Disponível em: https://web.dev/articles/pwa-checklist?hl=es
+
+[3] **Web application manifest**. MDN Web Docs. Disponível em: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest
+
+[4] **Service workers**. web.dev. Disponível em: https://web.dev/learn/pwa/service-workers
+
+[5] **Best practices for PWAs**. MDN Web Docs. Disponível em: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Best_practices
